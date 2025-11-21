@@ -1,0 +1,14 @@
+# Ignore common files
+node_modules/
+dist/
+dist-ssr/
+*.log
+.vscode/*
+.idea/
+.DS_Store
+
+# Explicitly allow .env files to be visible (override .gitignore *.local pattern)
+!.env*
+!.env.local
+!.env.*.local
+

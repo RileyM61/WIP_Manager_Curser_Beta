@@ -1,0 +1,5 @@
+{
+  "name": "WIP Insights",
+  "description": "A web application for a construction company to manage Work In Process (WIP) jobs. It allows adding, editing, and tracking jobs with different statuses, views, and sorting options.",
+  "requestFramePermissions": []
+}
