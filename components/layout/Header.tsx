@@ -16,14 +16,7 @@ interface HeaderProps {
   projectManagers: string[];
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
-  cashOnHand: number;
 }
-
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 0,
-});
 
 const Header: React.FC<HeaderProps> = ({
   companyName,
@@ -38,7 +31,6 @@ const Header: React.FC<HeaderProps> = ({
   projectManagers,
   activeProjectManager,
   onActiveProjectManagerChange,
-  cashOnHand,
 }) => {
   const [imageError, setImageError] = useState(false);
 
@@ -97,12 +89,6 @@ const Header: React.FC<HeaderProps> = ({
                     <option key={pm} value={pm}>{pm}</option>
                   ))}
                 </select>
-              </div>
-            )}
-            {userRole === 'owner' && (
-              <div className="hidden md:flex items-center space-x-2 bg-green-50 dark:bg-green-900/30 px-3 py-1 rounded-md border border-green-200 dark:border-green-700">
-                <span className="text-xs font-semibold uppercase text-green-700 dark:text-green-300">Cash</span>
-                <span className="text-sm font-bold text-green-700 dark:text-green-300">{currencyFormatter.format(cashOnHand)}</span>
               </div>
             )}
             <button

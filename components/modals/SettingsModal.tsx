@@ -26,12 +26,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    if (name === 'cashOnHand') {
-      const numericValue = Number(value);
-      setCurrentSettings(prev => ({ ...prev, cashOnHand: isNaN(numericValue) ? 0 : numericValue }));
-      return;
-    }
-
     if (name === 'defaultRole') {
       setCurrentSettings(prev => ({ ...prev, defaultRole: value as UserRole }));
       return;
@@ -139,33 +133,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                       />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="cashOnHand" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Cash On Hand</label>
-                      <input
-                        type="number"
-                        name="cashOnHand"
-                        id="cashOnHand"
-                        value={currentSettings.cashOnHand}
-                        onChange={handleChange}
-                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
-                        min={0}
-                        step={1000}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="defaultRole" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Default Role</label>
-                      <select
-                        name="defaultRole"
-                        id="defaultRole"
-                        value={currentSettings.defaultRole}
-                        onChange={handleChange}
-                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
-                      >
-                        <option value="owner">Owner</option>
-                        <option value="projectManager">Project Manager</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label htmlFor="defaultRole" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Default Role</label>
+                    <select
+                      name="defaultRole"
+                      id="defaultRole"
+                      value={currentSettings.defaultRole}
+                      onChange={handleChange}
+                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
+                    >
+                      <option value="owner">Owner</option>
+                      <option value="projectManager">Project Manager</option>
+                    </select>
                   </div>
 
                   <div>

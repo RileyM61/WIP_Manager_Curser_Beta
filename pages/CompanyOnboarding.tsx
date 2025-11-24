@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 const CompanyOnboarding: React.FC = () => {
@@ -45,7 +45,6 @@ const CompanyOnboarding: React.FC = () => {
           week_end_day: 'Friday',
           default_status: 'Future',
           default_role: 'owner',
-          cash_on_hand: 0,
           capacity_enabled: false,
           capacity_plan_id: null,
         });

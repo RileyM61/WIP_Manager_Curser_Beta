@@ -4,7 +4,6 @@ import { Job, CostBreakdown, JobStatus, JobsSnapshot, CapacityPlan, CapacityRow 
 interface CompanyViewProps {
   jobs: Job[];
   snapshot: JobsSnapshot | null;
-  cashOnHand: number;
   projectManagers: string[];
   capacityPlan?: CapacityPlan | null;
   capacityEnabled: boolean;
@@ -48,7 +47,7 @@ const calculateTotalEarnedRevenue = (jobList: Job[]): number => {
   }, 0);
 };
 
-const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, cashOnHand, projectManagers, capacityPlan, capacityEnabled, onEditCapacity }) => {
+const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManagers, capacityPlan, capacityEnabled, onEditCapacity }) => {
   
   const jobsWithMetrics = jobs.map(job => {
     const totalContract = sumBreakdown(job.contract);
@@ -75,13 +74,6 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, cashOnHand, p
 
     return { ...job, profitMargin, billingDifference, daysOpen };
   });
-
-  const totalCostToComplete = jobsWithMetrics.reduce((acc, job) => acc + sumBreakdown(job.costToComplete), 0);
-  const totalCosts = jobsWithMetrics.reduce((acc, job) => acc + sumBreakdown(job.costs), 0);
-  const totalInvoiced = jobsWithMetrics.reduce((acc, job) => acc + sumBreakdown(job.invoiced), 0);
-  const remainingSpend = Math.max(totalCosts + totalCostToComplete - totalInvoiced, 0);
-  const cashCoverage = cashOnHand - remainingSpend;
-  const cashCoverageStatus = cashCoverage >= 0 ? 'Covered' : 'Shortfall';
 
   const backlogToEarn = jobs.reduce((acc, job) => {
     const totalContract = sumBreakdown(job.contract);
@@ -168,18 +160,6 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, cashOnHand, p
             </p>
             <p className="text-xs text-gray-400 dark:text-gray-500">
               Earned this week: {currencyFormatter.format(weeklyEarnedRevenue)} (since {snapshotDate})
-            </p>
-          </div>
-          <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Cash Coverage vs Remaining Spend</p>
-            <p className={`text-2xl font-bold ${cashCoverage >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {currencyFormatter.format(cashCoverage)}
-            </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">
-              Cash on hand: {currencyFormatter.format(cashOnHand)} • Remaining spend: {currencyFormatter.format(remainingSpend)}
-            </p>
-            <p className={`text-xs font-semibold uppercase ${cashCoverage >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {cashCoverageStatus}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">

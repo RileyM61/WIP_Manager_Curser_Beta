@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Settings, CapacityPlan, StaffingDiscipline } from '../types';
-import { supabase, isSupabaseConfigured } from '../supabaseClient';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const DEFAULT_CAPACITY_ROWS = [
   { discipline: StaffingDiscipline.ProjectManagement, label: 'Project Management', headcount: 3, hoursPerPerson: 40, committedHours: 110 },
@@ -89,7 +89,6 @@ export function useSupabaseSettings(companyId?: string | null) {
         weekEndDay: data.week_end_day,
         defaultStatus: data.default_status,
         defaultRole: data.default_role,
-        cashOnHand: Number(data.cash_on_hand),
         capacityEnabled,
         capacityPlan,
         companyLogo: data.company_logo || undefined,
@@ -185,7 +184,6 @@ export function useSupabaseSettings(companyId?: string | null) {
           week_end_day: newSettings.weekEndDay,
           default_status: newSettings.defaultStatus,
           default_role: newSettings.defaultRole,
-          cash_on_hand: newSettings.cashOnHand,
           capacity_plan_id: capacityPlanId,
           capacity_enabled: newSettings.capacityEnabled,
           company_logo: newSettings.companyLogo || null,

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Job } from '../types';
-import { supabase, isSupabaseConfigured } from '../supabaseClient';
-import { dbJobToAppJob, appJobToDbJob } from './supabaseHelpers';
+import { supabase, isSupabaseConfigured, dbJobToAppJob, appJobToDbJob } from '../lib/supabase';
 
 export function useSupabaseJobs(companyId?: string | null) {
   const [jobs, setJobs] = useState<Job[]>([]);

@@ -8,7 +8,7 @@ interface JobTableProps {
   onEdit: (job: Job) => void;
   onOpenNotes: (job: Job) => void;
   userRole: UserRole;
-  focusMode: 'default' | 'pm-at-risk' | 'pm-late' | 'owner-cashflow';
+  focusMode: 'default' | 'pm-at-risk' | 'pm-late';
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -109,9 +109,7 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole
                 ? 'ring-1 ring-red-400 dark:ring-red-500'
                 : focusMode === 'pm-late' && isBehindSchedule
                   ? 'ring-1 ring-yellow-400 dark:ring-yellow-500'
-                  : focusMode === 'owner-cashflow' && underBilled
-                    ? 'ring-1 ring-amber-400 dark:ring-amber-500'
-                    : '';
+                  : '';
             
             return (
             <tr key={job.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${rowHighlightClass}`}>

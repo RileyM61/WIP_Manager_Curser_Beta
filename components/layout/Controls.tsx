@@ -17,8 +17,8 @@ interface ControlsProps {
   setPmFilter: (pm: string) => void;
   projectManagers: string[];
   userRole: UserRole;
-  focusMode: 'default' | 'pm-at-risk' | 'pm-late' | 'owner-cashflow';
-  onQuickFilterSelect: (quick: 'owner-backlog' | 'owner-cashflow' | 'owner-capacity' | 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
+  focusMode: 'default' | 'pm-at-risk' | 'pm-late';
+  onQuickFilterSelect: (quick: 'owner-backlog' | 'owner-capacity' | 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
 }
@@ -56,7 +56,6 @@ const Controls: React.FC<ControlsProps> = ({
   const showJobControls = filter !== 'company' && filter !== 'forecast';
 
   const ownerBacklogActive = userRole === 'owner' && filter === 'forecast' && focusMode === 'default';
-  const ownerCashflowActive = userRole === 'owner' && focusMode === 'owner-cashflow';
   const ownerCapacityActive = userRole === 'owner' && filter === 'company' && focusMode === 'default';
 
   const pmMyJobsActive = userRole === 'projectManager' && focusMode === 'default' && filter === JobStatus.Active && pmFilter === activePmForFilter;
@@ -111,14 +110,6 @@ const Controls: React.FC<ControlsProps> = ({
             }`}
           >
             Backlog Lens
-          </button>
-          <button
-            onClick={() => onQuickFilterSelect('owner-cashflow')}
-            className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              ownerCashflowActive ? 'bg-brand-blue text-white shadow' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            Cash Flow Risks
           </button>
           <button
             onClick={() => onQuickFilterSelect('owner-capacity')}

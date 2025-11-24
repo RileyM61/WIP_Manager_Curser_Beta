@@ -7,7 +7,7 @@ import React, {
   useCallback,
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 
 interface ProfileRow {
   user_id: string;

@@ -87,7 +87,6 @@ export interface Settings {
   defaultStatus: JobStatus;
   companyLogo?: string;
   defaultRole: UserRole;
-  cashOnHand: number;
   capacityEnabled: boolean;
   capacityPlan?: CapacityPlan | null;
   companyId?: string;

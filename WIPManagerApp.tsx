@@ -197,16 +197,14 @@ const initialSettings: Settings = {
     weekEndDay: 'Friday',
     defaultStatus: JobStatus.Future,
     defaultRole: 'owner',
-    cashOnHand: 4500000,
     capacityEnabled: true,
     capacityPlan: cloneCapacityPlan(baseCapacityPlan),
 };
 
-type FocusMode = 'default' | 'pm-at-risk' | 'pm-late' | 'owner-cashflow';
+type FocusMode = 'default' | 'pm-at-risk' | 'pm-late';
 
 type QuickFilterKey =
   | 'owner-backlog'
-  | 'owner-cashflow'
   | 'owner-capacity'
   | 'pm-my-jobs'
   | 'pm-at-risk'
@@ -403,12 +401,6 @@ function App() {
         setFilter('forecast');
         setViewMode('table');
         setPmFilter('all');
-        break;
-      case 'owner-cashflow':
-        setFilter(JobStatus.Active);
-        setPmFilter('all');
-        setViewMode('table');
-        setFocusMode('owner-cashflow');
         break;
       case 'owner-capacity':
         setFocusMode('default');
@@ -620,12 +612,6 @@ function App() {
       });
     } else if (focusMode === 'pm-late') {
       filteredJobs = filteredJobs.filter(job => isJobBehindTargetDate(job));
-    } else if (focusMode === 'owner-cashflow') {
-      filteredJobs = filteredJobs.filter(job => {
-        const totalInvoiced = sumBreakdown(job.invoiced);
-        const totalCosts = sumBreakdown(job.costs);
-        return totalInvoiced < totalCosts;
-      });
     }
 
     return filteredJobs.sort((a, b) => {
@@ -668,7 +654,6 @@ function App() {
         <CompanyView
           jobs={jobs}
           snapshot={snapshot}
-          cashOnHand={settings.cashOnHand}
           projectManagers={settings.projectManagers}
           capacityPlan={settings.capacityPlan || null}
           capacityEnabled={settings.capacityEnabled}
@@ -747,7 +732,6 @@ function App() {
         projectManagers={settings.projectManagers}
         activeProjectManager={activeProjectManager}
         onActiveProjectManagerChange={handleActivePmChange}
-        cashOnHand={settings.cashOnHand}
       />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">

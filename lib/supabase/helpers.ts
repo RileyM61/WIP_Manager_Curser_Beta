@@ -1,4 +1,4 @@
-import { Job, Note, CostBreakdown, JobStatus } from '../types';
+import { Job, Note, JobStatus } from '../../types';
 
 // Transform Supabase job row to app Job type
 export function dbJobToAppJob(dbJob: any): Job {

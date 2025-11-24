@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
 type AuthMode = 'login' | 'signup';

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { Note } from '../types';
-import { supabase, isSupabaseConfigured } from '../supabaseClient';
-import { dbNoteToAppNote } from './supabaseHelpers';
+import { supabase, isSupabaseConfigured, dbNoteToAppNote } from '../lib/supabase';
 
 export function useSupabaseNotes(companyId?: string | null) {
   const loadNotes = useCallback(async (jobId: string): Promise<Note[]> => {
