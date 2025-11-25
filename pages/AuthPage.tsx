@@ -62,7 +62,7 @@ const AuthPage: React.FC = () => {
           <img 
             src="/images/wip-insights-logo.png" 
             alt="WIP-Insights" 
-            className="h-36 w-auto mx-auto mb-4"
+            className="h-72 w-auto mx-auto mb-4"
           />
           <h1 className="mt-4 text-3xl font-semibold">{headerCopy.title}</h1>
           <p className="mt-2 text-sm text-slate-200">{headerCopy.subtitle}</p>

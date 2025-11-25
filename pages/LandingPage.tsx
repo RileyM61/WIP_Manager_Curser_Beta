@@ -504,7 +504,7 @@ const plans = [
               <img 
                 src="/images/wip-insights-logo.png" 
                 alt="WIP-Insights" 
-                className="h-28 w-auto"
+                className="h-56 w-auto"
               />
             </div>
             <button
@@ -854,7 +854,7 @@ const plans = [
               <img 
                 src="/images/wip-insights-logo.png" 
                 alt="WIP-Insights" 
-                className="h-20 w-auto"
+                className="h-40 w-auto"
               />
             </div>
 
