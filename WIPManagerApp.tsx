@@ -5,6 +5,7 @@ import { useSupabaseJobs } from './hooks/useSupabaseJobs';
 import { useSupabaseSettings } from './hooks/useSupabaseSettings';
 import { useSupabaseNotes } from './hooks/useSupabaseNotes';
 import { useAuth } from './context/AuthContext';
+import { exportJobsToCSV } from './lib/exportUtils';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
 import JobCardGrid from './components/jobs/JobCardGrid';
@@ -754,6 +755,8 @@ function App() {
             onQuickFilterSelect={handleQuickFilterSelect}
             activeProjectManager={activeProjectManager}
             onActiveProjectManagerChange={handleActivePmChange}
+            onExportCSV={() => exportJobsToCSV(sortedAndFilteredJobs, 'wip-jobs-export')}
+            jobCount={sortedAndFilteredJobs.length}
           />
 
           <div>
