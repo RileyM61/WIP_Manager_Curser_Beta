@@ -1,4 +1,6 @@
 import { Job, CostBreakdown } from '../types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 /**
  * Sums the labor, material, and other fields of a CostBreakdown
@@ -11,6 +13,12 @@ const sumBreakdown = (breakdown: CostBreakdown): number =>
  */
 const formatCurrency = (value: number): string => 
   value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * Formats a number as currency with dollar sign
+ */
+const formatCurrencyWithSymbol = (value: number): string => 
+  value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
 /**
  * Formats a date string for CSV export
@@ -164,5 +172,239 @@ export function exportJobsToCSV(jobs: Job[], filenamePrefix: string = 'wip-jobs'
   const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   const filename = `${filenamePrefix}-${timestamp}.csv`;
   downloadCSV(csvContent, filename);
+}
+
+// ============================================================================
+// PDF EXPORT FUNCTIONS
+// ============================================================================
+
+interface PDFExportOptions {
+  companyName?: string;
+  title?: string;
+}
+
+/**
+ * Exports jobs to a professional PDF report
+ */
+export function exportJobsToPDF(
+  jobs: Job[], 
+  filenamePrefix: string = 'wip-report',
+  options: PDFExportOptions = {}
+): void {
+  const { companyName = 'WIP Report', title = 'Work-in-Progress Report' } = options;
+  
+  // Create PDF in landscape for better table fit
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  
+  // Colors
+  const primaryColor: [number, number, number] = [249, 115, 22]; // Orange-500
+  const darkColor: [number, number, number] = [30, 41, 59]; // Slate-800
+  const grayColor: [number, number, number] = [100, 116, 139]; // Slate-500
+
+  // ========== HEADER ==========
+  // Orange accent bar
+  doc.setFillColor(...primaryColor);
+  doc.rect(0, 0, pageWidth, 3, 'F');
+  
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(...darkColor);
+  doc.text('WIP-Insights', margin, 15);
+  
+  // Subtitle / Company Name
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(...grayColor);
+  doc.text(companyName, margin, 22);
+  
+  // Report title and date (right aligned)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(...darkColor);
+  doc.text(title, pageWidth - margin, 15, { align: 'right' });
+  
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...grayColor);
+  const exportDate = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  doc.text(`Generated: ${exportDate}`, pageWidth - margin, 22, { align: 'right' });
+
+  // ========== SUMMARY STATS ==========
+  const totalContract = jobs.reduce((sum, job) => sum + sumBreakdown(job.contract), 0);
+  const totalCost = jobs.reduce((sum, job) => sum + sumBreakdown(job.costs), 0);
+  const totalBudget = jobs.reduce((sum, job) => sum + sumBreakdown(job.budget), 0);
+  const totalCostToComplete = jobs.reduce((sum, job) => sum + sumBreakdown(job.costToComplete), 0);
+  const totalForecastedBudget = totalCost + totalCostToComplete;
+  const totalOriginalProfit = totalContract - totalBudget;
+  const totalForecastedProfit = totalContract - totalForecastedBudget;
+  
+  // Summary box
+  const summaryY = 30;
+  doc.setFillColor(248, 250, 252); // Slate-50
+  doc.roundedRect(margin, summaryY, pageWidth - (margin * 2), 18, 2, 2, 'F');
+  
+  // Summary stats
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...darkColor);
+  
+  const statsX = [margin + 10, margin + 60, margin + 120, margin + 180, margin + 235];
+  const statsLabels = ['Total Jobs', 'Contract Value', 'Cost to Date', 'Original Profit', 'Forecasted Profit'];
+  const statsValues = [
+    jobs.length.toString(),
+    formatCurrencyWithSymbol(totalContract),
+    formatCurrencyWithSymbol(totalCost),
+    formatCurrencyWithSymbol(totalOriginalProfit),
+    formatCurrencyWithSymbol(totalForecastedProfit)
+  ];
+  
+  statsLabels.forEach((label, i) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...grayColor);
+    doc.text(label, statsX[i], summaryY + 6);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...darkColor);
+    // Color profit values
+    if (i === 3 || i === 4) {
+      const value = i === 3 ? totalOriginalProfit : totalForecastedProfit;
+      doc.setTextColor(value >= 0 ? 22 : 239, value >= 0 ? 163 : 68, value >= 0 ? 74 : 68); // Green or Red
+    }
+    doc.text(statsValues[i], statsX[i], summaryY + 13);
+  });
+
+  // ========== JOBS TABLE ==========
+  const tableData = jobs.map(job => {
+    const contract = sumBreakdown(job.contract);
+    const cost = sumBreakdown(job.costs);
+    const budget = sumBreakdown(job.budget);
+    const ctc = sumBreakdown(job.costToComplete);
+    const invoiced = sumBreakdown(job.invoiced);
+    const forecastBudget = cost + ctc;
+    const origProfit = contract - budget;
+    const forecastProfit = contract - forecastBudget;
+    const origMargin = contract > 0 ? (origProfit / contract) * 100 : 0;
+    const forecastMargin = contract > 0 ? (forecastProfit / contract) * 100 : 0;
+    const pctComplete = budget > 0 ? (cost / budget) * 100 : 0;
+    const earnedRev = contract * (pctComplete / 100);
+    const overUnder = invoiced - earnedRev;
+
+    return [
+      job.jobNo,
+      job.jobName.length > 25 ? job.jobName.substring(0, 22) + '...' : job.jobName,
+      job.projectManager,
+      job.status,
+      formatCurrencyWithSymbol(contract),
+      formatCurrencyWithSymbol(cost),
+      `${pctComplete.toFixed(0)}%`,
+      formatCurrencyWithSymbol(forecastProfit),
+      `${forecastMargin.toFixed(1)}%`,
+      formatCurrencyWithSymbol(overUnder),
+    ];
+  });
+
+  autoTable(doc, {
+    startY: summaryY + 24,
+    head: [[
+      'Job #',
+      'Job Name',
+      'PM',
+      'Status',
+      'Contract',
+      'Cost to Date',
+      '% Complete',
+      'Forecast Profit',
+      'Margin',
+      'Over/Under'
+    ]],
+    body: tableData,
+    theme: 'striped',
+    headStyles: {
+      fillColor: primaryColor,
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 8,
+      cellPadding: 3,
+    },
+    bodyStyles: {
+      fontSize: 8,
+      cellPadding: 2.5,
+      textColor: darkColor,
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252], // Slate-50
+    },
+    columnStyles: {
+      0: { cellWidth: 22 }, // Job #
+      1: { cellWidth: 45 }, // Job Name
+      2: { cellWidth: 25 }, // PM
+      3: { cellWidth: 20 }, // Status
+      4: { cellWidth: 28, halign: 'right' }, // Contract
+      5: { cellWidth: 28, halign: 'right' }, // Cost to Date
+      6: { cellWidth: 20, halign: 'center' }, // % Complete
+      7: { cellWidth: 28, halign: 'right' }, // Forecast Profit
+      8: { cellWidth: 18, halign: 'center' }, // Margin
+      9: { cellWidth: 25, halign: 'right' }, // Over/Under
+    },
+    didParseCell: (data) => {
+      // Color the Forecast Profit column based on value
+      if (data.section === 'body' && data.column.index === 7) {
+        const value = parseFloat(data.cell.raw?.toString().replace(/[$,]/g, '') || '0');
+        if (value < 0) {
+          data.cell.styles.textColor = [239, 68, 68]; // Red
+        } else {
+          data.cell.styles.textColor = [22, 163, 74]; // Green
+        }
+      }
+      // Color the Over/Under column
+      if (data.section === 'body' && data.column.index === 9) {
+        const value = parseFloat(data.cell.raw?.toString().replace(/[$,]/g, '') || '0');
+        if (value < 0) {
+          data.cell.styles.textColor = [239, 68, 68]; // Red (Under-billed)
+        } else if (value > 0) {
+          data.cell.styles.textColor = [22, 163, 74]; // Green (Over-billed)
+        }
+      }
+    },
+    margin: { left: margin, right: margin },
+  });
+
+  // ========== FOOTER ==========
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    
+    // Footer line
+    doc.setDrawColor(...grayColor);
+    doc.setLineWidth(0.2);
+    doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10);
+    
+    // Footer text
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...grayColor);
+    doc.text('WIP-Insights | Work-in-Progress Management', margin, pageHeight - 5);
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 5, { align: 'right' });
+  }
+
+  // ========== SAVE ==========
+  const timestamp = new Date().toISOString().split('T')[0];
+  doc.save(`${filenamePrefix}-${timestamp}.pdf`);
 }
 

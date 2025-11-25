@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { JobStatus, ViewMode, SortKey, SortDirection, FilterType, UserRole } from '../../types';
 import { GridIcon, TableIcon } from '../shared/icons';
 
@@ -13,6 +13,28 @@ const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" })
 const DownloadIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+  </svg>
+);
+
+// Chevron down icon
+const ChevronDownIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+// CSV icon
+const CSVIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
+
+// PDF icon
+const PDFIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h2m-2 3h4" />
   </svg>
 );
 
@@ -36,6 +58,7 @@ interface ControlsProps {
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
   onExportCSV?: () => void;
+  onExportPDF?: () => void;
   jobCount?: number;
 }
 
@@ -59,8 +82,22 @@ const Controls: React.FC<ControlsProps> = ({
   activeProjectManager,
   onActiveProjectManagerChange,
   onExportCSV,
+  onExportPDF,
   jobCount = 0,
 }) => {
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const exportDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
+        setExportDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const statusOptions: JobStatus[] = [JobStatus.Future, JobStatus.Active, JobStatus.OnHold, JobStatus.Completed, JobStatus.Archived];
   const activePmForFilter = activeProjectManager || 'all';
   const pmRoster = projectManagers.filter(pm => pm !== 'all');
@@ -168,19 +205,58 @@ const Controls: React.FC<ControlsProps> = ({
                   </button>
                 </div>
 
-                {/* Export Button */}
-                {onExportCSV && (
-                  <button
-                    onClick={onExportCSV}
-                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-green-400 hover:text-green-600 dark:hover:text-green-400 transition-all"
-                    title={`Export ${jobCount} jobs to CSV`}
-                  >
-                    <DownloadIcon className="w-4 h-4" />
-                    <span className="hidden sm:inline">Export</span>
-                    {jobCount > 0 && (
-                      <span className="hidden lg:inline text-xs text-gray-500 dark:text-gray-400">({jobCount})</span>
+                {/* Export Dropdown */}
+                {(onExportCSV || onExportPDF) && (
+                  <div className="relative" ref={exportDropdownRef}>
+                    <button
+                      onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-green-400 hover:text-green-600 dark:hover:text-green-400 transition-all"
+                      title={`Export ${jobCount} jobs`}
+                    >
+                      <DownloadIcon className="w-4 h-4" />
+                      <span className="hidden sm:inline">Export</span>
+                      {jobCount > 0 && (
+                        <span className="hidden lg:inline text-xs text-gray-500 dark:text-gray-400">({jobCount})</span>
+                      )}
+                      <ChevronDownIcon className={`w-3 h-3 transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {exportDropdownOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                        {onExportCSV && (
+                          <button
+                            onClick={() => {
+                              onExportCSV();
+                              setExportDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <CSVIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            <div className="text-left">
+                              <div className="font-medium">Export to CSV</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">Spreadsheet format</div>
+                            </div>
+                          </button>
+                        )}
+                        {onExportPDF && (
+                          <button
+                            onClick={() => {
+                              onExportPDF();
+                              setExportDropdownOpen(false);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <PDFIcon className="w-5 h-5 text-red-600 dark:text-red-400" />
+                            <div className="text-left">
+                              <div className="font-medium">Export to PDF</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">Printable report</div>
+                            </div>
+                          </button>
+                        )}
+                      </div>
                     )}
-                  </button>
+                  </div>
                 )}
               </>
             )}
