@@ -53,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({
               <img 
                 src="/images/wip-insights-logo.png" 
                 alt="WIP-Insights" 
-                className="h-12 w-auto"
+                className="h-16 w-auto"
               />
               {companyLogo && !imageError && (
                 <>

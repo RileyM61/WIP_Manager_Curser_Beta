@@ -326,8 +326,8 @@ const LandingPage: React.FC = () => {
     },
   ];
 
-  const features = [
-    {
+const features = [
+  {
       icon: (
         <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -338,7 +338,7 @@ const LandingPage: React.FC = () => {
           />
         </svg>
       ),
-      title: 'Real-Time Job Profitability',
+    title: 'Real-Time Job Profitability',
       description:
         'Track actual costs, billings, and earned revenue as work happens. Know your margins before the month closes.',
     },
@@ -353,7 +353,7 @@ const LandingPage: React.FC = () => {
           />
         </svg>
       ),
-      title: 'Labor & Backlog Visibility',
+    title: 'Labor & Backlog Visibility',
       description:
         "Understand how your workforce lines up with backlog. Spot when you're overloaded or underutilized before it's too late.",
     },
@@ -410,21 +410,21 @@ const LandingPage: React.FC = () => {
       name: 'David Chen',
       role: 'Operations Director',
       company: 'Pacific General Contractors',
-    },
-  ];
+  },
+];
 
-  const plans = [
-    {
-      name: 'Free',
+const plans = [
+  {
+    name: 'Free',
       price: '$0',
       period: 'forever',
       description: 'Perfect for getting started',
       features: ['Up to 3 active jobs', 'Basic job tracking', 'PM dashboard', 'Notes & updates'],
       cta: 'Start Free',
       popular: false,
-    },
-    {
-      name: 'Pro',
+  },
+  {
+    name: 'Pro',
       price: '$49',
       period: '/month',
       description: 'For growing contractors',
@@ -437,9 +437,9 @@ const LandingPage: React.FC = () => {
       ],
       cta: 'Start 14-Day Trial',
       popular: true,
-    },
-    {
-      name: 'Enterprise',
+  },
+  {
+    name: 'Enterprise',
       price: 'Custom',
       period: '',
       description: 'For large operations',
@@ -504,7 +504,7 @@ const LandingPage: React.FC = () => {
               <img 
                 src="/images/wip-insights-logo.png" 
                 alt="WIP-Insights" 
-                className="h-16 w-auto"
+                className="h-28 w-auto"
               />
             </div>
             <button
@@ -535,13 +535,13 @@ const LandingPage: React.FC = () => {
                   Confidence
                 </span>{' '}
                 for Construction Leaders
-              </h1>
+            </h1>
 
               <p
                 className="text-xl text-slate-300 mb-8 max-w-xl mx-auto lg:mx-0"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out 200ms both' }}
               >
-                Real-time visibility into job profitability, earned revenue, and labor performance.
+              Real-time visibility into job profitability, earned revenue, and labor performance.
                 Stop managing by gut feel.
               </p>
 
@@ -549,7 +549,7 @@ const LandingPage: React.FC = () => {
                 className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out 300ms both' }}
               >
-                <button
+              <button
                   onClick={handleGetStarted}
                   className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
                   style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}
@@ -599,8 +599,8 @@ const LandingPage: React.FC = () => {
                     />
                   </svg>
                   <span>Bank-level security</span>
-                </div>
-              </div>
+            </div>
+          </div>
             </div>
 
             {/* Right: Project Tiles */}
@@ -609,7 +609,7 @@ const LandingPage: React.FC = () => {
                 {sampleProjects.map((project, index) => (
                   <SampleProjectTile key={project.jobNumber} {...project} delay={500 + index * 150} />
                 ))}
-              </div>
+            </div>
             </div>
           </div>
 
@@ -707,13 +707,13 @@ const LandingPage: React.FC = () => {
             <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
               See what contractors are saying about WIP-Insights
             </p>
-          </div>
+              </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             {testimonials.map((testimonial, index) => (
               <TestimonialCard key={testimonial.name} {...testimonial} delay={index * 100} />
             ))}
-          </div>
+            </div>
         </div>
       </section>
 
@@ -854,7 +854,7 @@ const LandingPage: React.FC = () => {
               <img 
                 src="/images/wip-insights-logo.png" 
                 alt="WIP-Insights" 
-                className="h-12 w-auto"
+                className="h-20 w-auto"
               />
             </div>
 
