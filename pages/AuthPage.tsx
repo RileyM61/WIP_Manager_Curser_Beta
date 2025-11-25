@@ -59,7 +59,11 @@ const AuthPage: React.FC = () => {
     <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
         <div className="mb-8 text-center">
-          <p className="text-sm uppercase tracking-[0.3em] text-orange-300">WIP-Insights</p>
+          <img 
+            src="/images/wip-insights-logo.png" 
+            alt="WIP-Insights" 
+            className="h-16 w-auto mx-auto mb-4"
+          />
           <h1 className="mt-4 text-3xl font-semibold">{headerCopy.title}</h1>
           <p className="mt-2 text-sm text-slate-200">{headerCopy.subtitle}</p>
         </div>

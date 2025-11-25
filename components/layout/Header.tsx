@@ -48,17 +48,23 @@ const Header: React.FC<HeaderProps> = ({
               href={APP_PAGES.home}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2"
+              className="flex items-center gap-3"
             >
-              {companyLogo && !imageError ? (
-                <img 
-                  src={companyLogo} 
-                  alt={`${companyName} logo`} 
-                  className="h-9 w-auto max-w-[200px] object-contain"
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <span className="text-2xl font-bold text-brand-blue dark:text-brand-light-blue">{companyName}</span>
+              <img 
+                src="/images/wip-insights-logo.png" 
+                alt="WIP-Insights" 
+                className="h-10 w-auto"
+              />
+              {companyLogo && !imageError && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
+                  <img 
+                    src={companyLogo} 
+                    alt={`${companyName} logo`} 
+                    className="h-8 w-auto max-w-[150px] object-contain"
+                    onError={() => setImageError(true)}
+                  />
+                </>
               )}
             </a>
           </div>

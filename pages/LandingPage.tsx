@@ -141,9 +141,10 @@ const VideoSection: React.FC<{
   subtitle: string;
   description: string;
   videoPlaceholder: string;
+  thumbnailImage?: string;
   reverse?: boolean;
   bgColor?: string;
-}> = ({ number, title, subtitle, description, videoPlaceholder, reverse = false, bgColor = '' }) => {
+}> = ({ number, title, subtitle, description, videoPlaceholder, thumbnailImage, reverse = false, bgColor = '' }) => {
   return (
     <section className={`py-20 ${bgColor}`}>
       <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
@@ -169,6 +170,14 @@ const VideoSection: React.FC<{
           {/* Video Placeholder */}
           <div className="flex-1 w-full max-w-lg">
             <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
+              {/* Thumbnail Image */}
+              {thumbnailImage && (
+                <img
+                  src={thumbnailImage}
+                  alt={videoPlaceholder}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              )}
               {/* Play Button Overlay */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/10 transition-colors cursor-pointer group">
                 <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
@@ -491,13 +500,12 @@ const LandingPage: React.FC = () => {
         <div className="relative mx-auto w-full max-w-7xl px-6 py-20 sm:px-8 md:px-10 lg:py-28">
           {/* Navigation */}
           <nav className="absolute top-6 left-6 right-6 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <span className="text-white font-bold text-xl">WIP-Insights</span>
+            <div className="flex items-center gap-3">
+              <img 
+                src="/images/wip-insights-logo.png" 
+                alt="WIP-Insights" 
+                className="h-12 w-auto"
+              />
             </div>
             <button
               onClick={handleLogin}
@@ -630,6 +638,7 @@ const LandingPage: React.FC = () => {
         title="WHY You Need a WIP Report"
         description="Most contractors fly blind. Spreadsheets are outdated the moment they're created. By the time you spot a problem, it's already cost you money. A Work-in-Progress report gives you the truth about every job—before it's too late."
         videoPlaceholder="WHY a WIP — Understanding the problem"
+        thumbnailImage="/images/why-wip-thumbnail.png"
         bgColor="bg-slate-50"
       />
 
@@ -842,12 +851,11 @@ const LandingPage: React.FC = () => {
         <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <span className="text-white font-semibold">WIP-Insights</span>
+              <img 
+                src="/images/wip-insights-logo.png" 
+                alt="WIP-Insights" 
+                className="h-8 w-auto"
+              />
             </div>
 
             <div className="flex items-center gap-8 text-sm">
