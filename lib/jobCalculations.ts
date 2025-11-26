@@ -9,7 +9,16 @@ export const sumBreakdown = (breakdown: CostBreakdown): number =>
 /**
  * Calculate earned revenue for a job based on its type
  * 
- * Fixed Price: Earned = Contract × % Complete (where % Complete = Costs / Budget)
+ * Fixed Price: Each component calculated separately:
+ *   - Labor Earned = Contract Labor × (Labor Cost / Labor Budget)
+ *   - Material Earned = Contract Material × (Material Cost / Material Budget)
+ *   - Other Earned = Contract Other × (Other Cost / Other Budget)
+ *   - Total = Labor Earned + Material Earned + Other Earned
+ * 
+ * This component-level approach is more accurate because markups vary between
+ * labor, material, and other - using an overall % would skew results when
+ * the work mix differs from the original estimate.
+ * 
  * Time & Material: Earned = (Labor × markup/rate) + (Material × markup) + (Other × markup)
  */
 export const calculateEarnedRevenue = (job: Job): {
@@ -43,24 +52,30 @@ export const calculateEarnedRevenue = (job: Job): {
       total: laborEarned + materialEarned + otherEarned,
     };
   } else {
-    // Fixed Price calculation (default)
-    const totalContract = sumBreakdown(job.contract);
-    const totalBudget = sumBreakdown(job.budget);
-    const totalCosts = sumBreakdown(job.costs);
+    // Fixed Price calculation - component-level % complete
+    // Each component is calculated independently to account for varying markups
     
-    // % Complete based on costs vs budget
-    const percentComplete = totalBudget > 0 ? totalCosts / totalBudget : 0;
+    // Calculate % complete for each component separately
+    const laborPctComplete = job.budget.labor > 0 
+      ? job.costs.labor / job.budget.labor 
+      : 0;
+    const materialPctComplete = job.budget.material > 0 
+      ? job.costs.material / job.budget.material 
+      : 0;
+    const otherPctComplete = job.budget.other > 0 
+      ? job.costs.other / job.budget.other 
+      : 0;
     
-    // Earned revenue is contract × % complete
-    const laborEarned = job.contract.labor * percentComplete;
-    const materialEarned = job.contract.material * percentComplete;
-    const otherEarned = job.contract.other * percentComplete;
+    // Earned revenue for each component = Contract × Component % Complete
+    const laborEarned = job.contract.labor * laborPctComplete;
+    const materialEarned = job.contract.material * materialPctComplete;
+    const otherEarned = job.contract.other * otherPctComplete;
     
     return {
       labor: laborEarned,
       material: materialEarned,
       other: otherEarned,
-      total: totalContract * percentComplete,
+      total: laborEarned + materialEarned + otherEarned,
     };
   }
 };
