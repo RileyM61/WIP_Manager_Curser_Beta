@@ -125,3 +125,22 @@ export interface Profile {
   companyId: string | null;
   role: UserRole;
 }
+
+export interface Invitation {
+  id: string;
+  companyId: string;
+  email: string;
+  role: UserRole;
+  token: string;
+  invitedBy: string;
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt?: string;
+}
+
+export interface TeamMember {
+  userId: string;
+  email: string;
+  role: UserRole;
+  joinedAt: string;
+}

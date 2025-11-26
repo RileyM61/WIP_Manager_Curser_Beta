@@ -8,6 +8,7 @@ interface HeaderProps {
   companyLogo?: string;
   onAddJob: () => void;
   onOpenSettings: () => void;
+  onOpenTeamManagement?: () => void;
   onSignOut: () => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
@@ -29,6 +30,7 @@ const Header: React.FC<HeaderProps> = ({
   companyLogo,
   onAddJob,
   onOpenSettings,
+  onOpenTeamManagement,
   onSignOut,
   theme,
   onToggleTheme,
@@ -223,6 +225,19 @@ const Header: React.FC<HeaderProps> = ({
               >
                 {theme === 'light' ? <MoonIcon /> : <SunIcon />}
               </button>
+              {/* Team Management Button (Owners only) */}
+              {userRole === 'owner' && onOpenTeamManagement && (
+                <button
+                  onClick={onOpenTeamManagement}
+                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 transition"
+                  aria-label="Team Management"
+                  title="Manage Team"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </button>
+              )}
               <button
                 onClick={onOpenSettings}
                 className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white transition"

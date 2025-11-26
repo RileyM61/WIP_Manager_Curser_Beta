@@ -3,26 +3,78 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { isEmailAllowed } from '../constants';
+import { getInvitationByToken, acceptInvitation } from '../hooks/useInvitations';
 
 type AuthMode = 'login' | 'signup';
 
+interface InviteInfo {
+  valid: boolean;
+  email?: string;
+  role?: string;
+  companyName?: string;
+  expiresAt?: string;
+  error?: string;
+}
+
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, refreshProfile } = useAuth();
   const [params] = useSearchParams();
-  const initialMode = (params.get('mode') as AuthMode) ?? 'login';
+  const inviteToken = params.get('invite');
+  const initialMode = inviteToken ? 'signup' : ((params.get('mode') as AuthMode) ?? 'login');
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(!!inviteToken);
+  const [acceptingInvite, setAcceptingInvite] = useState(false);
 
-  const headerCopy = useMemo(() => (
-    mode === 'login'
+  const headerCopy = useMemo(() => {
+    if (inviteInfo?.valid) {
+      return {
+        title: `Join ${inviteInfo.companyName}`,
+        subtitle: `You've been invited as ${inviteInfo.role === 'projectManager' ? 'a Project Manager' : inviteInfo.role === 'estimator' ? 'an Estimator' : 'an Owner'}`
+      };
+    }
+    return mode === 'login'
       ? { title: 'Welcome back', subtitle: 'Log in to your workspace' }
-      : { title: 'Create an account', subtitle: 'Set up your company in minutes' }
-  ), [mode]);
+      : { title: 'Create an account', subtitle: 'Set up your company in minutes' };
+  }, [mode, inviteInfo]);
+
+  // Fetch invitation details on mount if token present
+  useEffect(() => {
+    if (inviteToken) {
+      setInviteLoading(true);
+      getInvitationByToken(inviteToken).then(info => {
+        setInviteInfo(info);
+        if (info.valid && info.email) {
+          setEmail(info.email);
+        }
+        setInviteLoading(false);
+      });
+    }
+  }, [inviteToken]);
+
+  // Handle accepting invitation after signup/login
+  useEffect(() => {
+    const handleAcceptInvite = async () => {
+      if (session && inviteToken && inviteInfo?.valid && !acceptingInvite) {
+        setAcceptingInvite(true);
+        const result = await acceptInvitation(inviteToken);
+        if (result.success) {
+          await refreshProfile();
+          navigate('/app', { replace: true });
+        } else {
+          setMessage(result.error || 'Failed to accept invitation');
+          setAcceptingInvite(false);
+        }
+      }
+    };
+    handleAcceptInvite();
+  }, [session, inviteToken, inviteInfo, acceptingInvite, refreshProfile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,11 +84,21 @@ const AuthPage: React.FC = () => {
       if (mode === 'login') {
         const { error } = await supabase!.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate('/app');
+        // If there's an invite, the useEffect will handle accepting it
+        if (!inviteToken) {
+          navigate('/app');
+        }
       } else {
-        // Check if email is allowed (beta access control)
-        if (!isEmailAllowed(email)) {
+        // Check if email is allowed (beta access control) - skip for invited users
+        if (!inviteInfo?.valid && !isEmailAllowed(email)) {
           setMessage('This email is not authorized for beta access. Please contact support@wip-insights.com to request access.');
+          setLoading(false);
+          return;
+        }
+        
+        // For invitations, verify email matches
+        if (inviteInfo?.valid && inviteInfo.email?.toLowerCase() !== email.toLowerCase()) {
+          setMessage(`This invitation was sent to ${inviteInfo.email}. Please use that email address.`);
           setLoading(false);
           return;
         }
@@ -48,7 +110,12 @@ const AuthPage: React.FC = () => {
         }
         const { error } = await supabase!.auth.signUp({ email, password });
         if (error) throw error;
-        setMessage('Account created! Please check your email to confirm before logging in.');
+        
+        if (inviteInfo?.valid) {
+          setMessage('Account created! Please check your email to confirm, then log in to join the team.');
+        } else {
+          setMessage('Account created! Please check your email to confirm before logging in.');
+        }
       }
     } catch (err: any) {
       console.error('[AuthPage] Auth error', err);
@@ -59,10 +126,58 @@ const AuthPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (session) {
+    // Don't auto-redirect if there's an invite token - let the accept flow handle it
+    if (session && !inviteToken) {
       navigate('/app', { replace: true });
     }
-  }, [session, navigate]);
+  }, [session, navigate, inviteToken]);
+
+  // Show loading state while fetching invite info
+  if (inviteLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-slate-300">Verifying invitation...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if invite is invalid
+  if (inviteToken && inviteInfo && !inviteInfo.valid) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-3xl border border-red-500/30 bg-red-500/10 p-8 shadow-2xl backdrop-blur text-center">
+          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-semibold text-red-300">Invalid Invitation</h1>
+          <p className="mt-2 text-sm text-red-200/80">{inviteInfo.error || 'This invitation link is invalid or has expired.'}</p>
+          <button
+            onClick={() => navigate('/auth')}
+            className="mt-6 px-6 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show accepting state
+  if (acceptingInvite) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-slate-300">Joining {inviteInfo?.companyName}...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
@@ -76,6 +191,21 @@ const AuthPage: React.FC = () => {
           <h1 className="mt-4 text-3xl font-semibold">{headerCopy.title}</h1>
           <p className="mt-2 text-sm text-slate-200">{headerCopy.subtitle}</p>
         </div>
+
+        {/* Invitation Banner */}
+        {inviteInfo?.valid && (
+          <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-green-300">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium">Valid Invitation</span>
+            </div>
+            <p className="mt-1 text-xs text-green-200/80">
+              Create an account or log in to join <strong>{inviteInfo.companyName}</strong>
+            </p>
+          </div>
+        )}
 
         <div className="mb-6 flex gap-3 rounded-full bg-white/10 p-1 text-sm font-semibold">
           <button
@@ -106,12 +236,20 @@ const AuthPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none"
+              disabled={inviteInfo?.valid && mode === 'signup'}
+              className={`mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none ${
+                inviteInfo?.valid && mode === 'signup' ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
               placeholder="you@company.com"
             />
-            {mode === 'signup' && (
+            {mode === 'signup' && !inviteInfo?.valid && (
               <p className="mt-2 text-xs text-slate-400">
                 🔒 Beta access is currently invite-only. Contact support@wip-insights.com to request access.
+              </p>
+            )}
+            {inviteInfo?.valid && mode === 'signup' && (
+              <p className="mt-2 text-xs text-green-400">
+                ✓ Email pre-filled from your invitation
               </p>
             )}
           </div>

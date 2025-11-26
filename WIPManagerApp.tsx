@@ -16,6 +16,7 @@ import ForecastView from './components/views/ForecastView';
 import NotesModal from './components/modals/NotesModal';
 import SettingsModal from './components/modals/SettingsModal';
 import CapacityModal from './components/modals/CapacityModal';
+import TeamManagementModal from './components/modals/TeamManagementModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import { tourSteps, hasCompletedTour, markTourCompleted } from './lib/tourSteps';
@@ -262,6 +263,7 @@ function App() {
   const [jobForNotes, setJobForNotes] = useState<Job | null>(null);
   const [jobNotes, setJobNotes] = useState<Note[]>([]);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [focusMode, setFocusMode] = useState<FocusMode>('default');
   const [isCapacityModalOpen, setIsCapacityModalOpen] = useState(false);
   
@@ -756,6 +758,7 @@ function App() {
         companyLogo={settings.companyLogo}
         onAddJob={handleAddJobClick} 
         onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenTeamManagement={() => setIsTeamModalOpen(true)}
         onSignOut={signOut}
         theme={theme}
         onToggleTheme={handleToggleTheme}
@@ -825,6 +828,14 @@ function App() {
         settings={settings}
         onSave={handleSaveSettings}
       />
+      {companyId && user && (
+        <TeamManagementModal
+          isOpen={isTeamModalOpen}
+          onClose={() => setIsTeamModalOpen(false)}
+          companyId={companyId}
+          currentUserId={user.id}
+        />
+      )}
       {settings.capacityEnabled && settings.capacityPlan && (
         <CapacityModal
           isOpen={isCapacityModalOpen}
