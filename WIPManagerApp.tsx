@@ -16,6 +16,9 @@ import ForecastView from './components/views/ForecastView';
 import NotesModal from './components/modals/NotesModal';
 import SettingsModal from './components/modals/SettingsModal';
 import CapacityModal from './components/modals/CapacityModal';
+import GuidedTour from './components/help/GuidedTour';
+import GlossaryPage from './pages/GlossaryPage';
+import { tourSteps, hasCompletedTour, markTourCompleted } from './lib/tourSteps';
 
 const baseCapacityPlan: CapacityPlan = {
   planningHorizonWeeks: 8,
@@ -261,6 +264,10 @@ function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [focusMode, setFocusMode] = useState<FocusMode>('default');
   const [isCapacityModalOpen, setIsCapacityModalOpen] = useState(false);
+  
+  // Help & Learning state
+  const [isTourOpen, setIsTourOpen] = useState(false);
+  const [showGlossary, setShowGlossary] = useState(false);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -760,6 +767,8 @@ function App() {
         onActiveProjectManagerChange={handleActivePmChange}
         activeEstimator={activeEstimator}
         onActiveEstimatorChange={handleActiveEstimatorChange}
+        onStartTour={() => setIsTourOpen(true)}
+        onOpenGlossary={() => setShowGlossary(true)}
       />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">
@@ -823,6 +832,24 @@ function App() {
           capacityPlan={settings.capacityPlan}
           onSave={handleSaveCapacityPlan}
         />
+      )}
+
+      {/* Guided Tour */}
+      <GuidedTour
+        steps={tourSteps}
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+        onComplete={() => {
+          setIsTourOpen(false);
+          markTourCompleted();
+        }}
+      />
+
+      {/* Glossary Page (full-screen overlay) */}
+      {showGlossary && (
+        <div className="fixed inset-0 z-[100] bg-gray-50 dark:bg-gray-900">
+          <GlossaryPage onBack={() => setShowGlossary(false)} />
+        </div>
       )}
     </div>
   );

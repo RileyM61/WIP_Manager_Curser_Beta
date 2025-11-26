@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType } from '../../types';
 import { XIcon } from '../shared/icons';
 import { getDefaultTMSettings } from '../../lib/jobCalculations';
+import InfoTooltip from '../help/InfoTooltip';
+import { helpContent } from '../../lib/helpContent';
 
 // --- Helper component for currency input ---
 interface CurrencyInputProps {
@@ -477,7 +479,15 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                     
                     {/* Labor Billing Type */}
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Labor Billing Method</label>
+                      <div className="flex items-center gap-2 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor Billing Method</label>
+                        <InfoTooltip
+                          title={helpContent.laborBillingType.title}
+                          shortText={helpContent.laborBillingType.short}
+                          detailedText={helpContent.laborBillingType.detailed}
+                          example={helpContent.laborBillingType.example}
+                        />
+                      </div>
                       <div className="flex gap-3">
                         <button
                           type="button"
@@ -543,7 +553,16 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       </div>
                     ) : (
                       <div className="mb-4">
-                        <label htmlFor="laborMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor Markup (%)</label>
+                        <div className="flex items-center gap-2">
+                          <label htmlFor="laborMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor Markup (%)</label>
+                          <InfoTooltip
+                            title={helpContent.laborMarkup.title}
+                            shortText={helpContent.laborMarkup.short}
+                            detailedText={helpContent.laborMarkup.detailed}
+                            formula={helpContent.laborMarkup.formula}
+                            example={helpContent.laborMarkup.example}
+                          />
+                        </div>
                         <div className="mt-1 relative">
                           <input
                             type="number"
@@ -565,7 +584,15 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                     {/* Material & Other Markup */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="materialMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material Markup (%)</label>
+                        <div className="flex items-center gap-2">
+                          <label htmlFor="materialMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material Markup (%)</label>
+                          <InfoTooltip
+                            title={helpContent.materialMarkup.title}
+                            shortText={helpContent.materialMarkup.short}
+                            detailedText={helpContent.materialMarkup.detailed}
+                            formula={helpContent.materialMarkup.formula}
+                          />
+                        </div>
                         <div className="mt-1 relative">
                           <input
                             type="number"
@@ -610,7 +637,15 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 {/* Contract Breakdown (only for Fixed Price) */}
                 {!isTM && (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contract Breakdown</h3>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contract Breakdown</h3>
+                      <InfoTooltip
+                        title={helpContent.contract.title}
+                        shortText={helpContent.contract.short}
+                        detailedText={helpContent.contract.detailed}
+                        example={helpContent.contract.example}
+                      />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label htmlFor="contract.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
@@ -631,7 +666,16 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 {/* Cost Budget (only for Fixed Price) */}
                 {!isTM && (
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Cost Budget</h3>
+                    <div className="flex items-center gap-2 mb-3">
+                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost Budget</h3>
+                      <InfoTooltip
+                        title={helpContent.budget.title}
+                        shortText={helpContent.budget.short}
+                        detailedText={helpContent.budget.detailed}
+                        formula={helpContent.budget.formula}
+                        example={helpContent.budget.example}
+                      />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label htmlFor="budget.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
@@ -651,7 +695,14 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
                 {/* Invoiced to Date */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Invoiced to Date</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Invoiced to Date</h3>
+                    <InfoTooltip
+                      title={helpContent.invoiced.title}
+                      shortText={helpContent.invoiced.short}
+                      detailedText={helpContent.invoiced.detailed}
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label htmlFor="invoiced.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
@@ -670,7 +721,14 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
                 {/* Costs to Date */}
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Costs to Date</h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Costs to Date</h3>
+                    <InfoTooltip
+                      title={helpContent.costsToDate.title}
+                      shortText={helpContent.costsToDate.short}
+                      detailedText={helpContent.costsToDate.detailed}
+                    />
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label htmlFor="costs.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
@@ -690,9 +748,15 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 {/* Cost to Complete (only for Fixed Price) */}
                 {!isTM && (
                   <div>
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 mb-3">
                       <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost to Complete</h3>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">Estimate of remaining costs</span>
+                      <InfoTooltip
+                        title={helpContent.costToComplete.title}
+                        shortText={helpContent.costToComplete.short}
+                        detailedText={helpContent.costToComplete.detailed}
+                        formula={helpContent.costToComplete.formula}
+                        example={helpContent.costToComplete.example}
+                      />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
