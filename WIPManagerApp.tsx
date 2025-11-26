@@ -236,7 +236,7 @@ const isJobBehindTargetDate = (job: Job): boolean => {
 };
 
 function App() {
-  const { companyId, signOut } = useAuth();
+  const { companyId, signOut, user } = useAuth();
   // Supabase hooks for data
   const { jobs, loading: jobsLoading, addJob, updateJob, deleteJob, refreshJobs } = useSupabaseJobs(companyId);
   const { settings, loading: settingsLoading, error: settingsError, updateSettings, refreshSettings } = useSupabaseSettings(companyId);
