@@ -1,6 +1,7 @@
 import { Job, CostBreakdown } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { sumBreakdown as sumBreakdownUtil, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from './jobCalculations';
 
 /**
  * Sums the labor, material, and other fields of a CostBreakdown
@@ -55,6 +56,8 @@ export function jobsToCSV(jobs: Job[]): string {
     'Job Name',
     'Client',
     'Project Manager',
+    'Estimator',
+    'Job Type',
     'Status',
     'Start Date',
     'End Date',
@@ -85,28 +88,36 @@ export function jobsToCSV(jobs: Job[]): string {
 
   // Convert each job to a row
   const rows = jobs.map(job => {
+    const isTM = job.jobType === 'time-material';
     const totalContract = sumBreakdown(job.contract);
     const totalCost = sumBreakdown(job.costs);
     const totalBudget = sumBreakdown(job.budget);
     const totalInvoiced = sumBreakdown(job.invoiced);
     const totalCostToComplete = sumBreakdown(job.costToComplete);
     
-    const forecastedBudget = totalCost + totalCostToComplete;
-    const originalProfit = totalContract - totalBudget;
-    const originalMargin = totalContract > 0 ? (originalProfit / totalContract) * 100 : 0;
-    const forecastedProfit = totalContract - forecastedBudget;
-    const forecastedMargin = totalContract > 0 ? (forecastedProfit / totalContract) * 100 : 0;
-    const profitVariance = forecastedProfit - originalProfit;
+    // Use shared calculation functions
+    const earnedRevenue = calculateEarnedRevenue(job);
+    const billingInfo = calculateBillingDifference(job);
+    const forecastedProfit = calculateForecastedProfit(job);
     
-    const percentComplete = totalBudget > 0 ? totalCost / totalBudget : 0;
-    const earnedRevenue = totalContract * percentComplete;
-    const overUnderBilled = totalInvoiced - earnedRevenue;
+    const forecastedBudget = totalCost + totalCostToComplete;
+    const originalProfit = isTM ? 0 : (totalContract - totalBudget);
+    const originalMargin = isTM ? 0 : (totalContract > 0 ? (originalProfit / totalContract) * 100 : 0);
+    
+    // For T&M, margin is based on earned revenue
+    const forecastedMargin = isTM 
+      ? (earnedRevenue.total > 0 ? (forecastedProfit / earnedRevenue.total) * 100 : 0)
+      : (totalContract > 0 ? (forecastedProfit / totalContract) * 100 : 0);
+    
+    const profitVariance = isTM ? forecastedProfit : (forecastedProfit - originalProfit);
 
     return [
       escapeCSV(job.jobNo),
       escapeCSV(job.jobName),
       escapeCSV(job.client),
       escapeCSV(job.projectManager),
+      escapeCSV(job.estimator || ''),
+      escapeCSV(isTM ? 'T&M' : 'Fixed Price'),
       escapeCSV(job.status),
       escapeCSV(formatDate(job.startDate)),
       escapeCSV(formatDate(job.endDate)),
@@ -130,8 +141,8 @@ export function jobsToCSV(jobs: Job[]): string {
       formatCurrency(forecastedProfit),
       forecastedMargin.toFixed(1),
       formatCurrency(profitVariance),
-      formatCurrency(earnedRevenue),
-      formatCurrency(overUnderBilled),
+      formatCurrency(earnedRevenue.total),
+      formatCurrency(billingInfo.difference),
       escapeCSV(formatDate(job.lastUpdated)),
     ].join(',');
   });
@@ -291,31 +302,35 @@ export function exportJobsToPDF(
 
   // ========== JOBS TABLE ==========
   const tableData = jobs.map(job => {
+    const isTM = job.jobType === 'time-material';
     const contract = sumBreakdown(job.contract);
     const cost = sumBreakdown(job.costs);
     const budget = sumBreakdown(job.budget);
-    const ctc = sumBreakdown(job.costToComplete);
-    const invoiced = sumBreakdown(job.invoiced);
-    const forecastBudget = cost + ctc;
-    const origProfit = contract - budget;
-    const forecastProfit = contract - forecastBudget;
-    const origMargin = contract > 0 ? (origProfit / contract) * 100 : 0;
-    const forecastMargin = contract > 0 ? (forecastProfit / contract) * 100 : 0;
-    const pctComplete = budget > 0 ? (cost / budget) * 100 : 0;
-    const earnedRev = contract * (pctComplete / 100);
-    const overUnder = invoiced - earnedRev;
+    
+    // Use shared calculation functions
+    const earnedRevenue = calculateEarnedRevenue(job);
+    const billingInfo = calculateBillingDifference(job);
+    const forecastProfit = calculateForecastedProfit(job);
+    
+    // For T&M, margin is based on earned revenue; for fixed price, based on contract
+    const forecastMargin = isTM 
+      ? (earnedRevenue.total > 0 ? (forecastProfit / earnedRevenue.total) * 100 : 0)
+      : (contract > 0 ? (forecastProfit / contract) * 100 : 0);
+    
+    // % Complete only meaningful for fixed price
+    const pctComplete = isTM ? 'N/A' : (budget > 0 ? `${((cost / budget) * 100).toFixed(0)}%` : '0%');
 
     return [
       job.jobNo,
       job.jobName.length > 25 ? job.jobName.substring(0, 22) + '...' : job.jobName,
       job.projectManager,
-      job.status,
-      formatCurrencyWithSymbol(contract),
+      isTM ? 'T&M' : job.status,
+      isTM ? formatCurrencyWithSymbol(earnedRevenue.total) : formatCurrencyWithSymbol(contract),
       formatCurrencyWithSymbol(cost),
-      `${pctComplete.toFixed(0)}%`,
+      pctComplete,
       formatCurrencyWithSymbol(forecastProfit),
       `${forecastMargin.toFixed(1)}%`,
-      formatCurrencyWithSymbol(overUnder),
+      formatCurrencyWithSymbol(billingInfo.difference),
     ];
   });
 

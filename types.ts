@@ -12,6 +12,19 @@ export interface CostBreakdown {
   other: number;
 }
 
+export type JobType = 'fixed-price' | 'time-material';
+
+export type LaborBillingType = 'fixed-rate' | 'markup';
+
+export interface TMSettings {
+  laborBillingType: LaborBillingType;
+  laborBillRate?: number;      // $/hour when laborBillingType = 'fixed-rate'
+  laborHours?: number;         // Total hours worked (needed for fixed-rate calculation)
+  laborMarkup?: number;        // e.g., 1.5 = 50% markup when laborBillingType = 'markup'
+  materialMarkup: number;      // e.g., 1.15 = 15% markup
+  otherMarkup: number;         // e.g., 1.10 = 10% markup
+}
+
 export interface Note {
   id: string;
   text: string;
@@ -40,6 +53,8 @@ export interface Job {
   targetEndDate?: string;
   companyId?: string;
   estimator?: string;
+  jobType: JobType;
+  tmSettings?: TMSettings;
 }
 
 export type ViewMode = 'grid' | 'table';

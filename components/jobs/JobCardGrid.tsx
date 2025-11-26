@@ -1,7 +1,8 @@
 import React from 'react';
-import { Job, JobStatus, CostBreakdown, UserRole } from '../../types';
+import { Job, JobStatus, UserRole } from '../../types';
 import ProgressBar from '../ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../shared/icons';
+import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../../lib/jobCalculations';
 
 interface JobCardGridProps {
   jobs: Job[];
@@ -24,11 +25,10 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
-const sumBreakdown = (breakdown: CostBreakdown): number => breakdown.labor + breakdown.material + breakdown.other;
-
 const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; userRole: UserRole; activeEstimator?: string; }> = ({ job, onEdit, onOpenNotes, userRole, activeEstimator }) => {
   // Estimators can only edit Future jobs where they are the assigned estimator
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
+  const isTM = job.jobType === 'time-material';
   
   const totalCost = sumBreakdown(job.costs);
   const totalOriginalBudget = sumBreakdown(job.budget);
@@ -36,25 +36,24 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   const totalInvoiced = sumBreakdown(job.invoiced);
   const totalCostToComplete = sumBreakdown(job.costToComplete);
 
+  // Use the shared calculation functions
+  const earnedRevenue = calculateEarnedRevenue(job);
+  const billingInfo = calculateBillingDifference(job);
+  const forecastedProfit = calculateForecastedProfit(job);
+
+  // Fixed price specific calculations
   const totalForecastedBudget = totalCost + totalCostToComplete;
-  
   const originalProfit = totalContract - totalOriginalBudget;
   const originalProfitMargin = totalContract > 0 ? (originalProfit / totalContract) * 100 : 0;
   
-  const forecastedProfit = totalContract - totalForecastedBudget;
-  const forecastedProfitMargin = totalContract > 0 ? (forecastedProfit / totalContract) * 100 : 0;
+  // For T&M, profit margin is based on earned revenue
+  const forecastedProfitMargin = isTM 
+    ? (earnedRevenue.total > 0 ? (forecastedProfit / earnedRevenue.total) * 100 : 0)
+    : (totalContract > 0 ? (forecastedProfit / totalContract) * 100 : 0);
   
-  const profitVariance = forecastedProfit - originalProfit;
+  const profitVariance = isTM ? forecastedProfit : (forecastedProfit - originalProfit);
   const budgetVariance = totalForecastedBudget - totalOriginalBudget;
   const budgetVarianceColor = budgetVariance > 0 ? 'text-red-600 dark:text-red-500' : budgetVariance < 0 ? 'text-green-600 dark:text-green-500' : 'text-gray-800 dark:text-gray-200';
-
-
-  const overallPercentComplete = totalOriginalBudget > 0 ? totalCost / totalOriginalBudget : 0;
-  const totalEarnedRevenue = totalContract * overallPercentComplete;
-
-  const billingDifference = totalInvoiced - totalEarnedRevenue;
-  const billingStatus = billingDifference > 0 ? 'Over Billed' : 'Under Billed';
-  const billingStatusColor = billingDifference > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500';
 
   const targetVariance = typeof job.targetProfit === 'number' ? forecastedProfit - job.targetProfit : null;
   const targetMarginDisplay = job.targetMargin !== undefined ? `${job.targetMargin.toFixed(1)}%` : '—';
@@ -81,14 +80,23 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
             <h3 className="text-lg font-bold text-brand-blue dark:text-brand-light-blue leading-tight">{job.jobName}</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">#{job.jobNo}</p>
           </div>
-          <span className={`px-2 py-1 text-xs font-semibold rounded-full self-start flex-shrink-0 ${
-            job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
-            job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : 
-            job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-            job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-          }`}>
-            {job.status}
-          </span>
+          <div className="flex flex-col items-end gap-1">
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+              job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+              job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : 
+              job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+              job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+            }`}>
+              {job.status}
+            </span>
+            <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+              isTM 
+                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' 
+                : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+            }`}>
+              {isTM ? 'T&M' : 'Fixed'}
+            </span>
+          </div>
         </div>
         
         {daysOnHold !== null && (
@@ -114,51 +122,80 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
             <span className="font-semibold text-gray-600 dark:text-gray-300">Start Date:</span>
             <span>{job.startDate === 'TBD' ? 'TBD' : new Date(job.startDate).toLocaleDateString()}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="font-semibold text-gray-600 dark:text-gray-300">Contract:</span>
-            <span>{currencyFormatter.format(totalContract)}</span>
+          {!isTM && (
+            <div className="flex justify-between">
+              <span className="font-semibold text-gray-600 dark:text-gray-300">Contract:</span>
+              <span>{currencyFormatter.format(totalContract)}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Profitability Section */}
+        <div className="mt-4 text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md">
+          <p className="font-semibold text-gray-600 dark:text-gray-300">Profitability</p>
+          <div className="pl-2 space-y-1 mt-1">
+            {!isTM && (
+              <div className="flex justify-between"><span>Original Profit:</span> <span className={`${originalProfit >= 0 ? 'text-gray-700 dark:text-gray-200' : 'text-red-700 dark:text-red-400'}`}>{currencyFormatter.format(originalProfit)} ({originalProfitMargin.toFixed(1)}%)</span></div>
+            )}
+            <div className="flex justify-between">
+              <span>{isTM ? 'Current Profit:' : 'Forecasted Profit:'}</span> 
+              <span className={`font-bold ${forecastedProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {currencyFormatter.format(forecastedProfit)} ({forecastedProfitMargin.toFixed(1)}%)
+              </span>
+            </div>
+            {!isTM && (
+              <div className="flex justify-between font-bold border-t dark:border-gray-600 mt-1 pt-1"><span>Variance:</span> <span className={`${profitVariance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{currencyFormatter.format(profitVariance)}</span></div>
+            )}
           </div>
         </div>
 
-        <div className="mt-4 text-sm bg-gray-50 dark:bg-gray-700/50 p-3 rounded-md">
-            <p className="font-semibold text-gray-600 dark:text-gray-300">Profitability</p>
-            <div className="pl-2 space-y-1 mt-1">
-                <div className="flex justify-between"><span>Original Profit:</span> <span className={`${originalProfit >= 0 ? 'text-gray-700 dark:text-gray-200' : 'text-red-700 dark:text-red-400'}`}>{currencyFormatter.format(originalProfit)} ({originalProfitMargin.toFixed(1)}%)</span></div>
-                <div className="flex justify-between"><span>Forecasted Profit:</span> <span className={`font-bold ${forecastedProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{currencyFormatter.format(forecastedProfit)} ({forecastedProfitMargin.toFixed(1)}%)</span></div>
-                <div className="flex justify-between font-bold border-t dark:border-gray-600 mt-1 pt-1"><span>Variance:</span> <span className={`${profitVariance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>{currencyFormatter.format(profitVariance)}</span></div>
-            </div>
-        </div>
-
-
-        <div className="mt-4 text-sm">
+        {/* Cost Summary (Fixed Price only) */}
+        {!isTM && (
+          <div className="mt-4 text-sm">
             <p className="font-semibold text-gray-600 dark:text-gray-300">Cost Summary</p>
             <div className="pl-2 space-y-1 mt-1">
-                <div className="flex justify-between"><span>Cost to Date:</span> <span>{currencyFormatter.format(totalCost)}</span></div>
-                <div className="flex justify-between"><span>Original Budget:</span> <span className="text-gray-500 dark:text-gray-400">{currencyFormatter.format(totalOriginalBudget)}</span></div>
-                <div className={`flex justify-between font-bold border-t dark:border-gray-600 mt-1 pt-1 ${budgetVarianceColor}`}>
-                    <span>Forecasted Budget:</span>
-                    <span>{currencyFormatter.format(totalForecastedBudget)}</span>
-                </div>
+              <div className="flex justify-between"><span>Cost to Date:</span> <span>{currencyFormatter.format(totalCost)}</span></div>
+              <div className="flex justify-between"><span>Original Budget:</span> <span className="text-gray-500 dark:text-gray-400">{currencyFormatter.format(totalOriginalBudget)}</span></div>
+              <div className={`flex justify-between font-bold border-t dark:border-gray-600 mt-1 pt-1 ${budgetVarianceColor}`}>
+                <span>Forecasted Budget:</span>
+                <span>{currencyFormatter.format(totalForecastedBudget)}</span>
+              </div>
             </div>
-        </div>
+          </div>
+        )}
 
+        {/* T&M Cost Summary */}
+        {isTM && (
+          <div className="mt-4 text-sm">
+            <p className="font-semibold text-gray-600 dark:text-gray-300">Costs & Revenue</p>
+            <div className="pl-2 space-y-1 mt-1">
+              <div className="flex justify-between"><span>Costs to Date:</span> <span>{currencyFormatter.format(totalCost)}</span></div>
+              <div className="flex justify-between"><span>Earned Revenue:</span> <span className="font-semibold text-green-600 dark:text-green-400">{currencyFormatter.format(earnedRevenue.total)}</span></div>
+            </div>
+          </div>
+        )}
 
-         <div className="mt-4 text-sm">
-          <p className="font-semibold text-gray-600 dark:text-gray-300">Revenue & Billing (Earned / Invoiced)</p>
+        {/* Revenue & Billing */}
+        <div className="mt-4 text-sm">
+          <p className="font-semibold text-gray-600 dark:text-gray-300">Billing Status</p>
           <div className="pl-2 space-y-1 mt-1">
-            <div className="flex justify-between font-bold">
-                <span>Total:</span> <span>{currencyFormatter.format(totalEarnedRevenue)} / <span className="text-gray-400 dark:text-gray-500">{currencyFormatter.format(totalInvoiced)}</span></span>
+            <div className="flex justify-between">
+              <span>Earned:</span> <span>{currencyFormatter.format(earnedRevenue.total)}</span>
             </div>
-            {billingDifference !== 0 && (
-              <div className={`flex justify-between font-bold mt-1 pt-1 text-xs ${billingStatusColor}`}>
-                <span>{billingStatus}:</span>
-                <span>{currencyFormatter.format(Math.abs(billingDifference))}</span>
+            <div className="flex justify-between">
+              <span>Invoiced:</span> <span className="text-gray-500 dark:text-gray-400">{currencyFormatter.format(totalInvoiced)}</span>
+            </div>
+            {billingInfo.difference !== 0 && (
+              <div className={`flex justify-between font-bold mt-1 pt-1 border-t dark:border-gray-600 text-xs ${billingInfo.isOverBilled ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                <span>{billingInfo.label}:</span>
+                <span>{currencyFormatter.format(Math.abs(billingInfo.difference))}</span>
               </div>
             )}
           </div>
         </div>
 
-        {userRole === 'projectManager' && (
+        {/* Targets (Fixed Price & PM role only) */}
+        {!isTM && userRole === 'projectManager' && (
           <div className="mt-4 text-sm bg-blue-50 dark:bg-blue-900/40 p-3 rounded-md">
             <p className="font-semibold text-gray-700 dark:text-gray-200">Targets</p>
             <div className="pl-2 space-y-1 mt-1">
@@ -179,14 +216,27 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
           </div>
         )}
 
-        <div className="mt-4">
-          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">% Complete (vs Forecast)</h4>
-          <div className="space-y-2">
-            <ProgressBar label="Labor" percentage={calculateProgress(job.costs.labor, job.costToComplete.labor)} />
-            <ProgressBar label="Material" percentage={calculateProgress(job.costs.material, job.costToComplete.material)} />
-            <ProgressBar label="Other" percentage={calculateProgress(job.costs.other, job.costToComplete.other)} />
+        {/* Progress bars (Fixed Price only) */}
+        {!isTM && (
+          <div className="mt-4">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">% Complete (vs Forecast)</h4>
+            <div className="space-y-2">
+              <ProgressBar label="Labor" percentage={calculateProgress(job.costs.labor, job.costToComplete.labor)} />
+              <ProgressBar label="Material" percentage={calculateProgress(job.costs.material, job.costToComplete.material)} />
+              <ProgressBar label="Other" percentage={calculateProgress(job.costs.other, job.costToComplete.other)} />
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* T&M Hours info */}
+        {isTM && job.tmSettings?.laborBillingType === 'fixed-rate' && job.tmSettings.laborHours && (
+          <div className="mt-4 text-sm bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
+            <div className="flex justify-between">
+              <span className="font-semibold text-blue-700 dark:text-blue-300">Hours Worked:</span>
+              <span className="text-blue-800 dark:text-blue-200">{job.tmSettings.laborHours} hrs @ ${job.tmSettings.laborBillRate}/hr</span>
+            </div>
+          </div>
+        )}
       </div>
       <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex items-center">
         {job.lastUpdated && (

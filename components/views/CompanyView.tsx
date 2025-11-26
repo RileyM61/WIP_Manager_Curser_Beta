@@ -1,5 +1,6 @@
 import React from 'react';
-import { Job, CostBreakdown, JobStatus, JobsSnapshot, CapacityPlan, CapacityRow } from '../../types';
+import { Job, JobStatus, JobsSnapshot, CapacityPlan, CapacityRow } from '../../types';
+import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../../lib/jobCalculations';
 
 interface CompanyViewProps {
   jobs: Job[];
@@ -30,36 +31,31 @@ const hoursPerPersonFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1,
 });
 
-const sumBreakdown = (breakdown: CostBreakdown): number => breakdown.labor + breakdown.material + breakdown.other;
-
 const calculateTotalEarnedRevenue = (jobList: Job[]): number => {
   if (!jobList) return 0;
   return jobList.reduce((total, job) => {
-    const totalContract = sumBreakdown(job.contract);
-    const totalBudget = sumBreakdown(job.budget);
-    const totalCost = sumBreakdown(job.costs);
-    
-    if (totalBudget <= 0) return total;
-    
-    const percentComplete = totalCost / totalBudget;
-    const earnedRevenue = totalContract * percentComplete;
-    return total + earnedRevenue;
+    const earned = calculateEarnedRevenue(job);
+    return total + earned.total;
   }, 0);
 };
 
 const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManagers, capacityPlan, capacityEnabled, onEditCapacity }) => {
   
   const jobsWithMetrics = jobs.map(job => {
+    const isTM = job.jobType === 'time-material';
     const totalContract = sumBreakdown(job.contract);
     const totalBudget = sumBreakdown(job.budget);
     const totalCost = sumBreakdown(job.costs);
-    const totalInvoiced = sumBreakdown(job.invoiced);
 
-    const profitMargin = totalContract > 0 ? ((totalContract - totalBudget) / totalContract) * 100 : 0;
-    
-    const overallPercentComplete = totalBudget > 0 ? totalCost / totalBudget : 0;
-    const totalEarnedRevenue = totalContract * overallPercentComplete;
-    const billingDifference = totalInvoiced - totalEarnedRevenue;
+    // Use shared calculation functions
+    const earnedRevenue = calculateEarnedRevenue(job);
+    const billingInfo = calculateBillingDifference(job);
+    const forecastedProfit = calculateForecastedProfit(job);
+
+    // For T&M, profit margin is based on earned revenue; for fixed price, based on contract
+    const profitMargin = isTM
+      ? (earnedRevenue.total > 0 ? (forecastedProfit / earnedRevenue.total) * 100 : 0)
+      : (totalContract > 0 ? ((totalContract - totalBudget) / totalContract) * 100 : 0);
 
     let daysOpen: number | null = null;
     if (job.status === JobStatus.Active && job.startDate !== 'TBD') {
@@ -72,19 +68,27 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
         }
     }
 
-    return { ...job, profitMargin, billingDifference, daysOpen };
+    return { 
+      ...job, 
+      profitMargin, 
+      billingDifference: billingInfo.difference, 
+      earnedRevenue: earnedRevenue.total,
+      daysOpen,
+      isTM 
+    };
   });
 
   const backlogToEarn = jobs.reduce((acc, job) => {
-    const totalContract = sumBreakdown(job.contract);
-    const totalBudget = sumBreakdown(job.budget);
-    const totalCost = sumBreakdown(job.costs);
-    if (totalBudget <= 0) {
-      return acc + totalContract;
+    const earned = calculateEarnedRevenue(job);
+    
+    if (job.jobType === 'time-material') {
+      // For T&M, there's no fixed "backlog" - it's based on ongoing work
+      // We could show remaining budget if one is set, or just skip T&M jobs
+      return acc;
     }
-    const percentComplete = totalCost / totalBudget;
-    const earnedRevenue = totalContract * percentComplete;
-    const remainingRevenue = Math.max(totalContract - earnedRevenue, 0);
+    
+    const totalContract = sumBreakdown(job.contract);
+    const remainingRevenue = Math.max(totalContract - earned.total, 0);
     return acc + remainingRevenue;
   }, 0);
 
@@ -95,11 +99,15 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
     }
     acc[pm].push(job);
     return acc;
-  }, {} as Record<string, (Job & { profitMargin: number; billingDifference: number; daysOpen: number | null; })[]>);
+  }, {} as Record<string, typeof jobsWithMetrics>);
 
   const totalNetBillingDifference = jobsWithMetrics.reduce((acc, job) => acc + job.billingDifference, 0);
   const totalProfitMargin = jobsWithMetrics.reduce((acc, job) => acc + job.profitMargin, 0);
   const averageProfitMargin = jobsWithMetrics.length > 0 ? totalProfitMargin / jobsWithMetrics.length : 0;
+
+  // Count job types
+  const tmJobCount = jobs.filter(j => j.jobType === 'time-material').length;
+  const fixedJobCount = jobs.filter(j => j.jobType !== 'time-material').length;
 
   const totalActiveJobs = jobs.filter(job => job.status === JobStatus.Active).length;
   const totalFutureJobs = jobs.filter(job => job.status === JobStatus.Future).length;
@@ -161,6 +169,11 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
             <p className="text-xs text-gray-400 dark:text-gray-500">
               Earned this week: {currencyFormatter.format(weeklyEarnedRevenue)} (since {snapshotDate})
             </p>
+            {tmJobCount > 0 && (
+              <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
+                Note: {tmJobCount} T&M job{tmJobCount > 1 ? 's' : ''} not included in backlog
+              </p>
+            )}
           </div>
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Net Billing Status</p>
@@ -179,6 +192,19 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
             <p className="text-xs text-gray-400 dark:text-gray-500">
               Across {jobsWithMetrics.length} jobs
             </p>
+          </div>
+          <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Job Types</p>
+            <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center gap-1">
+                <span className="px-2 py-0.5 text-xs font-medium rounded bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">Fixed</span>
+                <span className="text-lg font-bold text-gray-700 dark:text-gray-200">{fixedJobCount}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="px-2 py-0.5 text-xs font-medium rounded bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">T&M</span>
+                <span className="text-lg font-bold text-gray-700 dark:text-gray-200">{tmJobCount}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -296,7 +322,7 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
         </>
         ) : (
           <div className="bg-gray-50 dark:bg-gray-700/40 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-sm text-gray-500 dark:text-gray-400">
-            <p>This workspace isn’t tracking staffing capacity yet.</p>
+            <p>This workspace isn't tracking staffing capacity yet.</p>
             <p className="mt-2">Enable capacity tracking in Settings to forecast headcount, labor hours, and weekly utilization.</p>
             <button
               type="button"
@@ -317,12 +343,18 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
           const pmAverageMargin = pmJobs.length > 0 ? pmTotalMargin / pmJobs.length : 0;
           const pmActiveCount = pmJobs.filter(job => job.status === JobStatus.Active).length;
           const pmFutureCount = pmJobs.filter(job => job.status === JobStatus.Future).length;
+          const pmTMCount = pmJobs.filter(job => job.isTM).length;
 
           return (
             <div key={pmName} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
               <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-700/50 px-4 py-3 border-b dark:border-gray-700">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{pmName}</h3>
-                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Active: {pmActiveCount} • Future: {pmFutureCount}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Active: {pmActiveCount} • Future: {pmFutureCount}</span>
+                  {pmTMCount > 0 && (
+                    <span className="px-2 py-0.5 text-xs font-medium rounded bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">{pmTMCount} T&M</span>
+                  )}
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -330,6 +362,7 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
                     <tr>
                       <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Job Name / No.</th>
                       <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Client</th>
+                      <th scope="col" className="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
                       <th scope="col" className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Profit Margin</th>
                       <th scope="col" className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Billing Status</th>
                     </tr>
@@ -345,6 +378,15 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
                           )}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{job.client}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-center">
+                          <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                            job.isTM 
+                              ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' 
+                              : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                          }`}>
+                            {job.isTM ? 'T&M' : 'Fixed'}
+                          </span>
+                        </td>
                         <td className={`px-4 py-3 whitespace-nowrap text-right text-sm font-semibold ${job.profitMargin >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                           {job.profitMargin.toFixed(1)}%
                         </td>
@@ -357,7 +399,7 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
                   </tbody>
                    <tfoot className="bg-gray-100 dark:bg-gray-700/50">
                       <tr>
-                        <td colSpan={2} className="px-4 py-2 text-right text-sm font-bold text-gray-700 dark:text-gray-200 uppercase">PM Totals</td>
+                        <td colSpan={3} className="px-4 py-2 text-right text-sm font-bold text-gray-700 dark:text-gray-200 uppercase">PM Totals</td>
                         <td className={`px-4 py-2 text-right text-sm font-bold ${pmAverageMargin >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                           Avg: {pmAverageMargin.toFixed(1)}%
                         </td>

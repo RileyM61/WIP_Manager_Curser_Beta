@@ -1,13 +1,30 @@
-import { Job, Note, JobStatus } from '../../types';
+import { Job, Note, JobStatus, JobType, TMSettings } from '../../types';
 
 // Transform Supabase job row to app Job type
 export function dbJobToAppJob(dbJob: any): Job {
+  // Parse tm_settings from JSONB
+  let tmSettings: TMSettings | undefined;
+  if (dbJob.tm_settings) {
+    const tm = typeof dbJob.tm_settings === 'string' 
+      ? JSON.parse(dbJob.tm_settings) 
+      : dbJob.tm_settings;
+    tmSettings = {
+      laborBillingType: tm.laborBillingType || 'markup',
+      laborBillRate: tm.laborBillRate,
+      laborHours: tm.laborHours,
+      laborMarkup: tm.laborMarkup,
+      materialMarkup: tm.materialMarkup || 1,
+      otherMarkup: tm.otherMarkup || 1,
+    };
+  }
+
   return {
     id: dbJob.id,
     jobNo: dbJob.job_no,
     jobName: dbJob.job_name,
     client: dbJob.client,
     projectManager: dbJob.project_manager,
+    estimator: dbJob.estimator || undefined,
     status: dbJob.status as JobStatus,
     startDate: dbJob.start_date ? dbJob.start_date : 'TBD',
     endDate: dbJob.end_date ? dbJob.end_date : 'TBD',
@@ -42,16 +59,29 @@ export function dbJobToAppJob(dbJob: any): Job {
     onHoldDate: dbJob.on_hold_date || undefined,
     lastUpdated: dbJob.last_updated,
     companyId: dbJob.company_id || undefined,
+    jobType: (dbJob.job_type as JobType) || 'fixed-price',
+    tmSettings,
   };
 }
 
 // Transform app Job to Supabase insert/update format
 export function appJobToDbJob(job: Job): any {
+  // Prepare tm_settings for JSONB storage
+  const tmSettings = job.tmSettings ? {
+    laborBillingType: job.tmSettings.laborBillingType,
+    laborBillRate: job.tmSettings.laborBillRate,
+    laborHours: job.tmSettings.laborHours,
+    laborMarkup: job.tmSettings.laborMarkup,
+    materialMarkup: job.tmSettings.materialMarkup,
+    otherMarkup: job.tmSettings.otherMarkup,
+  } : null;
+
   return {
     job_no: job.jobNo,
     job_name: job.jobName,
     client: job.client,
     project_manager: job.projectManager,
+    estimator: job.estimator || null,
     status: job.status,
     start_date: job.startDate === 'TBD' ? null : job.startDate,
     end_date: job.endDate === 'TBD' ? null : job.endDate,
@@ -75,6 +105,8 @@ export function appJobToDbJob(job: Job): any {
     target_margin: job.targetMargin || null,
     on_hold_date: job.onHoldDate || null,
     company_id: job.companyId || null,
+    job_type: job.jobType || 'fixed-price',
+    tm_settings: tmSettings,
   };
 }
 

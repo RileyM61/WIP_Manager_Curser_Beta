@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Job, JobStatus, CostBreakdown, UserRole } from '../../types';
+import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType } from '../../types';
 import { XIcon } from '../shared/icons';
+import { getDefaultTMSettings } from '../../lib/jobCalculations';
 
 // --- Helper component for currency input ---
 interface CurrencyInputProps {
@@ -116,6 +117,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       targetProfit: 0,
       targetMargin: 0,
       targetEndDate: 'TBD',
+      jobType: 'fixed-price',
     };
 
     if (jobToEdit) {
@@ -167,6 +169,30 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
     }
     setJob({ ...job, [name]: value });
   };
+
+  const handleJobTypeChange = (newType: JobType) => {
+    setJob(prev => {
+      if (newType === 'time-material' && !prev.tmSettings) {
+        // Initialize T&M settings with defaults
+        return {
+          ...prev,
+          jobType: newType,
+          tmSettings: getDefaultTMSettings(),
+        };
+      }
+      return { ...prev, jobType: newType };
+    });
+  };
+
+  const handleTMSettingChange = (field: keyof TMSettings, value: number | LaborBillingType) => {
+    setJob(prev => ({
+      ...prev,
+      tmSettings: {
+        ...(prev.tmSettings || getDefaultTMSettings()),
+        [field]: value,
+      },
+    }));
+  };
   
   const handleCurrencyChange = (name: string, value: number) => {
     if (name.includes('.')) {
@@ -217,8 +243,14 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
   const isStartDateTBD = job.startDate === 'TBD';
   const isEndDateTBD = job.endDate === 'TBD';
   const isTargetEndDateTBD = job.targetEndDate === 'TBD';
+  const isTM = job.jobType === 'time-material';
+  const tmSettings = job.tmSettings || getDefaultTMSettings();
 
   const inputClassName = "mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed";
+
+  // Helper to format markup as percentage for display
+  const markupToPercent = (markup: number) => ((markup - 1) * 100).toFixed(0);
+  const percentToMarkup = (percent: number) => 1 + (percent / 100);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
@@ -265,6 +297,39 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
             {/* Tab 1: Job Details */}
             {activeTab === 'details' && (
               <div className="space-y-4">
+                {/* Job Type Selector */}
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Job Type</label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleJobTypeChange('fixed-price')}
+                      disabled={isEstimatorWithRestrictedAccess}
+                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
+                        job.jobType === 'fixed-price'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <div className="font-semibold">Fixed Price</div>
+                      <div className="text-xs mt-1 opacity-75">Lump sum contract</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleJobTypeChange('time-material')}
+                      disabled={isEstimatorWithRestrictedAccess}
+                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
+                        job.jobType === 'time-material'
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      <div className="font-semibold">Time & Material</div>
+                      <div className="text-xs mt-1 opacity-75">Cost plus markup</div>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Job Name & Number */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -360,91 +425,229 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                   </div>
                 </div>
 
-                {/* Targets */}
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Targets</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label htmlFor="targetProfit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Profit</label>
-                      <CurrencyInput id="targetProfit" name="targetProfit" value={job.targetProfit || 0} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
-                    <div>
-                      <label htmlFor="targetMargin" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Margin (%)</label>
-                      <input
-                        type="number"
-                        id="targetMargin"
-                        name="targetMargin"
-                        value={job.targetMargin ?? ''}
-                        onChange={handleChange}
-                        disabled={isEstimatorWithRestrictedAccess}
-                        className={inputClassName}
-                        step={0.1}
-                        min={0}
-                      />
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="targetEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Completion</label>
-                        <div className="flex items-center">
-                          <input id="targetEndDateTBD" type="checkbox" checked={isTargetEndDateTBD} onChange={handleTargetDateTBDChange} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
-                          <label htmlFor="targetEndDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
-                        </div>
+                {/* Targets (only for Fixed Price) */}
+                {!isTM && (
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Targets</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label htmlFor="targetProfit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Profit</label>
+                        <CurrencyInput id="targetProfit" name="targetProfit" value={job.targetProfit || 0} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                       </div>
-                      <input
-                        type="date"
-                        name="targetEndDate"
-                        id="targetEndDate"
-                        value={isTargetEndDateTBD ? '' : job.targetEndDate}
-                        onChange={handleChange}
-                        className={inputClassName}
-                        disabled={isTargetEndDateTBD || isEstimatorWithRestrictedAccess}
-                      />
+                      <div>
+                        <label htmlFor="targetMargin" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Margin (%)</label>
+                        <input
+                          type="number"
+                          id="targetMargin"
+                          name="targetMargin"
+                          value={job.targetMargin ?? ''}
+                          onChange={handleChange}
+                          disabled={isEstimatorWithRestrictedAccess}
+                          className={inputClassName}
+                          step={0.1}
+                          min={0}
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <label htmlFor="targetEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Completion</label>
+                          <div className="flex items-center">
+                            <input id="targetEndDateTBD" type="checkbox" checked={isTargetEndDateTBD} onChange={handleTargetDateTBDChange} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
+                            <label htmlFor="targetEndDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
+                          </div>
+                        </div>
+                        <input
+                          type="date"
+                          name="targetEndDate"
+                          id="targetEndDate"
+                          value={isTargetEndDateTBD ? '' : job.targetEndDate}
+                          onChange={handleChange}
+                          className={inputClassName}
+                          disabled={isTargetEndDateTBD || isEstimatorWithRestrictedAccess}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* T&M Settings */}
+                {isTM && (
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-3">T&M Billing Settings</h3>
+                    
+                    {/* Labor Billing Type */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Labor Billing Method</label>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleTMSettingChange('laborBillingType', 'fixed-rate')}
+                          disabled={isEstimatorWithRestrictedAccess}
+                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                            tmSettings.laborBillingType === 'fixed-rate'
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                              : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                          } disabled:opacity-50`}
+                        >
+                          Fixed Rate ($/hr)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleTMSettingChange('laborBillingType', 'markup')}
+                          disabled={isEstimatorWithRestrictedAccess}
+                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
+                            tmSettings.laborBillingType === 'markup'
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                              : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                          } disabled:opacity-50`}
+                        >
+                          Markup (%)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Labor Settings based on type */}
+                    {tmSettings.laborBillingType === 'fixed-rate' ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label htmlFor="laborBillRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Bill Rate ($/hour)</label>
+                          <div className="mt-1 relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <input
+                              type="number"
+                              id="laborBillRate"
+                              value={tmSettings.laborBillRate || ''}
+                              onChange={(e) => handleTMSettingChange('laborBillRate', Number(e.target.value))}
+                              disabled={isEstimatorWithRestrictedAccess}
+                              className={`${inputClassName} pl-7`}
+                              step={0.01}
+                              min={0}
+                              placeholder="85.00"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label htmlFor="laborHours" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Hours Worked</label>
+                          <input
+                            type="number"
+                            id="laborHours"
+                            value={tmSettings.laborHours || ''}
+                            onChange={(e) => handleTMSettingChange('laborHours', Number(e.target.value))}
+                            disabled={isEstimatorWithRestrictedAccess}
+                            className={inputClassName}
+                            step={0.5}
+                            min={0}
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mb-4">
+                        <label htmlFor="laborMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor Markup (%)</label>
+                        <div className="mt-1 relative">
+                          <input
+                            type="number"
+                            id="laborMarkup"
+                            value={markupToPercent(tmSettings.laborMarkup || 1)}
+                            onChange={(e) => handleTMSettingChange('laborMarkup', percentToMarkup(Number(e.target.value)))}
+                            disabled={isEstimatorWithRestrictedAccess}
+                            className={`${inputClassName} pr-8`}
+                            step={1}
+                            min={0}
+                            placeholder="50"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">e.g., 50% markup means billing 1.5× labor cost</p>
+                      </div>
+                    )}
+
+                    {/* Material & Other Markup */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="materialMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material Markup (%)</label>
+                        <div className="mt-1 relative">
+                          <input
+                            type="number"
+                            id="materialMarkup"
+                            value={markupToPercent(tmSettings.materialMarkup || 1)}
+                            onChange={(e) => handleTMSettingChange('materialMarkup', percentToMarkup(Number(e.target.value)))}
+                            disabled={isEstimatorWithRestrictedAccess}
+                            className={`${inputClassName} pr-8`}
+                            step={1}
+                            min={0}
+                            placeholder="15"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label htmlFor="otherMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other Costs Markup (%)</label>
+                        <div className="mt-1 relative">
+                          <input
+                            type="number"
+                            id="otherMarkup"
+                            value={markupToPercent(tmSettings.otherMarkup || 1)}
+                            onChange={(e) => handleTMSettingChange('otherMarkup', percentToMarkup(Number(e.target.value)))}
+                            disabled={isEstimatorWithRestrictedAccess}
+                            className={`${inputClassName} pr-8`}
+                            step={1}
+                            min={0}
+                            placeholder="10"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Tab 2: Financials */}
             {activeTab === 'financials' && (
               <div className="space-y-6">
-                {/* Contract Breakdown */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contract Breakdown</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label htmlFor="contract.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                      <CurrencyInput id="contract.labor" name="contract.labor" value={job.contract.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
-                    <div>
-                      <label htmlFor="contract.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                      <CurrencyInput id="contract.material" name="contract.material" value={job.contract.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
-                    <div>
-                      <label htmlFor="contract.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                      <CurrencyInput id="contract.other" name="contract.other" value={job.contract.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                {/* Contract Breakdown (only for Fixed Price) */}
+                {!isTM && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contract Breakdown</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label htmlFor="contract.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                        <CurrencyInput id="contract.labor" name="contract.labor" value={job.contract.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
+                      <div>
+                        <label htmlFor="contract.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                        <CurrencyInput id="contract.material" name="contract.material" value={job.contract.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
+                      <div>
+                        <label htmlFor="contract.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                        <CurrencyInput id="contract.other" name="contract.other" value={job.contract.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Cost Budget */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Cost Budget</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label htmlFor="budget.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                      <CurrencyInput id="budget.labor" name="budget.labor" value={job.budget.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
-                    <div>
-                      <label htmlFor="budget.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                      <CurrencyInput id="budget.material" name="budget.material" value={job.budget.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
-                    <div>
-                      <label htmlFor="budget.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                      <CurrencyInput id="budget.other" name="budget.other" value={job.budget.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                {/* Cost Budget (only for Fixed Price) */}
+                {!isTM && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Cost Budget</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label htmlFor="budget.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                        <CurrencyInput id="budget.labor" name="budget.labor" value={job.budget.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
+                      <div>
+                        <label htmlFor="budget.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                        <CurrencyInput id="budget.material" name="budget.material" value={job.budget.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
+                      <div>
+                        <label htmlFor="budget.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                        <CurrencyInput id="budget.other" name="budget.other" value={job.budget.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Invoiced to Date */}
                 <div>
@@ -484,27 +687,41 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                   </div>
                 </div>
 
-                {/* Cost to Complete */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost to Complete</h3>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">Estimate of remaining costs</span>
+                {/* Cost to Complete (only for Fixed Price) */}
+                {!isTM && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost to Complete</h3>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">Estimate of remaining costs</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label htmlFor="costToComplete.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                        <CurrencyInput id="costToComplete.labor" name="costToComplete.labor" value={job.costToComplete.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
+                      <div>
+                        <label htmlFor="costToComplete.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                        <CurrencyInput id="costToComplete.material" name="costToComplete.material" value={job.costToComplete.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
+                      <div>
+                        <label htmlFor="costToComplete.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                        <CurrencyInput id="costToComplete.other" name="costToComplete.other" value={job.costToComplete.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label htmlFor="costToComplete.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                      <CurrencyInput id="costToComplete.labor" name="costToComplete.labor" value={job.costToComplete.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
-                    <div>
-                      <label htmlFor="costToComplete.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                      <CurrencyInput id="costToComplete.material" name="costToComplete.material" value={job.costToComplete.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
-                    <div>
-                      <label htmlFor="costToComplete.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                      <CurrencyInput id="costToComplete.other" name="costToComplete.other" value={job.costToComplete.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
-                    </div>
+                )}
+
+                {/* T&M Info Box */}
+                {isTM && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">Time & Material Billing</h4>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      For T&M jobs, earned revenue is calculated from your costs plus markup. 
+                      Contract and budget fields are not used. Over/under billed is determined by 
+                      comparing invoiced amounts to earned revenue.
+                    </p>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
