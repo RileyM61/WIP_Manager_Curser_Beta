@@ -31,6 +31,7 @@ const AuthPage: React.FC = () => {
   const [inviteInfo, setInviteInfo] = useState<InviteInfo | null>(null);
   const [inviteLoading, setInviteLoading] = useState(!!inviteToken);
   const [acceptingInvite, setAcceptingInvite] = useState(false);
+  const [inviteAttempted, setInviteAttempted] = useState(false);
 
   const headerCopy = useMemo(() => {
     if (inviteInfo?.valid) {
@@ -61,20 +62,29 @@ const AuthPage: React.FC = () => {
   // Handle accepting invitation after signup/login
   useEffect(() => {
     const handleAcceptInvite = async () => {
-      if (session && inviteToken && inviteInfo?.valid && !acceptingInvite) {
+      // Only attempt once, and only if we have all required data
+      if (session && inviteToken && inviteInfo?.valid && !acceptingInvite && !inviteAttempted) {
         setAcceptingInvite(true);
-        const result = await acceptInvitation(inviteToken);
-        if (result.success) {
-          await refreshProfile();
-          navigate('/app', { replace: true });
-        } else {
-          setMessage(result.error || 'Failed to accept invitation');
+        setInviteAttempted(true); // Prevent retry loop
+        
+        try {
+          const result = await acceptInvitation(inviteToken);
+          if (result.success) {
+            await refreshProfile();
+            navigate('/app', { replace: true });
+          } else {
+            setMessage(result.error || 'Failed to accept invitation');
+            setAcceptingInvite(false);
+          }
+        } catch (err: any) {
+          console.error('[AuthPage] Error accepting invitation:', err);
+          setMessage(err.message || 'Failed to accept invitation. Please try again.');
           setAcceptingInvite(false);
         }
       }
     };
     handleAcceptInvite();
-  }, [session, inviteToken, inviteInfo, acceptingInvite, refreshProfile, navigate]);
+  }, [session, inviteToken, inviteInfo, acceptingInvite, inviteAttempted, refreshProfile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,6 +184,40 @@ const AuthPage: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-slate-300">Joining {inviteInfo?.companyName}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if invite was attempted but failed
+  if (inviteAttempted && !acceptingInvite && message) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-3xl border border-orange-500/30 bg-orange-500/10 p-8 shadow-2xl backdrop-blur text-center">
+          <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-semibold text-orange-300">Could Not Join Team</h1>
+          <p className="mt-2 text-sm text-orange-200/80">{message}</p>
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={() => navigate('/app')}
+              className="w-full px-6 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+            >
+              Go to App
+            </button>
+            <button
+              onClick={() => {
+                setInviteAttempted(false);
+                setMessage(null);
+              }}
+              className="w-full px-6 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
