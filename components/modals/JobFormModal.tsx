@@ -8,6 +8,7 @@ interface CurrencyInputProps {
   name: string;
   value: number;
   onChange: (name: string, value: number) => void;
+  disabled?: boolean;
 }
 
 const formatCurrency = (value: number) => {
@@ -23,7 +24,7 @@ const parseInput = (input: string): number => {
     return isNaN(number) ? 0 : number;
 };
 
-const CurrencyInput: React.FC<CurrencyInputProps> = ({ id, name, value, onChange }) => {
+const CurrencyInput: React.FC<CurrencyInputProps> = ({ id, name, value, onChange, disabled = false }) => {
     const [displayValue, setDisplayValue] = useState(formatCurrency(value));
 
     useEffect(() => {
@@ -62,7 +63,8 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({ id, name, value, onChange
             onChange={handleChange}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue text-right dark:bg-gray-700 dark:text-gray-200"
+            disabled={disabled}
+            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue text-right dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
             inputMode="decimal"
             autoComplete="off"
         />
@@ -70,6 +72,8 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({ id, name, value, onChange
 };
 // --- End of helper component ---
 
+// Tab type
+type FormTab = 'details' | 'financials';
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -89,6 +93,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future;
   // Estimators cannot delete jobs
   const canDelete = userRole !== 'estimator';
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<FormTab>('details');
+
   const getInitialState = (): Job => {
     const defaults: Job = {
       id: '',
@@ -130,6 +138,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
   useEffect(() => {
     setJob(getInitialState());
+    setActiveTab('details'); // Reset to first tab when modal opens
   }, [jobToEdit, isOpen, projectManagers, defaultStatus, userRole, activeEstimator]);
   
   const handleDateTBDChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'startDate' | 'endDate') => {
@@ -179,6 +188,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
     e.preventDefault();
     if (!job.jobName || !job.client || !job.jobNo) {
       alert("Job Name, Job Number, and Client are required.");
+      setActiveTab('details'); // Switch to details tab to show required fields
       return;
     }
     
@@ -208,34 +218,72 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
   const isEndDateTBD = job.endDate === 'TBD';
   const isTargetEndDateTBD = job.targetEndDate === 'TBD';
 
+  const inputClassName = "mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed";
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-full overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+          <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{jobToEdit ? 'Edit Job' : 'Add New Job'}</h2>
             <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <XIcon />
             </button>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="jobName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Name</label>
-                <input type="text" name="jobName" id="jobName" value={job.jobName} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed" required />
-              </div>
-               <div>
-                <label htmlFor="jobNo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Number</label>
-                <input type="text" name="jobNo" id="jobNo" value={job.jobNo} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed" required />
-              </div>
-            </div>
+          
+          {/* Tabs */}
+          <div className="flex mt-4 gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveTab('details')}
+              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                activeTab === 'details'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Job Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('financials')}
+              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                activeTab === 'financials'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Financials
+            </button>
+          </div>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label htmlFor="client" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Client</label>
-                    <input type="text" name="client" id="client" value={job.client} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed" required />
+        {/* Form Content */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-grow overflow-hidden">
+          <div className="flex-grow overflow-y-auto p-6">
+            {/* Tab 1: Job Details */}
+            {activeTab === 'details' && (
+              <div className="space-y-4">
+                {/* Job Name & Number */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="jobName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Name <span className="text-red-500">*</span></label>
+                    <input type="text" name="jobName" id="jobName" value={job.jobName} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className={inputClassName} required />
+                  </div>
+                  <div>
+                    <label htmlFor="jobNo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Number <span className="text-red-500">*</span></label>
+                    <input type="text" name="jobNo" id="jobNo" value={job.jobNo} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className={inputClassName} required />
+                  </div>
                 </div>
-                 <div>
+
+                {/* Client & Status */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="client" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Client <span className="text-red-500">*</span></label>
+                    <input type="text" name="client" id="client" value={job.client} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className={inputClassName} required />
+                  </div>
+                  <div>
                     <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                     <select
                       name="status"
@@ -243,17 +291,18 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       value={job.status}
                       onChange={handleChange}
                       disabled={isEstimatorWithRestrictedAccess}
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                      className={inputClassName}
                     >
                       {Object.values(JobStatus).map(status => (
                         <option key={status} value={status}>{status}</option>
                       ))}
                     </select>
+                  </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                {/* PM & Estimator */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
                     <label htmlFor="projectManager" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Manager</label>
                     <select
                       name="projectManager"
@@ -261,15 +310,15 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       value={job.projectManager}
                       onChange={handleChange}
                       disabled={isEstimatorWithRestrictedAccess}
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                      className={inputClassName}
                     >
                       <option value="">-- Select a PM --</option>
                       {projectManagers.map(pm => (
                         <option key={pm} value={pm}>{pm}</option>
                       ))}
                     </select>
-                </div>
-                <div>
+                  </div>
+                  <div>
                     <label htmlFor="estimator" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estimator</label>
                     <select
                       name="estimator"
@@ -277,205 +326,226 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       value={job.estimator || ''}
                       onChange={handleChange}
                       disabled={isEstimatorWithRestrictedAccess}
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                      className={inputClassName}
                     >
                       <option value="">-- Select an Estimator --</option>
                       {estimators.map(est => (
                         <option key={est} value={est}>{est}</option>
                       ))}
                     </select>
-                </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center justify-between">
-                    <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                    <div className="flex items-center">
-                        <input id="startDateTBD" type="checkbox" checked={isStartDateTBD} onChange={(e) => handleDateTBDChange(e, 'startDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
-                        <label htmlFor="startDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
-                    </div>
-                </div>
-                <input type="date" name="startDate" id="startDate" value={isStartDateTBD ? '' : job.startDate} onChange={handleChange} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue disabled:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:disabled:bg-gray-700" disabled={isStartDateTBD} />
-              </div>
-              <div>
-                <div className="flex items-center justify-between">
-                    <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                    <div className="flex items-center">
-                        <input id="endDateTBD" type="checkbox" checked={isEndDateTBD} onChange={(e) => handleDateTBDChange(e, 'endDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
-                        <label htmlFor="endDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
-                    </div>
-                </div>
-                <input type="date" name="endDate" id="endDate" value={isEndDateTBD ? '' : job.endDate} onChange={handleChange} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue disabled:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:disabled:bg-gray-700" disabled={isEndDateTBD} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="targetProfit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Profit</label>
-                <CurrencyInput id="targetProfit" name="targetProfit" value={job.targetProfit || 0} onChange={handleCurrencyChange} />
-              </div>
-              <div>
-                <label htmlFor="targetMargin" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Margin (%)</label>
-                <input
-                  type="number"
-                  id="targetMargin"
-                  name="targetMargin"
-                  value={job.targetMargin ?? ''}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
-                  step={0.1}
-                  min={0}
-                />
-              </div>
-              <div>
-                <div className="flex items-center justify-between">
-                  <label htmlFor="targetEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Completion</label>
-                  <div className="flex items-center">
-                    <input id="targetEndDateTBD" type="checkbox" checked={isTargetEndDateTBD} onChange={handleTargetDateTBDChange} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
-                    <label htmlFor="targetEndDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
                   </div>
                 </div>
-                <input
-                  type="date"
-                  name="targetEndDate"
-                  id="targetEndDate"
-                  value={isTargetEndDateTBD ? '' : job.targetEndDate}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue disabled:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:disabled:bg-gray-700"
-                  disabled={isTargetEndDateTBD}
-                />
+                
+                {/* Dates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                      <div className="flex items-center">
+                        <input id="startDateTBD" type="checkbox" checked={isStartDateTBD} onChange={(e) => handleDateTBDChange(e, 'startDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
+                        <label htmlFor="startDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
+                      </div>
+                    </div>
+                    <input type="date" name="startDate" id="startDate" value={isStartDateTBD ? '' : job.startDate} onChange={handleChange} className={inputClassName} disabled={isStartDateTBD} />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                      <div className="flex items-center">
+                        <input id="endDateTBD" type="checkbox" checked={isEndDateTBD} onChange={(e) => handleDateTBDChange(e, 'endDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
+                        <label htmlFor="endDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
+                      </div>
+                    </div>
+                    <input type="date" name="endDate" id="endDate" value={isEndDateTBD ? '' : job.endDate} onChange={handleChange} className={inputClassName} disabled={isEndDateTBD} />
+                  </div>
+                </div>
+
+                {/* Targets */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Targets</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="targetProfit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Profit</label>
+                      <CurrencyInput id="targetProfit" name="targetProfit" value={job.targetProfit || 0} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                    </div>
+                    <div>
+                      <label htmlFor="targetMargin" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Margin (%)</label>
+                      <input
+                        type="number"
+                        id="targetMargin"
+                        name="targetMargin"
+                        value={job.targetMargin ?? ''}
+                        onChange={handleChange}
+                        disabled={isEstimatorWithRestrictedAccess}
+                        className={inputClassName}
+                        step={0.1}
+                        min={0}
+                      />
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="targetEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Completion</label>
+                        <div className="flex items-center">
+                          <input id="targetEndDateTBD" type="checkbox" checked={isTargetEndDateTBD} onChange={handleTargetDateTBDChange} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
+                          <label htmlFor="targetEndDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
+                        </div>
+                      </div>
+                      <input
+                        type="date"
+                        name="targetEndDate"
+                        id="targetEndDate"
+                        value={isTargetEndDateTBD ? '' : job.targetEndDate}
+                        onChange={handleChange}
+                        className={inputClassName}
+                        disabled={isTargetEndDateTBD || isEstimatorWithRestrictedAccess}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div className="pt-2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Contract Breakdown</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-                    <div>
-                        <label htmlFor="contract.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                        <CurrencyInput id="contract.labor" name="contract.labor" value={job.contract.labor} onChange={handleCurrencyChange} />
-                    </div>
-                    <div>
-                        <label htmlFor="contract.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                        <CurrencyInput id="contract.material" name="contract.material" value={job.contract.material} onChange={handleCurrencyChange} />
-                    </div>
-                    <div>
-                        <label htmlFor="contract.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                        <CurrencyInput id="contract.other" name="contract.other" value={job.contract.other} onChange={handleCurrencyChange} />
-                    </div>
-                </div>
-            </div>
+            )}
 
-            <div className="pt-2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Invoiced to Date</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            {/* Tab 2: Financials */}
+            {activeTab === 'financials' && (
+              <div className="space-y-6">
+                {/* Contract Breakdown */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contract Breakdown</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label htmlFor="invoiced.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                        <CurrencyInput id="invoiced.labor" name="invoiced.labor" value={job.invoiced.labor} onChange={handleCurrencyChange} />
+                      <label htmlFor="contract.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                      <CurrencyInput id="contract.labor" name="contract.labor" value={job.contract.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="invoiced.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                        <CurrencyInput id="invoiced.material" name="invoiced.material" value={job.invoiced.material} onChange={handleCurrencyChange} />
+                      <label htmlFor="contract.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                      <CurrencyInput id="contract.material" name="contract.material" value={job.contract.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="invoiced.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                        <CurrencyInput id="invoiced.other" name="invoiced.other" value={job.invoiced.other} onChange={handleCurrencyChange} />
+                      <label htmlFor="contract.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                      <CurrencyInput id="contract.other" name="contract.other" value={job.contract.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
+                  </div>
                 </div>
-            </div>
 
-             <div className="pt-2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Cost Budget</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                {/* Cost Budget */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Cost Budget</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label htmlFor="budget.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                        <CurrencyInput id="budget.labor" name="budget.labor" value={job.budget.labor} onChange={handleCurrencyChange} />
+                      <label htmlFor="budget.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                      <CurrencyInput id="budget.labor" name="budget.labor" value={job.budget.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="budget.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                        <CurrencyInput id="budget.material" name="budget.material" value={job.budget.material} onChange={handleCurrencyChange} />
+                      <label htmlFor="budget.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                      <CurrencyInput id="budget.material" name="budget.material" value={job.budget.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="budget.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                        <CurrencyInput id="budget.other" name="budget.other" value={job.budget.other} onChange={handleCurrencyChange} />
+                      <label htmlFor="budget.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                      <CurrencyInput id="budget.other" name="budget.other" value={job.budget.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
+                  </div>
                 </div>
-            </div>
 
-            <div className="pt-2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Costs to Date</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                {/* Invoiced to Date */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Invoiced to Date</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label htmlFor="costs.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                        <CurrencyInput id="costs.labor" name="costs.labor" value={job.costs.labor} onChange={handleCurrencyChange} />
+                      <label htmlFor="invoiced.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                      <CurrencyInput id="invoiced.labor" name="invoiced.labor" value={job.invoiced.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="costs.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                        <CurrencyInput id="costs.material" name="costs.material" value={job.costs.material} onChange={handleCurrencyChange} />
+                      <label htmlFor="invoiced.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                      <CurrencyInput id="invoiced.material" name="invoiced.material" value={job.invoiced.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="costs.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                        <CurrencyInput id="costs.other" name="costs.other" value={job.costs.other} onChange={handleCurrencyChange} />
+                      <label htmlFor="invoiced.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                      <CurrencyInput id="invoiced.other" name="invoiced.other" value={job.invoiced.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
+                  </div>
                 </div>
-            </div>
 
-            <div className="pt-2">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Cost to Complete</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Estimate of remaining costs to finish the job.</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                {/* Costs to Date */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Costs to Date</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                        <label htmlFor="costToComplete.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
-                        <CurrencyInput id="costToComplete.labor" name="costToComplete.labor" value={job.costToComplete.labor} onChange={handleCurrencyChange} />
+                      <label htmlFor="costs.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                      <CurrencyInput id="costs.labor" name="costs.labor" value={job.costs.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="costToComplete.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
-                        <CurrencyInput id="costToComplete.material" name="costToComplete.material" value={job.costToComplete.material} onChange={handleCurrencyChange} />
+                      <label htmlFor="costs.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                      <CurrencyInput id="costs.material" name="costs.material" value={job.costs.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
                     <div>
-                        <label htmlFor="costToComplete.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
-                        <CurrencyInput id="costToComplete.other" name="costToComplete.other" value={job.costToComplete.other} onChange={handleCurrencyChange} />
+                      <label htmlFor="costs.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                      <CurrencyInput id="costs.other" name="costs.other" value={job.costs.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
                     </div>
+                  </div>
                 </div>
-            </div>
 
+                {/* Cost to Complete */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost to Complete</h3>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Estimate of remaining costs</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="costToComplete.labor" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor</label>
+                      <CurrencyInput id="costToComplete.labor" name="costToComplete.labor" value={job.costToComplete.labor} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                    </div>
+                    <div>
+                      <label htmlFor="costToComplete.material" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Material</label>
+                      <CurrencyInput id="costToComplete.material" name="costToComplete.material" value={job.costToComplete.material} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                    </div>
+                    <div>
+                      <label htmlFor="costToComplete.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
+                      <CurrencyInput id="costToComplete.other" name="costToComplete.other" value={job.costToComplete.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Estimator Warning */}
             {isEstimatorWithRestrictedAccess && (
-              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+              <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
                 <p className="text-sm text-amber-800 dark:text-amber-200">
                   <strong>View Only:</strong> As an Estimator, you can only edit jobs with "Future" status. This job is currently "{jobToEdit?.status}".
                 </p>
               </div>
             )}
+          </div>
 
-            <div className="flex justify-between items-center pt-4">
-              <div>
-                {jobToEdit && canDelete && (
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    className="bg-red-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    Delete Job
-                  </button>
-                )}
-              </div>
-              <div className="flex space-x-3">
-                <button type="button" onClick={onClose} className="bg-white dark:bg-gray-600 dark:border-gray-500 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
-                  {isEstimatorWithRestrictedAccess ? 'Close' : 'Cancel'}
+          {/* Footer */}
+          <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center flex-shrink-0">
+            <div>
+              {jobToEdit && canDelete && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="bg-red-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete Job
                 </button>
-                {!isEstimatorWithRestrictedAccess && (
-                  <button type="submit" className="bg-brand-blue py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
-                    Save Job
-                  </button>
-                )}
-              </div>
+              )}
             </div>
-          </form>
-        </div>
+            <div className="flex space-x-3">
+              <button type="button" onClick={onClose} className="bg-white dark:bg-gray-600 dark:border-gray-500 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
+                {isEstimatorWithRestrictedAccess ? 'Close' : 'Cancel'}
+              </button>
+              {!isEstimatorWithRestrictedAccess && (
+                <button type="submit" className="bg-gradient-to-r from-orange-500 to-amber-500 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                  Save Job
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
 export default JobFormModal;
-
