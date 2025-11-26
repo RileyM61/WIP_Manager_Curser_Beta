@@ -517,19 +517,15 @@ function App() {
       const updatedJob = { ...jobToSave, lastUpdated: new Date().toISOString() };
       updatedJob.companyId = companyId;
 
-      // If it's an edit, find the original job to compare statuses for onHoldDate logic
-      if (editingJob) {
-        const originalJob = jobs.find(j => j.id === updatedJob.id);
-        
-        if (originalJob) {
-          // Status changed TO On Hold from another status
-          if (updatedJob.status === JobStatus.OnHold && originalJob.status !== JobStatus.OnHold) {
-            updatedJob.onHoldDate = new Date().toISOString();
-          } 
-          // Status changed FROM On Hold to another status
-          else if (updatedJob.status !== JobStatus.OnHold && originalJob.status === JobStatus.OnHold) {
-            delete updatedJob.onHoldDate;
-          }
+      // Check if this job already exists (update vs add)
+      const existingJob = jobs.find(j => j.id === updatedJob.id);
+      
+      if (existingJob) {
+        // It's an update - handle onHoldDate logic
+        if (updatedJob.status === JobStatus.OnHold && existingJob.status !== JobStatus.OnHold) {
+          updatedJob.onHoldDate = new Date().toISOString();
+        } else if (updatedJob.status !== JobStatus.OnHold && existingJob.status === JobStatus.OnHold) {
+          delete updatedJob.onHoldDate;
         }
         await updateJob(updatedJob);
       } else {
