@@ -10,6 +10,7 @@ import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
 import JobCardGrid from './components/jobs/JobCardGrid';
 import JobTable from './components/jobs/JobTable';
+import GanttView from './components/views/GanttView';
 import JobFormModal from './components/modals/JobFormModal';
 import CompanyView from './components/views/CompanyView';
 import ForecastView from './components/views/ForecastView';
@@ -697,6 +698,9 @@ function App() {
     }
     if (filter === 'forecast') {
         return <ForecastView jobs={jobs} />;
+    }
+    if (viewMode === 'gantt') {
+      return <GanttView jobs={sortedAndFilteredJobs} onUpdateJob={handleSaveJob} onEditJob={handleEditJobClick} />;
     }
     if (viewMode === 'grid') {
       return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} activeEstimator={activeEstimator}/>;

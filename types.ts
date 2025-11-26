@@ -57,7 +57,7 @@ export interface Job {
   tmSettings?: TMSettings;
 }
 
-export type ViewMode = 'grid' | 'table';
+export type ViewMode = 'grid' | 'table' | 'gantt';
 
 export type SortKey = 'jobName' | 'startDate' | 'jobNo';
 
