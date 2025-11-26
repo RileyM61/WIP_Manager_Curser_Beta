@@ -415,43 +415,57 @@ const features = [
 
 const plans = [
   {
-    name: 'Free',
-      price: '$0',
-      period: 'forever',
-      description: 'Perfect for getting started',
-      features: ['Up to 3 active jobs', 'Basic job tracking', 'PM dashboard', 'Notes & updates'],
-      cta: 'Start Free',
-      popular: false,
-  },
-  {
-    name: 'Pro',
-      price: '$49',
+    name: 'Essential',
+      price: '$99',
       period: '/month',
-      description: 'For growing contractors',
+      description: 'For small contractors getting off Excel',
       features: [
         'Unlimited jobs',
-        'Advanced forecasting',
-        'Capacity planning',
-        'Priority support',
-        'Data export',
+        'Basic WIP calculations',
+        'Over/under billing analysis',
+        'CSV export',
+        'Unlimited users',
+        'Real-time job tracking',
       ],
-      cta: 'Start 14-Day Trial',
-      popular: true,
+      cta: 'Start Free Trial',
+      popular: false,
+      badge: null,
   },
   {
-    name: 'Enterprise',
-      price: 'Custom',
-      period: '',
-      description: 'For large operations',
+    name: 'Professional',
+      price: '$199',
+      period: '/month',
+      description: 'For growing GCs who need financial clarity',
       features: [
-        'Everything in Pro',
-        'Custom integrations',
-        'Dedicated support',
-        'Advanced security',
-        'Training included',
+        'Everything in Essential',
+        'Advanced WIP (component-level)',
+        'Time & Material job support',
+        'Company-wide dashboards',
+        'PDF reports',
+        'Role-based access',
+        'Profit margin tracking',
+      ],
+      cta: 'Start Free Trial',
+      popular: true,
+      badge: 'Most Popular',
+      foundersRate: '$99/month for first 20 customers',
+  },
+  {
+    name: 'Controller',
+      price: '$399',
+      period: '/month',
+      description: 'For larger firms with complex needs',
+      features: [
+        'Everything in Professional',
+        'Priority support',
+        'Future: PO integration',
+        'Future: QuickBooks sync',
+        'Future: AIA billing',
+        'API access (coming soon)',
       ],
       cta: 'Contact Sales',
       popular: false,
+      badge: null,
     },
   ];
 
@@ -523,7 +537,7 @@ const plans = [
                 style={{ animation: 'fadeSlideUp 0.6s ease-out' }}
               >
                 <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                <span className="text-sm text-orange-300 font-medium">Now in Early Access</span>
+                <span className="text-sm text-orange-300 font-medium">Beta Access - Limited Availability</span>
               </div>
 
               <h1
@@ -554,7 +568,7 @@ const plans = [
                   className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
                   style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}
                 >
-                  Start Free — No Credit Card
+                  Start 7-Day Free Trial
                   <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
                 <a
@@ -578,7 +592,7 @@ const plans = [
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span>Free forever plan</span>
+                  <span>7-day free trial</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
@@ -727,11 +741,18 @@ const plans = [
               Pricing
             </span>
             <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-slate-900">
-              Start Free, Scale When Ready
+              Simple Pricing, Serious Results
             </h2>
             <p className="mt-4 text-lg text-slate-600">
-              No credit card required. Upgrade anytime.
+              Start with a 7-day free trial. No credit card required.
             </p>
+            <div className="mt-6 inline-flex items-center gap-3 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl px-6 py-3">
+              <span className="text-2xl">🎯</span>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Founder's Rate Available</p>
+                <p className="text-xs text-slate-600">First 20 customers get Professional tier at $99/month forever</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
@@ -744,10 +765,17 @@ const plans = [
                     : 'bg-white border border-slate-200 shadow-lg'
                 }`}
               >
-                {plan.popular && (
+                {plan.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                     <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-4 py-1 rounded-full shadow-lg">
-                      Most Popular
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+                {plan.foundersRate && (
+                  <div className="absolute -top-4 right-4">
+                    <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+                      Founder's Rate
                     </span>
                   </div>
                 )}
@@ -770,6 +798,11 @@ const plans = [
                       </span>
                     )}
                   </div>
+                  {plan.foundersRate && (
+                    <p className={`mt-2 text-sm ${plan.popular ? 'text-orange-300' : 'text-emerald-600'} font-medium`}>
+                      {plan.foundersRate}
+                    </p>
+                  )}
                   <p className={`mt-2 ${plan.popular ? 'text-slate-300' : 'text-slate-600'}`}>
                     {plan.description}
                   </p>
@@ -799,7 +832,7 @@ const plans = [
                 </ul>
 
                 <button
-                  onClick={handleGetStarted}
+                  onClick={plan.cta === 'Contact Sales' ? () => window.location.href = 'mailto:support@wip-insights.com?subject=Controller Tier Inquiry' : handleGetStarted}
                   className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${
                     plan.popular
                       ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg hover:shadow-orange-500/30'
@@ -833,13 +866,13 @@ const plans = [
               onClick={handleGetStarted}
               className="group relative px-10 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-lg rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
             >
-              Start Free Now
+              Start Free Trial
               <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           </div>
 
           <p className="mt-6 text-slate-400 text-sm">
-            Free plan available • No credit card required • Cancel anytime
+            7-day free trial • No credit card required • Cancel anytime
           </p>
         </div>
       </section>
