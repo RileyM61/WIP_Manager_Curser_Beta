@@ -16,6 +16,8 @@ interface HeaderProps {
   projectManagers: string[];
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
+  activeEstimator: string;
+  onActiveEstimatorChange: (estimator: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -31,6 +33,8 @@ const Header: React.FC<HeaderProps> = ({
   projectManagers,
   activeProjectManager,
   onActiveProjectManagerChange,
+  activeEstimator,
+  onActiveEstimatorChange,
 }) => {
   const [imageError, setImageError] = useState(false);
 
@@ -94,6 +98,7 @@ const Header: React.FC<HeaderProps> = ({
               >
                 <option value="owner">Owner</option>
                 <option value="projectManager">Project Manager</option>
+                <option value="estimator">Estimator</option>
               </select>
             </div>
 
@@ -108,6 +113,24 @@ const Header: React.FC<HeaderProps> = ({
                   className="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer"
                 >
                   <option value="">All</option>
+                  {projectManagers.map(pm => (
+                    <option key={pm} value={pm}>{pm}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Estimator Selector (only for Estimator role) */}
+            {userRole === 'estimator' && (
+              <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg">
+                <label htmlFor="header-estimator-select" className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estimator</label>
+                <select
+                  id="header-estimator-select"
+                  value={activeEstimator}
+                  onChange={(e) => onActiveEstimatorChange(e.target.value)}
+                  className="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer"
+                >
+                  <option value="">Select...</option>
                   {projectManagers.map(pm => (
                     <option key={pm} value={pm}>{pm}</option>
                   ))}

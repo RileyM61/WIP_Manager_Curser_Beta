@@ -39,6 +39,7 @@ export interface Job {
   targetMargin?: number;
   targetEndDate?: string;
   companyId?: string;
+  estimator?: string;
 }
 
 export type ViewMode = 'grid' | 'table';
@@ -51,7 +52,7 @@ export type FilterType = JobStatus | 'company' | 'forecast';
 
 export type WeekDay = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
 
-export type UserRole = 'owner' | 'projectManager';
+export type UserRole = 'owner' | 'projectManager' | 'estimator';
 
 export enum StaffingDiscipline {
   ProjectManagement = 'Project Management',

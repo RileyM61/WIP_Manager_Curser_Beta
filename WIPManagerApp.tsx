@@ -241,6 +241,7 @@ function App() {
   const [snapshot, setSnapshot] = useLocalStorage<JobsSnapshot | null>('wip-jobs-snapshot', null);
   const [userRole, setUserRole] = useLocalStorage<UserRole>('wip-user-role', 'owner');
   const [activeProjectManager, setActiveProjectManager] = useLocalStorage<string>('wip-active-pm', '');
+  const [activeEstimator, setActiveEstimator] = useLocalStorage<string>('wip-active-estimator', '');
   const [filter, setFilter] = useLocalStorage<FilterType>('wip-filter', JobStatus.Active);
   const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('wip-theme', 
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -292,6 +293,13 @@ function App() {
     }
   }, [userRole, activeProjectManager, settings, setActiveProjectManager]);
 
+  // Set default estimator when switching to estimator role
+  useEffect(() => {
+    if (settings && userRole === 'estimator' && !activeEstimator && settings.projectManagers.length > 0) {
+      setActiveEstimator(settings.projectManagers[0]);
+    }
+  }, [userRole, activeEstimator, settings, setActiveEstimator]);
+
   useEffect(() => {
     if (!settings) return;
     
@@ -304,6 +312,11 @@ function App() {
       setFilter(JobStatus.Active);
       setViewMode('table');
       setPmFilter(activeProjectManager || 'all');
+    } else if (userRole === 'estimator') {
+      // Estimators see Future jobs by default (where they can edit)
+      setFilter(JobStatus.Future);
+      setViewMode('grid');
+      setPmFilter('all');
     }
   }, [userRole, activeProjectManager, settings, setFilter, setFocusMode, setPmFilter, setViewMode]);
 
@@ -391,6 +404,11 @@ function App() {
       setPmFilter(pm || 'all');
     }
   }, [setActiveProjectManager, setFocusMode, setPmFilter, userRole]);
+
+  const handleActiveEstimatorChange = useCallback((estimator: string) => {
+    setFocusMode('default');
+    setActiveEstimator(estimator);
+  }, [setActiveEstimator, setFocusMode]);
 
   const handleQuickFilterSelect = useCallback((quick: QuickFilterKey) => {
     if (!settings) return;
@@ -589,6 +607,11 @@ function App() {
     
     let filteredJobs = jobs.filter(job => job.status === filter);
 
+    // Estimators can only see jobs where they are the assigned estimator
+    if (userRole === 'estimator' && activeEstimator) {
+      filteredJobs = filteredJobs.filter(job => job.estimator === activeEstimator);
+    }
+
     if (pmFilter !== 'all') {
       filteredJobs = filteredJobs.filter(job => job.projectManager === pmFilter);
     }
@@ -645,7 +668,7 @@ function App() {
       
       return sortDirection === 'desc' ? comparison * -1 : comparison;
     });
-  }, [jobs, filter, sortKey, sortDirection, searchQuery, pmFilter, focusMode]);
+  }, [jobs, filter, sortKey, sortDirection, searchQuery, pmFilter, focusMode, userRole, activeEstimator]);
 
   const renderContent = () => {
     if (!settings) return null;
@@ -666,9 +689,9 @@ function App() {
         return <ForecastView jobs={jobs} />;
     }
     if (viewMode === 'grid') {
-      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole}/>;
+      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} activeEstimator={activeEstimator}/>;
     }
-    return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode}/>;
+    return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode} activeEstimator={activeEstimator}/>;
   }
 
   // Show loading state while data is being fetched
@@ -733,6 +756,8 @@ function App() {
         projectManagers={settings.projectManagers}
         activeProjectManager={activeProjectManager}
         onActiveProjectManagerChange={handleActivePmChange}
+        activeEstimator={activeEstimator}
+        onActiveEstimatorChange={handleActiveEstimatorChange}
       />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">
@@ -773,6 +798,8 @@ function App() {
         projectManagers={settings.projectManagers}
         defaultStatus={settings.defaultStatus}
         onDelete={handleDeleteJob}
+        userRole={userRole}
+        activeEstimator={activeEstimator}
       />
       <NotesModal
         isOpen={isNotesModalOpen}

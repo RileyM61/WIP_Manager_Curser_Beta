@@ -8,6 +8,7 @@ interface JobCardGridProps {
   onEdit: (job: Job) => void;
   onOpenNotes: (job: Job) => void;
   userRole: UserRole;
+  activeEstimator?: string;
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -25,7 +26,9 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
 
 const sumBreakdown = (breakdown: CostBreakdown): number => breakdown.labor + breakdown.material + breakdown.other;
 
-const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; userRole: UserRole; }> = ({ job, onEdit, onOpenNotes, userRole }) => {
+const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; userRole: UserRole; activeEstimator?: string; }> = ({ job, onEdit, onOpenNotes, userRole, activeEstimator }) => {
+  // Estimators can only edit Future jobs where they are the assigned estimator
+  const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
   
   const totalCost = sumBreakdown(job.costs);
   const totalOriginalBudget = sumBreakdown(job.budget);
@@ -101,6 +104,12 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
             <span className="font-semibold text-gray-600 dark:text-gray-300">PM:</span>
             <span>{job.projectManager}</span>
           </div>
+          {job.estimator && (
+            <div className="flex justify-between">
+              <span className="font-semibold text-gray-600 dark:text-gray-300">Estimator:</span>
+              <span>{job.estimator}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="font-semibold text-gray-600 dark:text-gray-300">Start Date:</span>
             <span>{job.startDate === 'TBD' ? 'TBD' : new Date(job.startDate).toLocaleDateString()}</span>
@@ -196,9 +205,16 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
                 </span>
               )}
             </button>
-            <button onClick={() => onEdit(job)} className="inline-flex items-center text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400 transition">
+            <button 
+              onClick={() => onEdit(job)} 
+              className={`inline-flex items-center transition ${
+                isEstimatorWithRestrictedAccess 
+                  ? 'text-gray-400 dark:text-gray-500' 
+                  : 'text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400'
+              }`}
+            >
               <EditIcon />
-              <span className="ml-1 text-sm">Edit</span>
+              <span className="ml-1 text-sm">{isEstimatorWithRestrictedAccess ? 'View' : 'Edit'}</span>
             </button>
         </div>
       </div>
@@ -206,7 +222,7 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   );
 }
 
-const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, userRole }) => {
+const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, userRole, activeEstimator }) => {
   if (jobs.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400">No jobs found for this category.</div>
   }
@@ -214,7 +230,7 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, us
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} userRole={userRole} />
+        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} userRole={userRole} activeEstimator={activeEstimator} />
       ))}
     </div>
   );

@@ -9,6 +9,7 @@ interface JobTableProps {
   onOpenNotes: (job: Job) => void;
   userRole: UserRole;
   focusMode: 'default' | 'pm-at-risk' | 'pm-late';
+  activeEstimator?: string;
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -27,7 +28,7 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
 const sumBreakdown = (breakdown: CostBreakdown): number => breakdown.labor + breakdown.material + breakdown.other;
 
 
-const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole, focusMode }) => {
+const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole, focusMode, activeEstimator }) => {
    if (jobs.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg shadow-sm">No jobs found for this category.</div>
   }
@@ -104,6 +105,9 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole
             const targetEndDateDisplay = job.targetEndDate ? (job.targetEndDate === 'TBD' ? 'TBD' : new Date(job.targetEndDate).toLocaleDateString()) : '—';
             const isBehindSchedule = job.targetEndDate && job.targetEndDate !== 'TBD' && job.endDate !== 'TBD' && new Date(job.endDate).getTime() > new Date(job.targetEndDate).getTime();
 
+            // Estimators can only edit Future jobs
+            const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
+
             const rowHighlightClass =
               focusMode === 'pm-at-risk' && isMarginRisk
                 ? 'ring-1 ring-red-400 dark:ring-red-500'
@@ -132,7 +136,12 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{job.client}</td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{job.projectManager}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                <div>{job.projectManager}</div>
+                {job.estimator && (
+                  <div className="text-xs text-gray-400 dark:text-gray-500">Est: {job.estimator}</div>
+                )}
+              </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 <div>Start: {job.startDate === 'TBD' ? 'TBD' : new Date(job.startDate).toLocaleDateString()}</div>
                 <div>End: {job.endDate === 'TBD' ? 'TBD' : new Date(job.endDate).toLocaleDateString()}</div>
@@ -208,7 +217,15 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole
                         </span>
                       )}
                   </button>
-                  <button onClick={() => onEdit(job)} className="text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400" title="Edit Job">
+                  <button 
+                    onClick={() => onEdit(job)} 
+                    className={`${
+                      isEstimatorWithRestrictedAccess 
+                        ? 'text-gray-400 dark:text-gray-500' 
+                        : 'text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400'
+                    }`} 
+                    title={isEstimatorWithRestrictedAccess ? 'View Job' : 'Edit Job'}
+                  >
                     <EditIcon />
                   </button>
                 </div>

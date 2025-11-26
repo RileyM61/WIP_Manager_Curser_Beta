@@ -334,7 +334,7 @@ const Controls: React.FC<ControlsProps> = ({
       {/* ============================================ */}
       {/* ROW 3: Quick Actions (Role-specific) */}
       {/* ============================================ */}
-      {(userRole === 'owner' || userRole === 'projectManager') && (
+      {(userRole === 'owner' || userRole === 'projectManager' || userRole === 'estimator') && (
         <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Quick Actions:</span>
@@ -422,6 +422,22 @@ const Controls: React.FC<ControlsProps> = ({
                     <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
                     Behind Schedule
                   </button>
+                </div>
+              </div>
+            )}
+
+            {userRole === 'estimator' && (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 px-4 py-2 rounded-lg border border-purple-200 dark:border-purple-700">
+                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                    Viewing jobs where you are the assigned estimator
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <span className="font-semibold text-purple-600 dark:text-purple-400">Tip:</span> You can edit Future jobs only
                 </div>
               </div>
             )}

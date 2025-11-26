@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Job, JobStatus, CostBreakdown } from '../../types';
+import { Job, JobStatus, CostBreakdown, UserRole } from '../../types';
 import { XIcon } from '../shared/icons';
 
 // --- Helper component for currency input ---
@@ -79,9 +79,15 @@ interface JobFormModalProps {
   jobToEdit: Job | null;
   projectManagers: string[];
   defaultStatus: JobStatus;
+  userRole?: UserRole;
+  activeEstimator?: string;
 }
 
-const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, defaultStatus }) => {
+const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, defaultStatus, userRole = 'owner', activeEstimator = '' }) => {
+  // Estimators can only edit Future jobs
+  const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future;
+  // Estimators cannot delete jobs
+  const canDelete = userRole !== 'estimator';
   const getInitialState = (): Job => {
     const defaults: Job = {
       id: '',
@@ -89,6 +95,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       jobName: '',
       client: '',
       projectManager: projectManagers[0] || '',
+      estimator: userRole === 'estimator' ? activeEstimator : '',
       startDate: 'TBD',
       endDate: 'TBD',
       contract: { labor: 0, material: 0, other: 0 },
@@ -122,7 +129,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
   useEffect(() => {
     setJob(getInitialState());
-  }, [jobToEdit, isOpen, projectManagers, defaultStatus]);
+  }, [jobToEdit, isOpen, projectManagers, defaultStatus, userRole, activeEstimator]);
   
   const handleDateTBDChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'startDate' | 'endDate') => {
     const isChecked = e.target.checked;
@@ -214,18 +221,18 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="jobName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Name</label>
-                <input type="text" name="jobName" id="jobName" value={job.jobName} onChange={handleChange} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200" required />
+                <input type="text" name="jobName" id="jobName" value={job.jobName} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed" required />
               </div>
                <div>
                 <label htmlFor="jobNo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Number</label>
-                <input type="text" name="jobNo" id="jobNo" value={job.jobNo} onChange={handleChange} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200" required />
+                <input type="text" name="jobNo" id="jobNo" value={job.jobNo} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed" required />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label htmlFor="client" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Client</label>
-                    <input type="text" name="client" id="client" value={job.client} onChange={handleChange} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200" required />
+                    <input type="text" name="client" id="client" value={job.client} onChange={handleChange} disabled={isEstimatorWithRestrictedAccess} className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed" required />
                 </div>
                  <div>
                     <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
@@ -234,7 +241,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       id="status"
                       value={job.status}
                       onChange={handleChange}
-                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
+                      disabled={isEstimatorWithRestrictedAccess}
+                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
                     >
                       {Object.values(JobStatus).map(status => (
                         <option key={status} value={status}>{status}</option>
@@ -243,20 +251,39 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 </div>
             </div>
 
-            <div>
-                <label htmlFor="projectManager" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Manager</label>
-                <select
-                  name="projectManager"
-                  id="projectManager"
-                  value={job.projectManager}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
-                >
-                  <option value="">-- Select a PM --</option>
-                  {projectManagers.map(pm => (
-                    <option key={pm} value={pm}>{pm}</option>
-                  ))}
-                </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label htmlFor="projectManager" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Manager</label>
+                    <select
+                      name="projectManager"
+                      id="projectManager"
+                      value={job.projectManager}
+                      onChange={handleChange}
+                      disabled={isEstimatorWithRestrictedAccess}
+                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                    >
+                      <option value="">-- Select a PM --</option>
+                      {projectManagers.map(pm => (
+                        <option key={pm} value={pm}>{pm}</option>
+                      ))}
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="estimator" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Estimator</label>
+                    <select
+                      name="estimator"
+                      id="estimator"
+                      value={job.estimator || ''}
+                      onChange={handleChange}
+                      disabled={isEstimatorWithRestrictedAccess}
+                      className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
+                    >
+                      <option value="">-- Select an Estimator --</option>
+                      {projectManagers.map(pm => (
+                        <option key={pm} value={pm}>{pm}</option>
+                      ))}
+                    </select>
+                </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -411,9 +438,17 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 </div>
             </div>
 
+            {isEstimatorWithRestrictedAccess && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>View Only:</strong> As an Estimator, you can only edit jobs with "Future" status. This job is currently "{jobToEdit?.status}".
+                </p>
+              </div>
+            )}
+
             <div className="flex justify-between items-center pt-4">
               <div>
-                {jobToEdit && (
+                {jobToEdit && canDelete && (
                   <button
                     type="button"
                     onClick={handleDelete}
@@ -425,11 +460,13 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               </div>
               <div className="flex space-x-3">
                 <button type="button" onClick={onClose} className="bg-white dark:bg-gray-600 dark:border-gray-500 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
-                  Cancel
+                  {isEstimatorWithRestrictedAccess ? 'Close' : 'Cancel'}
                 </button>
-                <button type="submit" className="bg-brand-blue py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
-                  Save Job
-                </button>
+                {!isEstimatorWithRestrictedAccess && (
+                  <button type="submit" className="bg-brand-blue py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
+                    Save Job
+                  </button>
+                )}
               </div>
             </div>
           </form>
