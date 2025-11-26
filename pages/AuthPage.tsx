@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { isEmailAllowed } from '../constants';
 
 type AuthMode = 'login' | 'signup';
 
@@ -33,8 +34,16 @@ const AuthPage: React.FC = () => {
         if (error) throw error;
         navigate('/app');
       } else {
+        // Check if email is allowed (beta access control)
+        if (!isEmailAllowed(email)) {
+          setMessage('This email is not authorized for beta access. Please contact support@wip-insights.com to request access.');
+          setLoading(false);
+          return;
+        }
+        
         if (password !== confirmPassword) {
           setMessage('Passwords do not match.');
+          setLoading(false);
           return;
         }
         const { error } = await supabase!.auth.signUp({ email, password });
@@ -100,6 +109,11 @@ const AuthPage: React.FC = () => {
               className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none"
               placeholder="you@company.com"
             />
+            {mode === 'signup' && (
+              <p className="mt-2 text-xs text-slate-400">
+                🔒 Beta access is currently invite-only. Contact support@wip-insights.com to request access.
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wide text-slate-300">Password</label>
