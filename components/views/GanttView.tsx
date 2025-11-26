@@ -18,6 +18,12 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     originalStart: Date;
     originalEnd: Date;
   } | null>(null);
+  // Preview dates during drag (visual only, not saved until mouse up)
+  const [dragPreview, setDragPreview] = useState<{
+    jobId: string;
+    startDate: string;
+    endDate: string;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Filter jobs: only show Future, Active, On Hold (not Completed/Archived)
@@ -108,18 +114,25 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     }
   }, [zoomLevel]);
 
-  // Calculate job bar position and width
+  // Calculate job bar position and width (uses preview if dragging)
   const getJobBarStyle = useCallback((job: Job) => {
-    const start = new Date(job.startDate);
-    const end = new Date(job.endDate);
+    // Use preview dates if this job is being dragged
+    const isBeingDragged = dragPreview?.jobId === job.id;
+    const startDate = isBeingDragged ? dragPreview.startDate : job.startDate;
+    const endDate = isBeingDragged ? dragPreview.endDate : job.endDate;
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
     const startOffset = Math.max(0, (start.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24));
     const duration = Math.max(1, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     
     return {
       left: startOffset * pxPerDay,
       width: Math.max(duration * pxPerDay, 30), // Minimum 30px width
+      startDate,
+      endDate,
     };
-  }, [timelineStart, pxPerDay]);
+  }, [timelineStart, pxPerDay, dragPreview]);
 
   // Get status color
   const getStatusColor = (status: JobStatus) => {
@@ -148,7 +161,37 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     });
   };
 
-  // Handle drag move
+  // Calculate new dates based on drag delta
+  const calculateDragDates = (deltaDays: number) => {
+    if (!dragState) return null;
+    
+    let newStart = new Date(dragState.originalStart);
+    let newEnd = new Date(dragState.originalEnd);
+
+    if (dragState.type === 'move') {
+      newStart.setDate(newStart.getDate() + deltaDays);
+      newEnd.setDate(newEnd.getDate() + deltaDays);
+    } else if (dragState.type === 'resize-start') {
+      newStart.setDate(newStart.getDate() + deltaDays);
+      if (newStart >= newEnd) {
+        newStart = new Date(newEnd);
+        newStart.setDate(newStart.getDate() - 1);
+      }
+    } else if (dragState.type === 'resize-end') {
+      newEnd.setDate(newEnd.getDate() + deltaDays);
+      if (newEnd <= newStart) {
+        newEnd = new Date(newStart);
+        newEnd.setDate(newEnd.getDate() + 1);
+      }
+    }
+
+    return {
+      startDate: newStart.toISOString().split('T')[0],
+      endDate: newEnd.toISOString().split('T')[0],
+    };
+  };
+
+  // Handle drag move - only update preview, don't save
   useEffect(() => {
     if (!dragState) return;
 
@@ -156,39 +199,34 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
       const deltaX = e.clientX - dragState.startX;
       const deltaDays = Math.round(deltaX / pxPerDay);
       
-      const job = jobs.find(j => j.id === dragState.jobId);
-      if (!job) return;
-
-      let newStart = new Date(dragState.originalStart);
-      let newEnd = new Date(dragState.originalEnd);
-
-      if (dragState.type === 'move') {
-        newStart.setDate(newStart.getDate() + deltaDays);
-        newEnd.setDate(newEnd.getDate() + deltaDays);
-      } else if (dragState.type === 'resize-start') {
-        newStart.setDate(newStart.getDate() + deltaDays);
-        if (newStart >= newEnd) {
-          newStart = new Date(newEnd);
-          newStart.setDate(newStart.getDate() - 1);
-        }
-      } else if (dragState.type === 'resize-end') {
-        newEnd.setDate(newEnd.getDate() + deltaDays);
-        if (newEnd <= newStart) {
-          newEnd = new Date(newStart);
-          newEnd.setDate(newEnd.getDate() + 1);
-        }
+      const newDates = calculateDragDates(deltaDays);
+      if (newDates) {
+        setDragPreview({
+          jobId: dragState.jobId,
+          ...newDates,
+        });
       }
-
-      // Update job with new dates
-      onUpdateJob({
-        ...job,
-        startDate: newStart.toISOString().split('T')[0],
-        endDate: newEnd.toISOString().split('T')[0],
-      });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      // Calculate final dates and save
+      const deltaX = e.clientX - dragState.startX;
+      const deltaDays = Math.round(deltaX / pxPerDay);
+      const newDates = calculateDragDates(deltaDays);
+      
+      if (newDates && deltaDays !== 0) {
+        const job = jobs.find(j => j.id === dragState.jobId);
+        if (job) {
+          onUpdateJob({
+            ...job,
+            startDate: newDates.startDate,
+            endDate: newDates.endDate,
+          });
+        }
+      }
+      
       setDragState(null);
+      setDragPreview(null);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -415,7 +453,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                       )}
                       {barStyle.width > 150 && (
                         <span className="ml-2 opacity-75">
-                          {formatDate(job.startDate)} - {formatDate(job.endDate)}
+                          {formatDate(barStyle.startDate)} - {formatDate(barStyle.endDate)}
                         </span>
                       )}
                     </div>
