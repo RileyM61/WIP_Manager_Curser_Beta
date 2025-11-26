@@ -42,6 +42,7 @@ const CompanyOnboarding: React.FC = () => {
           company_id: company.id,
           company_name: companyName.trim(),
           project_managers: [],
+          estimators: [],
           week_end_day: 'Friday',
           default_status: 'Future',
           default_role: 'owner',

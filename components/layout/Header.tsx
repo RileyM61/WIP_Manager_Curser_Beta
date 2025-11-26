@@ -14,6 +14,7 @@ interface HeaderProps {
   userRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   projectManagers: string[];
+  estimators: string[];
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
   activeEstimator: string;
@@ -31,6 +32,7 @@ const Header: React.FC<HeaderProps> = ({
   userRole,
   onRoleChange,
   projectManagers,
+  estimators,
   activeProjectManager,
   onActiveProjectManagerChange,
   activeEstimator,
@@ -131,8 +133,8 @@ const Header: React.FC<HeaderProps> = ({
                   className="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer"
                 >
                   <option value="">Select...</option>
-                  {projectManagers.map(pm => (
-                    <option key={pm} value={pm}>{pm}</option>
+                  {estimators.map(est => (
+                    <option key={est} value={est}>{est}</option>
                   ))}
                 </select>
               </div>

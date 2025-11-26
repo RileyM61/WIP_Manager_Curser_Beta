@@ -13,6 +13,7 @@ interface SettingsModalProps {
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings, onSave }) => {
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
   const [newPm, setNewPm] = useState('');
+  const [newEstimator, setNewEstimator] = useState('');
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +49,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     setCurrentSettings(prev => ({
       ...prev,
       projectManagers: prev.projectManagers.filter(pm => pm !== pmToRemove),
+    }));
+  };
+
+  const handleAddEstimator = () => {
+    if (newEstimator.trim() && !currentSettings.estimators.includes(newEstimator.trim())) {
+      setCurrentSettings(prev => ({
+        ...prev,
+        estimators: [...prev.estimators, newEstimator.trim()].sort(),
+      }));
+      setNewEstimator('');
+    }
+  };
+
+  const handleRemoveEstimator = (estimatorToRemove: string) => {
+    setCurrentSettings(prev => ({
+      ...prev,
+      estimators: prev.estimators.filter(est => est !== estimatorToRemove),
     }));
   };
   
@@ -204,6 +222,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                               className="flex-grow block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
                           />
                           <button type="button" onClick={handleAddPm} className="bg-gray-200 dark:bg-gray-600 dark:border-gray-500 py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500">Add</button>
+                      </div>
+                  </div>
+
+                  <div>
+                      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Estimators</h3>
+                      <div className="mt-2 space-y-2">
+                          {currentSettings.estimators.map(estimator => (
+                              <div key={estimator} className="flex items-center justify-between bg-purple-50 dark:bg-purple-900/30 p-2 rounded-md">
+                                  <span className="text-sm text-gray-800 dark:text-gray-200">{estimator}</span>
+                                  <button type="button" onClick={() => handleRemoveEstimator(estimator)} className="text-red-500 hover:text-red-700 text-sm font-semibold">Remove</button>
+                              </div>
+                          ))}
+                          {currentSettings.estimators.length === 0 && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 italic">No estimators added yet</p>
+                          )}
+                      </div>
+                       <div className="mt-2 flex items-center space-x-2">
+                          <input
+                              type="text"
+                              value={newEstimator}
+                              onChange={(e) => setNewEstimator(e.target.value)}
+                              placeholder="Add new Estimator name"
+                              className="flex-grow block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200"
+                          />
+                          <button type="button" onClick={handleAddEstimator} className="bg-purple-100 dark:bg-purple-800 dark:border-purple-600 py-2 px-4 border border-purple-300 rounded-md text-sm font-medium text-purple-700 dark:text-purple-200 hover:bg-purple-200 dark:hover:bg-purple-700">Add</button>
                       </div>
                   </div>
                   

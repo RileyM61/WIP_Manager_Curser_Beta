@@ -84,6 +84,7 @@ export interface CapacityPlan {
 export interface Settings {
   companyName: string;
   projectManagers: string[];
+  estimators: string[];
   weekEndDay: WeekDay;
   defaultStatus: JobStatus;
   companyLogo?: string;

@@ -195,6 +195,7 @@ const initialJobs: Job[] = [
 const initialSettings: Settings = {
     companyName: 'WIP Insights',
     projectManagers: [...new Set(initialJobs.map(j => j.projectManager).filter(Boolean))].sort(),
+    estimators: [],
     weekEndDay: 'Friday',
     defaultStatus: JobStatus.Future,
     defaultRole: 'owner',
@@ -754,6 +755,7 @@ function App() {
         userRole={userRole}
         onRoleChange={handleRoleChange}
         projectManagers={settings.projectManagers}
+        estimators={settings.estimators}
         activeProjectManager={activeProjectManager}
         onActiveProjectManagerChange={handleActivePmChange}
         activeEstimator={activeEstimator}
@@ -796,6 +798,7 @@ function App() {
         onSave={handleSaveJob}
         jobToEdit={editingJob}
         projectManagers={settings.projectManagers}
+        estimators={settings.estimators}
         defaultStatus={settings.defaultStatus}
         onDelete={handleDeleteJob}
         userRole={userRole}

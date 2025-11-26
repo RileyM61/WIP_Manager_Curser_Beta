@@ -86,6 +86,7 @@ export function useSupabaseSettings(companyId?: string | null) {
       const appSettings: Settings = {
         companyName: data.company_name,
         projectManagers: data.project_managers || [],
+        estimators: data.estimators || [],
         weekEndDay: data.week_end_day,
         defaultStatus: data.default_status,
         defaultRole: data.default_role,
@@ -181,6 +182,7 @@ export function useSupabaseSettings(companyId?: string | null) {
         .update({
           company_name: newSettings.companyName,
           project_managers: newSettings.projectManagers,
+          estimators: newSettings.estimators,
           week_end_day: newSettings.weekEndDay,
           default_status: newSettings.defaultStatus,
           default_role: newSettings.defaultRole,

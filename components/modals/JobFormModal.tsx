@@ -78,12 +78,13 @@ interface JobFormModalProps {
   onDelete: (jobId: string) => void;
   jobToEdit: Job | null;
   projectManagers: string[];
+  estimators?: string[];
   defaultStatus: JobStatus;
   userRole?: UserRole;
   activeEstimator?: string;
 }
 
-const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, defaultStatus, userRole = 'owner', activeEstimator = '' }) => {
+const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '' }) => {
   // Estimators can only edit Future jobs
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future;
   // Estimators cannot delete jobs
@@ -279,8 +280,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-700 dark:text-gray-200 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:cursor-not-allowed"
                     >
                       <option value="">-- Select an Estimator --</option>
-                      {projectManagers.map(pm => (
-                        <option key={pm} value={pm}>{pm}</option>
+                      {estimators.map(est => (
+                        <option key={est} value={est}>{est}</option>
                       ))}
                     </select>
                 </div>
