@@ -217,11 +217,20 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
       if (newDates && deltaDays !== 0) {
         const job = jobs.find(j => j.id === dragState.jobId);
         if (job) {
-          onUpdateJob({
+          // Update the job with new dates
+          // Also update targetEndDate if end date changed
+          const updatedJob: any = {
             ...job,
             startDate: newDates.startDate,
             endDate: newDates.endDate,
-          });
+          };
+          
+          // Sync targetEndDate with endDate when end is changed
+          if (dragState.type === 'resize-end' || dragState.type === 'move') {
+            updatedJob.targetEndDate = newDates.endDate;
+          }
+          
+          onUpdateJob(updatedJob);
         }
       }
       
