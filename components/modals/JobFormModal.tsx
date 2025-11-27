@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType } from '../../types';
+import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType, MobilizationPhase } from '../../types';
 import { XIcon } from '../shared/icons';
 import { CurrencyInput } from '../shared/CurrencyInput';
 import { getDefaultTMSettings } from '../../lib/jobCalculations';
 import InfoTooltip from '../help/InfoTooltip';
 import { helpContent } from '../../lib/helpContent';
+
+// Default mobilization phases
+const getDefaultMobilizations = (): MobilizationPhase[] => [
+  { id: 1, enabled: true, mobilizeDate: 'TBD', demobilizeDate: 'TBD', description: '' },
+  { id: 2, enabled: false, mobilizeDate: 'TBD', demobilizeDate: 'TBD', description: '' },
+  { id: 3, enabled: false, mobilizeDate: 'TBD', demobilizeDate: 'TBD', description: '' },
+  { id: 4, enabled: false, mobilizeDate: 'TBD', demobilizeDate: 'TBD', description: '' },
+];
 
 // Tab type
 type FormTab = 'details' | 'scheduling' | 'financials';
@@ -51,6 +59,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       targetMargin: 0,
       targetEndDate: 'TBD',
       jobType: 'fixed-price',
+      mobilizations: getDefaultMobilizations(),
     };
 
     if (jobToEdit) {
@@ -63,6 +72,20 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       }
       if (jobWithFormattedDates.targetEndDate && jobWithFormattedDates.targetEndDate !== 'TBD') {
         jobWithFormattedDates.targetEndDate = new Date(jobWithFormattedDates.targetEndDate).toISOString().split('T')[0];
+      }
+      // Format mobilization dates
+      if (jobWithFormattedDates.mobilizations) {
+        jobWithFormattedDates.mobilizations = jobWithFormattedDates.mobilizations.map(mob => ({
+          ...mob,
+          mobilizeDate: mob.mobilizeDate && mob.mobilizeDate !== 'TBD' 
+            ? new Date(mob.mobilizeDate).toISOString().split('T')[0] 
+            : mob.mobilizeDate,
+          demobilizeDate: mob.demobilizeDate && mob.demobilizeDate !== 'TBD'
+            ? new Date(mob.demobilizeDate).toISOString().split('T')[0]
+            : mob.demobilizeDate,
+        }));
+      } else {
+        jobWithFormattedDates.mobilizations = getDefaultMobilizations();
       }
       return { ...defaults, ...jobWithFormattedDates };
     }
@@ -124,6 +147,34 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
         ...(prev.tmSettings || getDefaultTMSettings()),
         [field]: value,
       },
+    }));
+  };
+
+  const handleMobilizationChange = (
+    phaseId: number,
+    field: keyof MobilizationPhase,
+    value: string | boolean
+  ) => {
+    setJob(prev => ({
+      ...prev,
+      mobilizations: (prev.mobilizations || getDefaultMobilizations()).map(mob =>
+        mob.id === phaseId ? { ...mob, [field]: value } : mob
+      ),
+    }));
+  };
+
+  const handleMobDateTBDChange = (
+    phaseId: number,
+    field: 'mobilizeDate' | 'demobilizeDate',
+    isTBD: boolean
+  ) => {
+    setJob(prev => ({
+      ...prev,
+      mobilizations: (prev.mobilizations || getDefaultMobilizations()).map(mob =>
+        mob.id === phaseId
+          ? { ...mob, [field]: isTBD ? 'TBD' : new Date().toISOString().split('T')[0] }
+          : mob
+      ),
     }));
   };
   
@@ -563,6 +614,132 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                   </div>
                 </div>
 
+                {/* Mobilization Phases */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mobilization Phases</h3>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">Used for Gantt chart scheduling</span>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                    Define when your crew mobilizes and demobilizes on site. Enable additional phases for projects with multiple work periods.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    {(job.mobilizations || getDefaultMobilizations()).map((mob, idx) => {
+                      const isMobDateTBD = mob.mobilizeDate === 'TBD';
+                      const isDemobDateTBD = mob.demobilizeDate === 'TBD';
+                      const phaseColors = [
+                        'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20',
+                        'border-blue-500 bg-blue-50 dark:bg-blue-900/20',
+                        'border-purple-500 bg-purple-50 dark:bg-purple-900/20',
+                        'border-amber-500 bg-amber-50 dark:bg-amber-900/20',
+                      ];
+                      const phaseAccentColors = [
+                        'text-emerald-700 dark:text-emerald-300',
+                        'text-blue-700 dark:text-blue-300',
+                        'text-purple-700 dark:text-purple-300',
+                        'text-amber-700 dark:text-amber-300',
+                      ];
+                      
+                      return (
+                        <div 
+                          key={mob.id}
+                          className={`rounded-lg border-2 p-4 transition-all ${
+                            mob.enabled 
+                              ? phaseColors[idx] 
+                              : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 opacity-60'
+                          }`}
+                        >
+                          {/* Phase Header with Enable Checkbox */}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                id={`mob-enabled-${mob.id}`}
+                                checked={mob.enabled}
+                                onChange={(e) => handleMobilizationChange(mob.id, 'enabled', e.target.checked)}
+                                disabled={isEstimatorWithRestrictedAccess || (mob.id === 1)} // Phase 1 always enabled
+                                className="h-5 w-5 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"
+                              />
+                              <label 
+                                htmlFor={`mob-enabled-${mob.id}`} 
+                                className={`font-semibold ${mob.enabled ? phaseAccentColors[idx] : 'text-gray-500 dark:text-gray-400'}`}
+                              >
+                                Phase {mob.id}
+                              </label>
+                              {mob.id === 1 && (
+                                <span className="text-xs text-gray-400 dark:text-gray-500">(Required)</span>
+                              )}
+                            </div>
+                            {mob.enabled && (
+                              <input
+                                type="text"
+                                placeholder="Description (optional)"
+                                value={mob.description || ''}
+                                onChange={(e) => handleMobilizationChange(mob.id, 'description', e.target.value)}
+                                disabled={isEstimatorWithRestrictedAccess}
+                                className="text-sm border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-40 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-brand-blue"
+                              />
+                            )}
+                          </div>
+                          
+                          {/* Date Fields (only shown when enabled) */}
+                          {mob.enabled && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <div className="flex items-center justify-between">
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Mobilize Date
+                                  </label>
+                                  <div className="flex items-center">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={isMobDateTBD} 
+                                      onChange={(e) => handleMobDateTBDChange(mob.id, 'mobilizeDate', e.target.checked)}
+                                      className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">TBD</span>
+                                  </div>
+                                </div>
+                                <input
+                                  type="date"
+                                  value={isMobDateTBD ? '' : mob.mobilizeDate}
+                                  onChange={(e) => handleMobilizationChange(mob.id, 'mobilizeDate', e.target.value)}
+                                  disabled={isMobDateTBD || isEstimatorWithRestrictedAccess}
+                                  className={inputClassName}
+                                />
+                              </div>
+                              <div>
+                                <div className="flex items-center justify-between">
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Demobilize Date
+                                  </label>
+                                  <div className="flex items-center">
+                                    <input 
+                                      type="checkbox" 
+                                      checked={isDemobDateTBD} 
+                                      onChange={(e) => handleMobDateTBDChange(mob.id, 'demobilizeDate', e.target.checked)}
+                                      className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">TBD</span>
+                                  </div>
+                                </div>
+                                <input
+                                  type="date"
+                                  value={isDemobDateTBD ? '' : mob.demobilizeDate}
+                                  onChange={(e) => handleMobilizationChange(mob.id, 'demobilizeDate', e.target.value)}
+                                  disabled={isDemobDateTBD || isEstimatorWithRestrictedAccess}
+                                  className={inputClassName}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 {/* Target Completion */}
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Target Completion</h3>
@@ -594,7 +771,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">Duration</span>
+                          <span className="text-gray-500 dark:text-gray-400">Contract Duration</span>
                           <p className="font-semibold text-gray-900 dark:text-gray-100">
                             {(() => {
                               const start = new Date(job.startDate);
@@ -606,6 +783,12 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                               if (months > 0) return `${months} mo ${weeks > 0 ? `${weeks} wk` : ''}`;
                               return `${Math.ceil(diffDays / 7)} weeks`;
                             })()}
+                          </p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Active Phases</span>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {(job.mobilizations || []).filter(m => m.enabled).length} of 4
                           </p>
                         </div>
                         {!isTargetEndDateTBD && job.targetEndDate !== 'TBD' && (

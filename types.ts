@@ -25,6 +25,14 @@ export interface TMSettings {
   otherMarkup: number;         // e.g., 1.10 = 10% markup
 }
 
+export interface MobilizationPhase {
+  id: number;                  // 1-4 for the four possible phases
+  enabled: boolean;            // Whether this phase is active
+  mobilizeDate: string;        // Date work begins for this phase
+  demobilizeDate: string;      // Date work ends for this phase
+  description?: string;        // Optional description (e.g., "Foundation", "Framing")
+}
+
 export interface Note {
   id: string;
   text: string;
@@ -55,6 +63,7 @@ export interface Job {
   estimator?: string;
   jobType: JobType;
   tmSettings?: TMSettings;
+  mobilizations?: MobilizationPhase[];  // Up to 4 mobilization/demobilization phases
 }
 
 export type ViewMode = 'grid' | 'table' | 'gantt';

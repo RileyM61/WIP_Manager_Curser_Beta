@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { Job, JobStatus } from '../../types';
+import { Job, JobStatus, MobilizationPhase } from '../../types';
 
 interface GanttViewProps {
   jobs: Job[];
@@ -9,10 +9,45 @@ interface GanttViewProps {
 
 type ZoomLevel = 'week' | 'month' | 'quarter';
 
+// Helper to get active mobilization phases for a job
+const getActiveMobilizations = (job: Job): MobilizationPhase[] => {
+  if (!job.mobilizations || job.mobilizations.length === 0) {
+    // Fallback: if no mobilizations, create one from start/end dates
+    if (job.startDate && job.startDate !== 'TBD' && job.endDate && job.endDate !== 'TBD') {
+      return [{
+        id: 1,
+        enabled: true,
+        mobilizeDate: job.startDate,
+        demobilizeDate: job.endDate,
+        description: '',
+      }];
+    }
+    return [];
+  }
+  
+  // Filter to enabled phases with valid dates
+  return job.mobilizations.filter(m => 
+    m.enabled && 
+    m.mobilizeDate && 
+    m.mobilizeDate !== 'TBD' && 
+    m.demobilizeDate && 
+    m.demobilizeDate !== 'TBD'
+  );
+};
+
+// Phase colors for the Gantt bars
+const phaseColors = [
+  { bg: 'bg-emerald-500 hover:bg-emerald-600', light: 'bg-emerald-400' },
+  { bg: 'bg-blue-500 hover:bg-blue-600', light: 'bg-blue-400' },
+  { bg: 'bg-purple-500 hover:bg-purple-600', light: 'bg-purple-400' },
+  { bg: 'bg-amber-500 hover:bg-amber-600', light: 'bg-amber-400' },
+];
+
 const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
   const [dragState, setDragState] = useState<{
     jobId: string;
+    phaseId: number;
     type: 'move' | 'resize-start' | 'resize-end';
     startX: number;
     originalStart: Date;
@@ -21,25 +56,32 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
   // Preview dates during drag (visual only, not saved until mouse up)
   const [dragPreview, setDragPreview] = useState<{
     jobId: string;
+    phaseId: number;
     startDate: string;
     endDate: string;
   } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Filter jobs: only show Future, Active, On Hold (not Completed/Archived)
+  // Jobs must have at least one enabled mobilization phase with valid dates
   const activeJobs = useMemo(() => 
-    jobs.filter(j => 
-      j.status !== JobStatus.Completed && 
-      j.status !== JobStatus.Archived &&
-      j.startDate && 
-      j.startDate !== 'TBD' &&
-      j.endDate &&
-      j.endDate !== 'TBD'
-    ).sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+    jobs.filter(j => {
+      if (j.status === JobStatus.Completed || j.status === JobStatus.Archived) {
+        return false;
+      }
+      const activeMobs = getActiveMobilizations(j);
+      return activeMobs.length > 0;
+    }).sort((a, b) => {
+      // Sort by earliest mobilization date
+      const aFirst = getActiveMobilizations(a)[0];
+      const bFirst = getActiveMobilizations(b)[0];
+      if (!aFirst || !bFirst) return 0;
+      return new Date(aFirst.mobilizeDate).getTime() - new Date(bFirst.mobilizeDate).getTime();
+    }),
     [jobs]
   );
 
-  // Calculate timeline bounds
+  // Calculate timeline bounds from all mobilization phases
   const { timelineStart, timelineEnd, totalDays } = useMemo(() => {
     if (activeJobs.length === 0) {
       const now = new Date();
@@ -52,7 +94,15 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
       };
     }
 
-    const dates = activeJobs.flatMap(j => [new Date(j.startDate), new Date(j.endDate)]);
+    // Collect all mobilization dates
+    const dates: Date[] = [];
+    activeJobs.forEach(job => {
+      getActiveMobilizations(job).forEach(mob => {
+        dates.push(new Date(mob.mobilizeDate));
+        dates.push(new Date(mob.demobilizeDate));
+      });
+    });
+    
     const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
     
@@ -114,12 +164,12 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     }
   }, [zoomLevel]);
 
-  // Calculate job bar position and width (uses preview if dragging)
-  const getJobBarStyle = useCallback((job: Job) => {
-    // Use preview dates if this job is being dragged
-    const isBeingDragged = dragPreview?.jobId === job.id;
-    const startDate = isBeingDragged ? dragPreview.startDate : job.startDate;
-    const endDate = isBeingDragged ? dragPreview.endDate : job.endDate;
+  // Calculate phase bar position and width (uses preview if dragging)
+  const getPhaseBarStyle = useCallback((job: Job, phase: MobilizationPhase) => {
+    // Use preview dates if this phase is being dragged
+    const isBeingDragged = dragPreview?.jobId === job.id && dragPreview?.phaseId === phase.id;
+    const startDate = isBeingDragged ? dragPreview.startDate : phase.mobilizeDate;
+    const endDate = isBeingDragged ? dragPreview.endDate : phase.demobilizeDate;
     
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -134,30 +184,22 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     };
   }, [timelineStart, pxPerDay, dragPreview]);
 
-  // Get status color
-  const getStatusColor = (status: JobStatus) => {
-    switch (status) {
-      case JobStatus.Future: return 'bg-blue-500 hover:bg-blue-600';
-      case JobStatus.Active: return 'bg-emerald-500 hover:bg-emerald-600';
-      case JobStatus.OnHold: return 'bg-amber-500 hover:bg-amber-600';
-      default: return 'bg-gray-500 hover:bg-gray-600';
-    }
-  };
-
-  // Handle drag start
+  // Handle drag start for a phase
   const handleDragStart = (
     e: React.MouseEvent,
     job: Job,
+    phase: MobilizationPhase,
     type: 'move' | 'resize-start' | 'resize-end'
   ) => {
     e.preventDefault();
     e.stopPropagation();
     setDragState({
       jobId: job.id,
+      phaseId: phase.id,
       type,
       startX: e.clientX,
-      originalStart: new Date(job.startDate),
-      originalEnd: new Date(job.endDate),
+      originalStart: new Date(phase.mobilizeDate),
+      originalEnd: new Date(phase.demobilizeDate),
     });
   };
 
@@ -203,6 +245,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
       if (newDates) {
         setDragPreview({
           jobId: dragState.jobId,
+          phaseId: dragState.phaseId,
           ...newDates,
         });
       }
@@ -217,17 +260,29 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
       if (newDates && deltaDays !== 0) {
         const job = jobs.find(j => j.id === dragState.jobId);
         if (job) {
-          // Update the job with new dates
-          // Also update targetEndDate if end date changed
-          const updatedJob: any = {
+          // Update the mobilization phase dates
+          const updatedMobilizations = (job.mobilizations || []).map(mob => 
+            mob.id === dragState.phaseId
+              ? { ...mob, mobilizeDate: newDates.startDate, demobilizeDate: newDates.endDate }
+              : mob
+          );
+          
+          const updatedJob: Job = {
             ...job,
-            startDate: newDates.startDate,
-            endDate: newDates.endDate,
+            mobilizations: updatedMobilizations,
           };
           
-          // Sync targetEndDate with endDate when end is changed
-          if (dragState.type === 'resize-end' || dragState.type === 'move') {
-            updatedJob.targetEndDate = newDates.endDate;
+          // Also update the job's startDate/endDate to match the earliest/latest mobilization
+          const allDates = updatedMobilizations
+            .filter(m => m.enabled && m.mobilizeDate !== 'TBD' && m.demobilizeDate !== 'TBD')
+            .flatMap(m => [new Date(m.mobilizeDate), new Date(m.demobilizeDate)]);
+          
+          if (allDates.length > 0) {
+            const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+            const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+            updatedJob.startDate = minDate.toISOString().split('T')[0];
+            updatedJob.endDate = maxDate.toISOString().split('T')[0];
+            updatedJob.targetEndDate = maxDate.toISOString().split('T')[0];
           }
           
           onUpdateJob(updatedJob);
@@ -247,20 +302,22 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     };
   }, [dragState, jobs, pxPerDay, onUpdateJob]);
 
-  // Calculate workload density for overlap visualization
+  // Calculate workload density for overlap visualization (based on mobilization phases)
   const workloadByDay = useMemo(() => {
     const workload: Map<string, number> = new Map();
     
     activeJobs.forEach(job => {
-      const start = new Date(job.startDate);
-      const end = new Date(job.endDate);
-      const current = new Date(start);
-      
-      while (current <= end) {
-        const key = current.toISOString().split('T')[0];
-        workload.set(key, (workload.get(key) || 0) + 1);
-        current.setDate(current.getDate() + 1);
-      }
+      getActiveMobilizations(job).forEach(mob => {
+        const start = new Date(mob.mobilizeDate);
+        const end = new Date(mob.demobilizeDate);
+        const current = new Date(start);
+        
+        while (current <= end) {
+          const key = current.toISOString().split('T')[0];
+          workload.set(key, (workload.get(key) || 0) + 1);
+          current.setDate(current.getDate() + 1);
+        }
+      });
     });
     
     return workload;
@@ -332,18 +389,22 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
 
       {/* Legend */}
       <div className="flex items-center gap-4 px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-xs">
-        <span className="text-gray-500 dark:text-gray-400">Status:</span>
-        <div className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-blue-500"></span>
-          <span className="text-gray-600 dark:text-gray-400">Future</span>
-        </div>
+        <span className="text-gray-500 dark:text-gray-400">Phases:</span>
         <div className="flex items-center gap-1">
           <span className="w-3 h-3 rounded bg-emerald-500"></span>
-          <span className="text-gray-600 dark:text-gray-400">Active</span>
+          <span className="text-gray-600 dark:text-gray-400">Phase 1</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-blue-500"></span>
+          <span className="text-gray-600 dark:text-gray-400">Phase 2</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-purple-500"></span>
+          <span className="text-gray-600 dark:text-gray-400">Phase 3</span>
         </div>
         <div className="flex items-center gap-1">
           <span className="w-3 h-3 rounded bg-amber-500"></span>
-          <span className="text-gray-600 dark:text-gray-400">On Hold</span>
+          <span className="text-gray-600 dark:text-gray-400">Phase 4</span>
         </div>
         <span className="ml-4 text-gray-500 dark:text-gray-400">
           💡 Drag edges to resize • Drag bar to move • Click to edit
@@ -412,8 +473,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
 
             {/* Job Bars */}
             {activeJobs.map((job) => {
-              const barStyle = getJobBarStyle(job);
-              const isDragging = dragState?.jobId === job.id;
+              const activeMobs = getActiveMobilizations(job);
               
               return (
                 <div
@@ -436,43 +496,55 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                     return null;
                   })()}
                   
-                  {/* Job Bar */}
-                  <div
-                    className={`absolute top-2 bottom-2 rounded-lg shadow-md flex items-center transition-shadow ${
-                      getStatusColor(job.status)
-                    } ${isDragging ? 'shadow-xl ring-2 ring-orange-400 z-20' : 'z-10'}`}
-                    style={{
-                      left: barStyle.left,
-                      width: barStyle.width,
-                      cursor: dragState?.type === 'move' ? 'grabbing' : 'grab',
-                    }}
-                    onMouseDown={(e) => handleDragStart(e, job, 'move')}
-                    onDoubleClick={() => onEditJob(job)}
-                  >
-                    {/* Left resize handle */}
-                    <div
-                      className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-black/20 rounded-l-lg"
-                      onMouseDown={(e) => handleDragStart(e, job, 'resize-start')}
-                    />
+                  {/* Phase Bars */}
+                  {activeMobs.map((phase) => {
+                    const barStyle = getPhaseBarStyle(job, phase);
+                    const isDragging = dragState?.jobId === job.id && dragState?.phaseId === phase.id;
+                    const colorIdx = phase.id - 1; // 0-indexed
                     
-                    {/* Bar content */}
-                    <div className="flex-1 px-3 truncate text-white text-xs font-medium">
-                      {barStyle.width > 80 && (
-                        <span>{job.jobNo}</span>
-                      )}
-                      {barStyle.width > 150 && (
-                        <span className="ml-2 opacity-75">
-                          {formatDate(barStyle.startDate)} - {formatDate(barStyle.endDate)}
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Right resize handle */}
-                    <div
-                      className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-black/20 rounded-r-lg"
-                      onMouseDown={(e) => handleDragStart(e, job, 'resize-end')}
-                    />
-                  </div>
+                    return (
+                      <div
+                        key={`${job.id}-phase-${phase.id}`}
+                        className={`absolute top-2 bottom-2 rounded-lg shadow-md flex items-center transition-shadow ${
+                          phaseColors[colorIdx]?.bg || phaseColors[0].bg
+                        } ${isDragging ? 'shadow-xl ring-2 ring-orange-400 z-20' : 'z-10'}`}
+                        style={{
+                          left: barStyle.left,
+                          width: barStyle.width,
+                          cursor: dragState?.type === 'move' ? 'grabbing' : 'grab',
+                        }}
+                        onMouseDown={(e) => handleDragStart(e, job, phase, 'move')}
+                        onDoubleClick={() => onEditJob(job)}
+                      >
+                        {/* Left resize handle */}
+                        <div
+                          className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-black/20 rounded-l-lg"
+                          onMouseDown={(e) => handleDragStart(e, job, phase, 'resize-start')}
+                        />
+                        
+                        {/* Bar content */}
+                        <div className="flex-1 px-3 truncate text-white text-xs font-medium">
+                          {barStyle.width > 60 && (
+                            <span>{activeMobs.length > 1 ? `P${phase.id}` : job.jobNo}</span>
+                          )}
+                          {barStyle.width > 100 && phase.description && (
+                            <span className="ml-1 opacity-75">{phase.description}</span>
+                          )}
+                          {barStyle.width > 150 && !phase.description && (
+                            <span className="ml-2 opacity-75">
+                              {formatDate(barStyle.startDate)} - {formatDate(barStyle.endDate)}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Right resize handle */}
+                        <div
+                          className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-black/20 rounded-r-lg"
+                          onMouseDown={(e) => handleDragStart(e, job, phase, 'resize-end')}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}

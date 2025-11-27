@@ -1,4 +1,4 @@
-import { Job, Note, JobStatus, JobType, TMSettings } from '../../types';
+import { Job, Note, JobStatus, JobType, TMSettings, MobilizationPhase } from '../../types';
 
 // Transform Supabase job row to app Job type
 export function dbJobToAppJob(dbJob: any): Job {
@@ -16,6 +16,23 @@ export function dbJobToAppJob(dbJob: any): Job {
       materialMarkup: tm.materialMarkup || 1,
       otherMarkup: tm.otherMarkup || 1,
     };
+  }
+
+  // Parse mobilizations from JSONB
+  let mobilizations: MobilizationPhase[] | undefined;
+  if (dbJob.mobilizations) {
+    const mobs = typeof dbJob.mobilizations === 'string'
+      ? JSON.parse(dbJob.mobilizations)
+      : dbJob.mobilizations;
+    if (Array.isArray(mobs) && mobs.length > 0) {
+      mobilizations = mobs.map((m: any) => ({
+        id: m.id,
+        enabled: m.enabled,
+        mobilizeDate: m.mobilizeDate || 'TBD',
+        demobilizeDate: m.demobilizeDate || 'TBD',
+        description: m.description || '',
+      }));
+    }
   }
 
   return {
@@ -61,6 +78,7 @@ export function dbJobToAppJob(dbJob: any): Job {
     companyId: dbJob.company_id || undefined,
     jobType: (dbJob.job_type as JobType) || 'fixed-price',
     tmSettings,
+    mobilizations,
   };
 }
 
@@ -107,6 +125,15 @@ export function appJobToDbJob(job: Job): any {
     company_id: job.companyId || null,
     job_type: job.jobType || 'fixed-price',
     tm_settings: tmSettings,
+    mobilizations: job.mobilizations && job.mobilizations.length > 0 
+      ? job.mobilizations.map(m => ({
+          id: m.id,
+          enabled: m.enabled,
+          mobilizeDate: m.mobilizeDate,
+          demobilizeDate: m.demobilizeDate,
+          description: m.description || '',
+        }))
+      : null,
   };
 }
 
