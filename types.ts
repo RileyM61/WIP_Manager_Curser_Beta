@@ -64,6 +64,7 @@ export interface Job {
   jobType: JobType;
   tmSettings?: TMSettings;
   mobilizations?: MobilizationPhase[];  // Up to 4 mobilization/demobilization phases
+  laborCostPerHour?: number;  // $/hr rate for converting labor costs to hours
 }
 
 export type ViewMode = 'grid' | 'table' | 'gantt';

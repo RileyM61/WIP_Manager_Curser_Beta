@@ -962,6 +962,40 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                   </div>
                 )}
 
+                {/* Labor Cost Per Hour */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Labor Rate</h3>
+                  </div>
+                  <div className="max-w-xs">
+                    <label htmlFor="laborCostPerHour" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Labor Cost Per Hour</label>
+                    <div className="mt-1 relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                      <input
+                        type="number"
+                        id="laborCostPerHour"
+                        name="laborCostPerHour"
+                        value={job.laborCostPerHour || ''}
+                        onChange={(e) => setJob(prev => ({ ...prev, laborCostPerHour: e.target.value ? Number(e.target.value) : undefined }))}
+                        disabled={isEstimatorWithRestrictedAccess}
+                        className={`${inputClassName} pl-7`}
+                        step={0.01}
+                        min={0}
+                        placeholder="65.00"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">/hr</span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Used to calculate labor hours for capacity planning
+                      {job.laborCostPerHour && job.costToComplete.labor > 0 && (
+                        <span className="block mt-1 text-blue-600 dark:text-blue-400 font-medium">
+                          ≈ {Math.round(job.costToComplete.labor / job.laborCostPerHour).toLocaleString()} hours remaining
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
                 {/* T&M Info Box */}
                 {isTM && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">

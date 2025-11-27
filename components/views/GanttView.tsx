@@ -305,30 +305,97 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     };
   }, [dragState, jobs, pxPerDay, onUpdateJob]);
 
-  // Calculate workload density for overlap visualization (based on mobilization phases)
-  const workloadByDay = useMemo(() => {
-    const workload: Map<string, number> = new Map();
+  // Calculate labor hours per day for workload visualization
+  const laborHoursByDay = useMemo(() => {
+    const hours: Map<string, number> = new Map();
     
     activeJobs.forEach(job => {
-      getActiveMobilizations(job).forEach(mob => {
+      // Skip jobs without labor cost per hour set
+      if (!job.laborCostPerHour || job.laborCostPerHour <= 0) return;
+      
+      // Calculate total labor hours remaining
+      const totalLaborHours = job.costToComplete.labor / job.laborCostPerHour;
+      if (totalLaborHours <= 0) return;
+      
+      // Get all active mobilization phases
+      const activeMobs = getActiveMobilizations(job);
+      if (activeMobs.length === 0) return;
+      
+      // Count total days across all phases
+      let totalDaysInPhases = 0;
+      activeMobs.forEach(mob => {
+        const start = new Date(mob.mobilizeDate);
+        const end = new Date(mob.demobilizeDate);
+        const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        totalDaysInPhases += days;
+      });
+      
+      if (totalDaysInPhases === 0) return;
+      
+      // Calculate hours per day (spread evenly)
+      const hoursPerDay = totalLaborHours / totalDaysInPhases;
+      
+      // Add hours to each day in mobilization phases
+      activeMobs.forEach(mob => {
         const start = new Date(mob.mobilizeDate);
         const end = new Date(mob.demobilizeDate);
         const current = new Date(start);
         
         while (current <= end) {
           const key = current.toISOString().split('T')[0];
-          workload.set(key, (workload.get(key) || 0) + 1);
+          hours.set(key, (hours.get(key) || 0) + hoursPerDay);
           current.setDate(current.getDate() + 1);
         }
       });
     });
     
-    return workload;
+    return hours;
   }, [activeJobs]);
 
-  const maxWorkload = useMemo(() => 
-    Math.max(...Array.from(workloadByDay.values()), 1),
-    [workloadByDay]
+  // Aggregate labor hours by zoom level (week, month, quarter)
+  const aggregatedHours = useMemo(() => {
+    const aggregated: Map<string, { hours: number; startDate: Date; endDate: Date }> = new Map();
+    
+    laborHoursByDay.forEach((hours, dateKey) => {
+      const date = new Date(dateKey);
+      let periodKey: string;
+      let periodStart: Date;
+      let periodEnd: Date;
+      
+      if (zoomLevel === 'week') {
+        // Get start of week (Sunday)
+        const dayOfWeek = date.getDay();
+        periodStart = new Date(date);
+        periodStart.setDate(date.getDate() - dayOfWeek);
+        periodEnd = new Date(periodStart);
+        periodEnd.setDate(periodStart.getDate() + 6);
+        periodKey = periodStart.toISOString().split('T')[0];
+      } else if (zoomLevel === 'month') {
+        periodStart = new Date(date.getFullYear(), date.getMonth(), 1);
+        periodEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      } else {
+        // Quarter
+        const quarter = Math.floor(date.getMonth() / 3);
+        periodStart = new Date(date.getFullYear(), quarter * 3, 1);
+        periodEnd = new Date(date.getFullYear(), quarter * 3 + 3, 0);
+        periodKey = `${date.getFullYear()}-Q${quarter + 1}`;
+      }
+      
+      const existing = aggregated.get(periodKey);
+      if (existing) {
+        existing.hours += hours;
+      } else {
+        aggregated.set(periodKey, { hours, startDate: periodStart, endDate: periodEnd });
+      }
+    });
+    
+    return aggregated;
+  }, [laborHoursByDay, zoomLevel]);
+
+  const maxHours = useMemo(() => 
+    Math.max(...Array.from(aggregatedHours.values()).map(v => v.hours), 1),
+    [aggregatedHours]
   );
 
   // Format date for display
@@ -441,13 +508,13 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
               </div>
             </div>
           ))}
-          {/* Workload row */}
+          {/* Labor Hours row */}
           <div
             className="flex items-center px-4 border-t-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50"
             style={{ height: 60 }}
           >
             <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-              Workload
+              Labor Hrs
             </div>
           </div>
         </div>
@@ -585,40 +652,63 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
               );
             })}
 
-            {/* Workload Heatmap */}
+            {/* Labor Hours Heatmap */}
             <div 
               className="relative border-t-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/30"
               style={{ height: 60 }}
             >
-              <div className="absolute inset-0 flex">
-                {Array.from({ length: totalDays }).map((_, dayIdx) => {
-                  const date = new Date(timelineStart);
-                  date.setDate(date.getDate() + dayIdx);
-                  const key = date.toISOString().split('T')[0];
-                  const count = workloadByDay.get(key) || 0;
-                  const intensity = count / maxWorkload;
+              <div className="absolute inset-0 flex items-end">
+                {timelineHeaders.map((header, idx) => {
+                  // Find hours for this period
+                  let periodKey: string;
+                  const date = header.date;
+                  
+                  if (zoomLevel === 'week') {
+                    periodKey = date.toISOString().split('T')[0];
+                  } else if (zoomLevel === 'month') {
+                    periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                  } else {
+                    const quarter = Math.floor(date.getMonth() / 3);
+                    periodKey = `${date.getFullYear()}-Q${quarter + 1}`;
+                  }
+                  
+                  const periodData = aggregatedHours.get(periodKey);
+                  const hours = periodData?.hours || 0;
+                  const intensity = maxHours > 0 ? hours / maxHours : 0;
                   
                   // Color based on intensity
-                  let bgColor = 'bg-transparent';
-                  if (count > 0) {
+                  let bgColor = 'bg-gray-200 dark:bg-gray-600';
+                  if (hours > 0) {
                     if (intensity > 0.8) bgColor = 'bg-red-500';
                     else if (intensity > 0.6) bgColor = 'bg-orange-500';
                     else if (intensity > 0.4) bgColor = 'bg-amber-400';
-                    else if (intensity > 0.2) bgColor = 'bg-yellow-300';
-                    else bgColor = 'bg-green-300';
+                    else if (intensity > 0.2) bgColor = 'bg-blue-400';
+                    else bgColor = 'bg-blue-300';
                   }
+                  
+                  const periodLabel = zoomLevel === 'week' ? 'Week' : zoomLevel === 'month' ? 'Month' : 'Quarter';
                   
                   return (
                     <div
-                      key={dayIdx}
-                      className={`${bgColor} opacity-60`}
-                      style={{ 
-                        width: pxPerDay,
-                        height: count > 0 ? `${Math.max(20, intensity * 100)}%` : 0,
-                        alignSelf: 'flex-end',
-                      }}
-                      title={`${date.toLocaleDateString()}: ${count} job${count !== 1 ? 's' : ''}`}
-                    />
+                      key={idx}
+                      className="relative flex flex-col items-center justify-end"
+                      style={{ width: header.width * pxPerDay }}
+                    >
+                      {hours > 0 && (
+                        <>
+                          <div 
+                            className={`w-[90%] ${bgColor} rounded-t-sm transition-all`}
+                            style={{ 
+                              height: `${Math.max(20, intensity * 100)}%`,
+                            }}
+                            title={`${header.label}: ${Math.round(hours).toLocaleString()} labor hours`}
+                          />
+                          <span className="absolute bottom-1 text-[10px] font-medium text-gray-700 dark:text-gray-300">
+                            {hours >= 1000 ? `${(hours / 1000).toFixed(1)}k` : Math.round(hours)}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -629,7 +719,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                 if (todayOffset >= 0 && todayOffset <= totalDays) {
                   return (
                     <div
-                      className="absolute top-0 bottom-0 w-0.5 bg-red-500"
+                      className="absolute top-0 bottom-0 w-0.5 bg-red-500 z-10"
                       style={{ left: todayOffset * pxPerDay }}
                     />
                   );
@@ -647,7 +737,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
           Timeline: {timelineStart.toLocaleDateString()} — {timelineEnd.toLocaleDateString()}
         </span>
         <span>
-          🔴 Today | Workload: 🟢 Low → 🔴 High
+          🔴 Today | Labor Hours: bars show remaining hours per {zoomLevel}
         </span>
       </div>
     </div>

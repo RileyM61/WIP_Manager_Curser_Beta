@@ -79,6 +79,7 @@ export function dbJobToAppJob(dbJob: any): Job {
     jobType: (dbJob.job_type as JobType) || 'fixed-price',
     tmSettings,
     mobilizations,
+    laborCostPerHour: dbJob.labor_cost_per_hour ? Number(dbJob.labor_cost_per_hour) : undefined,
   };
 }
 
@@ -134,6 +135,7 @@ export function appJobToDbJob(job: Job): any {
           description: m.description || '',
         }))
       : null,
+    labor_cost_per_hour: job.laborCostPerHour || null,
   };
 }
 
