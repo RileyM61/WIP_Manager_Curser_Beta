@@ -173,7 +173,7 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole
                 <div>Start: {job.startDate === 'TBD' ? 'TBD' : new Date(job.startDate).toLocaleDateString()}</div>
                 <div>End: {job.endDate === 'TBD' ? 'TBD' : new Date(job.endDate).toLocaleDateString()}</div>
                 {!isTM && userRole === 'projectManager' && job.targetEndDate && (
-                  <div className={`text-xs font-semibold mt-1 ${isBehindSchedule ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                  <div className={`text-xs font-semibold mt-1 ${hasScheduleWarning ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                     Target: {targetEndDateDisplay}
                   </div>
                 )}
