@@ -45,22 +45,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const [activeSection, setActiveSection] = useState<SettingsSection>('company');
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
-  // Update currentSettings when settings prop changes
-  React.useEffect(() => {
-    setCurrentSettings(settings);
-  }, [settings]);
-
-  if (!isOpen) return null;
-
   const isOwner = userRole === 'owner';
-
-  const handleSettingsChange = (newSettings: Partial<Settings>) => {
-    setCurrentSettings(prev => ({ ...prev, ...newSettings }));
-  };
-
-  const handleSave = () => {
-    onSave(currentSettings);
-  };
 
   // Navigation items with access control
   const navItems: { id: SettingsSection; label: string; icon: string; ownerOnly: boolean }[] = [
@@ -78,6 +63,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   // Filter nav items based on user role
   const visibleNavItems = navItems.filter(item => !item.ownerOnly || isOwner);
 
+  // Update currentSettings when settings prop changes
+  React.useEffect(() => {
+    setCurrentSettings(settings);
+  }, [settings]);
+
   // If current section is owner-only and user is not owner, switch to first visible section
   React.useEffect(() => {
     const currentItem = navItems.find(item => item.id === activeSection);
@@ -87,7 +77,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         setActiveSection(firstVisible.id);
       }
     }
-  }, [userRole, activeSection]);
+  }, [userRole, activeSection, isOwner]);
+
+  // Early return AFTER all hooks
+  if (!isOpen) return null;
+
+  const handleSettingsChange = (newSettings: Partial<Settings>) => {
+    setCurrentSettings(prev => ({ ...prev, ...newSettings }));
+  };
+
+  const handleSave = () => {
+    onSave(currentSettings);
+  };
 
   const renderContent = () => {
     switch (activeSection) {
