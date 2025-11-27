@@ -337,12 +337,19 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
       
       // Add hours to each day in mobilization phases
       activeMobs.forEach(mob => {
-        const start = new Date(mob.mobilizeDate);
-        const end = new Date(mob.demobilizeDate);
+        // Parse dates as local dates
+        const [startYear, startMonth, startDay] = mob.mobilizeDate.split('-').map(Number);
+        const [endYear, endMonth, endDay] = mob.demobilizeDate.split('-').map(Number);
+        const start = new Date(startYear, startMonth - 1, startDay);
+        const end = new Date(endYear, endMonth - 1, endDay);
         const current = new Date(start);
         
         while (current <= end) {
-          const key = current.toISOString().split('T')[0];
+          // Use local date format for key
+          const year = current.getFullYear();
+          const month = String(current.getMonth() + 1).padStart(2, '0');
+          const day = String(current.getDate()).padStart(2, '0');
+          const key = `${year}-${month}-${day}`;
           hours.set(key, (hours.get(key) || 0) + hoursPerDay);
           current.setDate(current.getDate() + 1);
         }
@@ -352,11 +359,19 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     return hours;
   }, [activeJobs]);
 
+  // Helper to format date as YYYY-MM-DD in local time (not UTC)
+  const formatDateKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Helper to get period key for a date based on zoom level
   const getPeriodKey = useCallback((date: Date): string => {
     if (zoomLevel === 'week') {
-      // Use the date as-is for week headers (they already represent week starts)
-      return date.toISOString().split('T')[0];
+      // Use local date format for week headers
+      return formatDateKey(date);
     } else if (zoomLevel === 'month') {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     } else {
@@ -370,7 +385,10 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     const aggregated: Map<string, { hours: number; startDate: Date; endDate: Date }> = new Map();
     
     laborHoursByDay.forEach((hours, dateKey) => {
-      const date = new Date(dateKey);
+      // Parse the date key as local date (YYYY-MM-DD)
+      const [year, month, day] = dateKey.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      
       let periodKey: string;
       let periodStart: Date;
       let periodEnd: Date;
@@ -380,10 +398,9 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
         const dayOfWeek = date.getDay();
         periodStart = new Date(date);
         periodStart.setDate(date.getDate() - dayOfWeek);
-        periodStart.setHours(0, 0, 0, 0);
         periodEnd = new Date(periodStart);
         periodEnd.setDate(periodStart.getDate() + 6);
-        periodKey = periodStart.toISOString().split('T')[0];
+        periodKey = formatDateKey(periodStart);
       } else if (zoomLevel === 'month') {
         periodStart = new Date(date.getFullYear(), date.getMonth(), 1);
         periodEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
