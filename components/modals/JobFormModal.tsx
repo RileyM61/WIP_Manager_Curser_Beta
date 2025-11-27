@@ -7,7 +7,7 @@ import InfoTooltip from '../help/InfoTooltip';
 import { helpContent } from '../../lib/helpContent';
 
 // Tab type
-type FormTab = 'details' | 'financials';
+type FormTab = 'details' | 'scheduling' | 'financials';
 
 interface JobFormModalProps {
   isOpen: boolean;
@@ -212,6 +212,17 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
             </button>
             <button
               type="button"
+              onClick={() => setActiveTab('scheduling')}
+              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                activeTab === 'scheduling'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+              }`}
+            >
+              Scheduling
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab('financials')}
               className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
                 activeTab === 'financials'
@@ -333,36 +344,12 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                     </select>
                   </div>
                 </div>
-                
-                {/* Dates */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                      <div className="flex items-center">
-                        <input id="startDateTBD" type="checkbox" checked={isStartDateTBD} onChange={(e) => handleDateTBDChange(e, 'startDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
-                        <label htmlFor="startDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
-                      </div>
-                    </div>
-                    <input type="date" name="startDate" id="startDate" value={isStartDateTBD ? '' : job.startDate} onChange={handleChange} className={inputClassName} disabled={isStartDateTBD} />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                      <div className="flex items-center">
-                        <input id="endDateTBD" type="checkbox" checked={isEndDateTBD} onChange={(e) => handleDateTBDChange(e, 'endDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
-                        <label htmlFor="endDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
-                      </div>
-                    </div>
-                    <input type="date" name="endDate" id="endDate" value={isEndDateTBD ? '' : job.endDate} onChange={handleChange} className={inputClassName} disabled={isEndDateTBD} />
-                  </div>
-                </div>
 
                 {/* Targets (only for Fixed Price) */}
                 {!isTM && (
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Targets</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Profit Targets</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label htmlFor="targetProfit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Profit</label>
                         <CurrencyInput id="targetProfit" name="targetProfit" value={job.targetProfit || 0} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
@@ -379,24 +366,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                           className={inputClassName}
                           step={0.1}
                           min={0}
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <label htmlFor="targetEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Completion</label>
-                          <div className="flex items-center">
-                            <input id="targetEndDateTBD" type="checkbox" checked={isTargetEndDateTBD} onChange={handleTargetDateTBDChange} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
-                            <label htmlFor="targetEndDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
-                          </div>
-                        </div>
-                        <input
-                          type="date"
-                          name="targetEndDate"
-                          id="targetEndDate"
-                          value={isTargetEndDateTBD ? '' : job.targetEndDate}
-                          onChange={handleChange}
-                          className={inputClassName}
-                          disabled={isTargetEndDateTBD || isEstimatorWithRestrictedAccess}
                         />
                       </div>
                     </div>
@@ -562,7 +531,111 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               </div>
             )}
 
-            {/* Tab 2: Financials */}
+            {/* Tab 2: Scheduling */}
+            {activeTab === 'scheduling' && (
+              <div className="space-y-6">
+                {/* Contract Dates */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Contract Dates</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
+                        <div className="flex items-center">
+                          <input id="startDateTBD" type="checkbox" checked={isStartDateTBD} onChange={(e) => handleDateTBDChange(e, 'startDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
+                          <label htmlFor="startDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
+                        </div>
+                      </div>
+                      <input type="date" name="startDate" id="startDate" value={isStartDateTBD ? '' : job.startDate} onChange={handleChange} className={inputClassName} disabled={isStartDateTBD} />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Contractual project start date</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
+                        <div className="flex items-center">
+                          <input id="endDateTBD" type="checkbox" checked={isEndDateTBD} onChange={(e) => handleDateTBDChange(e, 'endDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
+                          <label htmlFor="endDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
+                        </div>
+                      </div>
+                      <input type="date" name="endDate" id="endDate" value={isEndDateTBD ? '' : job.endDate} onChange={handleChange} className={inputClassName} disabled={isEndDateTBD} />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Contractual completion date</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Target Completion */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Target Completion</h3>
+                  <div className="max-w-md">
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="targetEndDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Completion Date</label>
+                      <div className="flex items-center">
+                        <input id="targetEndDateTBD" type="checkbox" checked={isTargetEndDateTBD} onChange={handleTargetDateTBDChange} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
+                        <label htmlFor="targetEndDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
+                      </div>
+                    </div>
+                    <input
+                      type="date"
+                      name="targetEndDate"
+                      id="targetEndDate"
+                      value={isTargetEndDateTBD ? '' : job.targetEndDate}
+                      onChange={handleChange}
+                      className={inputClassName}
+                      disabled={isTargetEndDateTBD || isEstimatorWithRestrictedAccess}
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Your internal goal for project completion (may differ from contract)</p>
+                  </div>
+                </div>
+
+                {/* Schedule Summary */}
+                {!isStartDateTBD && !isEndDateTBD && (
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Schedule Summary</h3>
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Duration</span>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">
+                            {(() => {
+                              const start = new Date(job.startDate);
+                              const end = new Date(job.endDate);
+                              const diffTime = Math.abs(end.getTime() - start.getTime());
+                              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                              const months = Math.floor(diffDays / 30);
+                              const weeks = Math.floor((diffDays % 30) / 7);
+                              if (months > 0) return `${months} mo ${weeks > 0 ? `${weeks} wk` : ''}`;
+                              return `${Math.ceil(diffDays / 7)} weeks`;
+                            })()}
+                          </p>
+                        </div>
+                        {!isTargetEndDateTBD && job.targetEndDate !== 'TBD' && (
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Target vs Contract</span>
+                            <p className={`font-semibold ${
+                              new Date(job.targetEndDate) <= new Date(job.endDate) 
+                                ? 'text-green-600 dark:text-green-400' 
+                                : 'text-amber-600 dark:text-amber-400'
+                            }`}>
+                              {(() => {
+                                const target = new Date(job.targetEndDate);
+                                const end = new Date(job.endDate);
+                                const diffTime = end.getTime() - target.getTime();
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                if (diffDays === 0) return 'On target';
+                                if (diffDays > 0) return `${diffDays} days early`;
+                                return `${Math.abs(diffDays)} days late`;
+                              })()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 3: Financials */}
             {activeTab === 'financials' && (
               <div className="space-y-6">
                 {/* Contract Breakdown (only for Fixed Price) */}
