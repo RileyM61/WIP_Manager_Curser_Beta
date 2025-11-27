@@ -12,28 +12,34 @@ type ZoomLevel = 'week' | 'month' | 'quarter';
 
 // Helper to get active mobilization phases for a job
 const getActiveMobilizations = (job: Job): MobilizationPhase[] => {
-  if (!job.mobilizations || job.mobilizations.length === 0) {
-    // Fallback: if no mobilizations, create one from start/end dates
-    if (job.startDate && job.startDate !== 'TBD' && job.endDate && job.endDate !== 'TBD') {
-      return [{
-        id: 1,
-        enabled: true,
-        mobilizeDate: job.startDate,
-        demobilizeDate: job.endDate,
-        description: '',
-      }];
+  // First, try to get enabled mobilization phases with valid dates
+  if (job.mobilizations && job.mobilizations.length > 0) {
+    const validPhases = job.mobilizations.filter(m => 
+      m.enabled && 
+      m.mobilizeDate && 
+      m.mobilizeDate !== 'TBD' && 
+      m.demobilizeDate && 
+      m.demobilizeDate !== 'TBD'
+    );
+    
+    // If we have valid phases, return them
+    if (validPhases.length > 0) {
+      return validPhases;
     }
-    return [];
   }
   
-  // Filter to enabled phases with valid dates
-  return job.mobilizations.filter(m => 
-    m.enabled && 
-    m.mobilizeDate && 
-    m.mobilizeDate !== 'TBD' && 
-    m.demobilizeDate && 
-    m.demobilizeDate !== 'TBD'
-  );
+  // Fallback: if no valid mobilizations, create one from start/end dates
+  if (job.startDate && job.startDate !== 'TBD' && job.endDate && job.endDate !== 'TBD') {
+    return [{
+      id: 1,
+      enabled: true,
+      mobilizeDate: job.startDate,
+      demobilizeDate: job.endDate,
+      description: '',
+    }];
+  }
+  
+  return [];
 };
 
 // Calculate labor hours for a specific phase
