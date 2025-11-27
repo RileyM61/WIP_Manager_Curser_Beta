@@ -1,4 +1,4 @@
-import { Job, CostBreakdown } from '../types';
+import { Job, CostBreakdown, MobilizationPhase } from '../types';
 
 /**
  * Sum all components of a cost breakdown
@@ -140,3 +140,117 @@ export const getDefaultTMSettings = () => ({
   otherMarkup: 1.10,     // 10% markup
 });
 
+/**
+ * Schedule warning types
+ */
+export interface ScheduleWarning {
+  type: 'mobilization-past-contract' | 'behind-target' | 'phase-overlap';
+  phaseId?: number;
+  message: string;
+  severity: 'warning' | 'critical';
+}
+
+/**
+ * Check if a job has any mobilization phases that extend beyond the contract end date
+ */
+export const getMobilizationWarnings = (job: Job): ScheduleWarning[] => {
+  const warnings: ScheduleWarning[] = [];
+  
+  // Skip if no contract end date
+  if (!job.endDate || job.endDate === 'TBD') {
+    return warnings;
+  }
+  
+  const contractEndDate = new Date(job.endDate).getTime();
+  
+  // Check mobilization phases
+  if (job.mobilizations && job.mobilizations.length > 0) {
+    job.mobilizations.forEach(mob => {
+      if (!mob.enabled) return;
+      
+      // Check if demobilization date is past contract end
+      if (mob.demobilizeDate && mob.demobilizeDate !== 'TBD') {
+        const demobDate = new Date(mob.demobilizeDate).getTime();
+        if (demobDate > contractEndDate) {
+          const daysOver = Math.ceil((demobDate - contractEndDate) / (1000 * 60 * 60 * 24));
+          warnings.push({
+            type: 'mobilization-past-contract',
+            phaseId: mob.id,
+            message: `Phase ${mob.id}${mob.description ? ` (${mob.description})` : ''} demob is ${daysOver} day${daysOver !== 1 ? 's' : ''} past contract end`,
+            severity: daysOver > 14 ? 'critical' : 'warning',
+          });
+        }
+      }
+      
+      // Check if mobilization date is past contract end (shouldn't happen but check anyway)
+      if (mob.mobilizeDate && mob.mobilizeDate !== 'TBD') {
+        const mobDate = new Date(mob.mobilizeDate).getTime();
+        if (mobDate > contractEndDate) {
+          warnings.push({
+            type: 'mobilization-past-contract',
+            phaseId: mob.id,
+            message: `Phase ${mob.id}${mob.description ? ` (${mob.description})` : ''} mobilization starts after contract end`,
+            severity: 'critical',
+          });
+        }
+      }
+    });
+  }
+  
+  return warnings;
+};
+
+/**
+ * Check if job is behind target date (legacy check)
+ */
+export const isJobBehindTargetDate = (job: Job): boolean => {
+  if (!job.targetEndDate || job.targetEndDate === 'TBD' || job.endDate === 'TBD') {
+    return false;
+  }
+  const plannedCompletion = new Date(job.targetEndDate).getTime();
+  const currentCompletion = new Date(job.endDate).getTime();
+  return currentCompletion > plannedCompletion;
+};
+
+/**
+ * Check if job has any schedule warnings (mobilization or target date)
+ * This is the main function to use for the "Behind Schedule" filter
+ */
+export const hasScheduleWarnings = (job: Job): boolean => {
+  // Check mobilization warnings
+  const mobWarnings = getMobilizationWarnings(job);
+  if (mobWarnings.length > 0) {
+    return true;
+  }
+  
+  // Check target date
+  if (isJobBehindTargetDate(job)) {
+    return true;
+  }
+  
+  return false;
+};
+
+/**
+ * Get all schedule warnings for a job (mobilization + target date)
+ */
+export const getAllScheduleWarnings = (job: Job): ScheduleWarning[] => {
+  const warnings: ScheduleWarning[] = [];
+  
+  // Add mobilization warnings
+  warnings.push(...getMobilizationWarnings(job));
+  
+  // Add target date warning
+  if (isJobBehindTargetDate(job)) {
+    const targetDate = new Date(job.targetEndDate!);
+    const endDate = new Date(job.endDate);
+    const daysLate = Math.ceil((endDate.getTime() - targetDate.getTime()) / (1000 * 60 * 60 * 24));
+    warnings.push({
+      type: 'behind-target',
+      message: `Job is ${daysLate} day${daysLate !== 1 ? 's' : ''} behind target completion`,
+      severity: daysLate > 30 ? 'critical' : 'warning',
+    });
+  }
+  
+  return warnings;
+};

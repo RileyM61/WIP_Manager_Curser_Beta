@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { Job, JobStatus, MobilizationPhase } from '../../types';
+import { getMobilizationWarnings } from '../../lib/jobCalculations';
 
 interface GanttViewProps {
   jobs: Job[];
@@ -498,17 +499,42 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                     return null;
                   })()}
                   
+                  {/* Contract End Date Marker */}
+                  {job.endDate && job.endDate !== 'TBD' && (() => {
+                    const contractEnd = new Date(job.endDate);
+                    const contractEndOffset = (contractEnd.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24);
+                    if (contractEndOffset >= 0 && contractEndOffset <= totalDays) {
+                      return (
+                        <div
+                          className="absolute top-0 bottom-0 w-0.5 bg-gray-400 dark:bg-gray-500 z-5"
+                          style={{ left: contractEndOffset * pxPerDay }}
+                          title={`Contract End: ${formatDate(job.endDate)}`}
+                        >
+                          <div className="absolute -top-1 -left-1 w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full" />
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  
                   {/* Phase Bars */}
                   {activeMobs.map((phase) => {
                     const barStyle = getPhaseBarStyle(job, phase);
                     const isDragging = dragState?.jobId === job.id && dragState?.phaseId === phase.id;
                     const colorIdx = phase.id - 1; // 0-indexed
                     
+                    // Check if this phase has a warning (extends past contract end)
+                    const warnings = getMobilizationWarnings(job);
+                    const phaseWarning = warnings.find(w => w.phaseId === phase.id);
+                    const hasWarning = !!phaseWarning;
+                    
                     return (
                       <div
                         key={`${job.id}-phase-${phase.id}`}
                         className={`absolute top-2 bottom-2 rounded-lg shadow-md flex items-center transition-shadow ${
-                          phaseColors[colorIdx]?.bg || phaseColors[0].bg
+                          hasWarning 
+                            ? 'bg-red-500 hover:bg-red-600 ring-2 ring-red-300 dark:ring-red-700' 
+                            : (phaseColors[colorIdx]?.bg || phaseColors[0].bg)
                         } ${isDragging ? 'shadow-xl ring-2 ring-orange-400 z-20' : 'z-10'}`}
                         style={{
                           left: barStyle.left,
@@ -517,7 +543,15 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                         }}
                         onMouseDown={(e) => handleDragStart(e, job, phase, 'move')}
                         onDoubleClick={() => onEditJob(job)}
+                        title={hasWarning ? phaseWarning.message : undefined}
                       >
+                        {/* Warning indicator */}
+                        {hasWarning && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center text-xs font-bold text-red-800 shadow-md z-30">
+                            !
+                          </div>
+                        )}
+                        
                         {/* Left resize handle */}
                         <div
                           className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-black/20 rounded-l-lg"

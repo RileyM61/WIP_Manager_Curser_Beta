@@ -21,6 +21,7 @@ import TeamManagementModal from './components/modals/TeamManagementModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import { tourSteps, markTourCompleted } from './lib/tourSteps';
+import { hasScheduleWarnings } from './lib/jobCalculations';
 
 type FocusMode = 'default' | 'pm-at-risk' | 'pm-late';
 
@@ -456,7 +457,8 @@ function App() {
         return forecastedProfit < job.targetProfit;
       });
     } else if (focusMode === 'pm-late') {
-      filteredJobs = filteredJobs.filter(job => isJobBehindTargetDate(job));
+      // Filter for jobs with any schedule warnings (mobilization past contract OR behind target)
+      filteredJobs = filteredJobs.filter(job => hasScheduleWarnings(job));
     }
 
     return filteredJobs.sort((a, b) => {

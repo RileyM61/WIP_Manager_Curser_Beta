@@ -2,7 +2,7 @@ import React from 'react';
 import { Job, JobStatus, UserRole } from '../../types';
 import ProgressBar from '../ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../shared/icons';
-import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../../lib/jobCalculations';
+import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit, getAllScheduleWarnings } from '../../lib/jobCalculations';
 
 interface JobCardGridProps {
   jobs: Job[];
@@ -59,6 +59,11 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   const targetMarginDisplay = job.targetMargin !== undefined ? `${job.targetMargin.toFixed(1)}%` : '—';
   const targetEndDateDisplay = job.targetEndDate ? (job.targetEndDate === 'TBD' ? 'TBD' : new Date(job.targetEndDate).toLocaleDateString()) : '—';
   const isBehindTargetSchedule = job.targetEndDate && job.targetEndDate !== 'TBD' && job.endDate !== 'TBD' && new Date(job.endDate).getTime() > new Date(job.targetEndDate).getTime();
+  
+  // Get all schedule warnings (mobilization + target date)
+  const scheduleWarnings = getAllScheduleWarnings(job);
+  const hasScheduleWarning = scheduleWarnings.length > 0;
+  const hasCriticalWarning = scheduleWarnings.some(w => w.severity === 'critical');
 
   let daysOnHold: number | null = null;
   if (job.status === JobStatus.OnHold && job.onHoldDate) {
@@ -102,6 +107,24 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
         {daysOnHold !== null && (
           <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/50 border-l-4 border-yellow-400 dark:border-yellow-500 text-yellow-700 dark:text-yellow-300 text-sm font-semibold rounded-r-md">
             On Hold for {daysOnHold} day{daysOnHold !== 1 ? 's' : ''}
+          </div>
+        )}
+        
+        {/* Schedule Warning Banner */}
+        {hasScheduleWarning && (
+          <div className={`mt-2 p-2 ${hasCriticalWarning ? 'bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500' : 'bg-amber-50 dark:bg-amber-900/50 border-l-4 border-amber-500'} rounded-r-md`}>
+            <div className="flex items-center gap-2">
+              <span className={`text-lg ${hasCriticalWarning ? 'text-red-600' : 'text-amber-600'}`}>⚠️</span>
+              <div className="flex-1">
+                <p className={`text-xs font-semibold ${hasCriticalWarning ? 'text-red-700 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                  Behind Schedule
+                </p>
+                <p className={`text-xs ${hasCriticalWarning ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                  {scheduleWarnings[0]?.message}
+                  {scheduleWarnings.length > 1 && ` (+${scheduleWarnings.length - 1} more)`}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

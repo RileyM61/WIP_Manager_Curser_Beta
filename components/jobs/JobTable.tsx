@@ -2,7 +2,7 @@ import React from 'react';
 import { Job, JobStatus, UserRole } from '../../types';
 import ProgressBar from '../ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../shared/icons';
-import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../../lib/jobCalculations';
+import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit, getAllScheduleWarnings } from '../../lib/jobCalculations';
 
 interface JobTableProps {
   jobs: Job[];
@@ -101,7 +101,11 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole
             const targetVariance = typeof job.targetProfit === 'number' ? forecastedProfit - job.targetProfit : null;
             const isMarginRisk = targetVariance !== null && targetVariance < 0;
             const targetEndDateDisplay = job.targetEndDate ? (job.targetEndDate === 'TBD' ? 'TBD' : new Date(job.targetEndDate).toLocaleDateString()) : '—';
-            const isBehindSchedule = job.targetEndDate && job.targetEndDate !== 'TBD' && job.endDate !== 'TBD' && new Date(job.endDate).getTime() > new Date(job.targetEndDate).getTime();
+            
+            // Get all schedule warnings (mobilization + target date)
+            const scheduleWarnings = getAllScheduleWarnings(job);
+            const hasScheduleWarning = scheduleWarnings.length > 0;
+            const hasCriticalWarning = scheduleWarnings.some(w => w.severity === 'critical');
 
             // Estimators can only edit Future jobs
             const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
@@ -109,14 +113,30 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onOpenNotes, userRole
             const rowHighlightClass =
               focusMode === 'pm-at-risk' && isMarginRisk
                 ? 'ring-1 ring-red-400 dark:ring-red-500'
-                : focusMode === 'pm-late' && isBehindSchedule
-                  ? 'ring-1 ring-yellow-400 dark:ring-yellow-500'
+                : focusMode === 'pm-late' && hasScheduleWarning
+                  ? hasCriticalWarning 
+                    ? 'ring-1 ring-red-400 dark:ring-red-500 bg-red-50 dark:bg-red-900/20'
+                    : 'ring-1 ring-yellow-400 dark:ring-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
                   : '';
             
             return (
             <tr key={job.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${rowHighlightClass}`}>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{job.jobName}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{job.jobName}</span>
+                  {hasScheduleWarning && (
+                    <span 
+                      className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${
+                        hasCriticalWarning 
+                          ? 'bg-red-500 text-white' 
+                          : 'bg-amber-400 text-amber-900'
+                      }`}
+                      title={scheduleWarnings.map(w => w.message).join('\n')}
+                    >
+                      !
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">#{job.jobNo}</div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
