@@ -352,6 +352,19 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     return hours;
   }, [activeJobs]);
 
+  // Helper to get period key for a date based on zoom level
+  const getPeriodKey = useCallback((date: Date): string => {
+    if (zoomLevel === 'week') {
+      // Use the date as-is for week headers (they already represent week starts)
+      return date.toISOString().split('T')[0];
+    } else if (zoomLevel === 'month') {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    } else {
+      const quarter = Math.floor(date.getMonth() / 3);
+      return `${date.getFullYear()}-Q${quarter + 1}`;
+    }
+  }, [zoomLevel]);
+
   // Aggregate labor hours by zoom level (week, month, quarter)
   const aggregatedHours = useMemo(() => {
     const aggregated: Map<string, { hours: number; startDate: Date; endDate: Date }> = new Map();
@@ -363,10 +376,11 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
       let periodEnd: Date;
       
       if (zoomLevel === 'week') {
-        // Get start of week (Sunday)
+        // Get start of week (Sunday) to match header dates
         const dayOfWeek = date.getDay();
         periodStart = new Date(date);
         periodStart.setDate(date.getDate() - dayOfWeek);
+        periodStart.setHours(0, 0, 0, 0);
         periodEnd = new Date(periodStart);
         periodEnd.setDate(periodStart.getDate() + 6);
         periodKey = periodStart.toISOString().split('T')[0];
@@ -657,20 +671,16 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
               className="relative border-t-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/30"
               style={{ height: 60 }}
             >
+              {/* Show message if no labor data */}
+              {aggregatedHours.size === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-400 dark:text-gray-500">
+                  Set "Labor Cost Per Hour" in job Financials to see labor hours
+                </div>
+              )}
               <div className="absolute inset-0 flex items-end">
                 {timelineHeaders.map((header, idx) => {
-                  // Find hours for this period
-                  let periodKey: string;
-                  const date = header.date;
-                  
-                  if (zoomLevel === 'week') {
-                    periodKey = date.toISOString().split('T')[0];
-                  } else if (zoomLevel === 'month') {
-                    periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                  } else {
-                    const quarter = Math.floor(date.getMonth() / 3);
-                    periodKey = `${date.getFullYear()}-Q${quarter + 1}`;
-                  }
+                  // Find hours for this period using the same key format
+                  const periodKey = getPeriodKey(header.date);
                   
                   const periodData = aggregatedHours.get(periodKey);
                   const hours = periodData?.hours || 0;
@@ -686,12 +696,10 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                     else bgColor = 'bg-blue-300';
                   }
                   
-                  const periodLabel = zoomLevel === 'week' ? 'Week' : zoomLevel === 'month' ? 'Month' : 'Quarter';
-                  
                   return (
                     <div
                       key={idx}
-                      className="relative flex flex-col items-center justify-end"
+                      className="relative flex flex-col items-center justify-end h-full"
                       style={{ width: header.width * pxPerDay }}
                     >
                       {hours > 0 && (
@@ -703,7 +711,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                             }}
                             title={`${header.label}: ${Math.round(hours).toLocaleString()} labor hours`}
                           />
-                          <span className="absolute bottom-1 text-[10px] font-medium text-gray-700 dark:text-gray-300">
+                          <span className="absolute bottom-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 drop-shadow-sm">
                             {hours >= 1000 ? `${(hours / 1000).toFixed(1)}k` : Math.round(hours)}
                           </span>
                         </>
