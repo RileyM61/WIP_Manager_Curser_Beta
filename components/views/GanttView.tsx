@@ -106,11 +106,13 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
     
-    // Add padding
-    const start = new Date(minDate);
-    start.setDate(start.getDate() - 14);
-    const end = new Date(maxDate);
-    end.setDate(end.getDate() + 30);
+    // Align start to first of month for consistent header alignment across all zoom levels
+    const start = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+    // Go back one more month for padding
+    start.setMonth(start.getMonth() - 1);
+    
+    // End at the last day of the month after maxDate (with padding)
+    const end = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0);
     
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     return { timelineStart: start, timelineEnd: end, totalDays: days };
