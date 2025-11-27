@@ -15,9 +15,8 @@ import JobFormModal from './components/modals/JobFormModal';
 import CompanyView from './components/views/CompanyView';
 import ForecastView from './components/views/ForecastView';
 import NotesModal from './components/modals/NotesModal';
-import SettingsModal from './components/modals/SettingsModal';
+import SettingsPage from './components/settings/SettingsPage';
 import CapacityModal from './components/modals/CapacityModal';
-import TeamManagementModal from './components/modals/TeamManagementModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import { tourSteps, markTourCompleted } from './lib/tourSteps';
@@ -79,7 +78,6 @@ function App() {
   const [jobForNotes, setJobForNotes] = useState<Job | null>(null);
   const [jobNotes, setJobNotes] = useState<Note[]>([]);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [focusMode, setFocusMode] = useState<FocusMode>('default');
   const [isCapacityModalOpen, setIsCapacityModalOpen] = useState(false);
   
@@ -574,7 +572,6 @@ function App() {
         companyLogo={settings.companyLogo}
         onAddJob={handleAddJobClick} 
         onOpenSettings={() => setIsSettingsModalOpen(true)}
-        onOpenTeamManagement={() => setIsTeamModalOpen(true)}
         onSignOut={signOut}
         theme={theme}
         onToggleTheme={handleToggleTheme}
@@ -638,18 +635,17 @@ function App() {
         onAddNote={handleAddNote}
         job={jobForNotes ? { ...jobForNotes, notes: jobNotes } : null}
       />
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        settings={settings}
-        onSave={handleSaveSettings}
-      />
       {companyId && user && (
-        <TeamManagementModal
-          isOpen={isTeamModalOpen}
-          onClose={() => setIsTeamModalOpen(false)}
+        <SettingsPage
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+          settings={settings}
+          onSave={handleSaveSettings}
+          userRole={userRole}
           companyId={companyId}
           currentUserId={user.id}
+          theme={theme}
+          onThemeChange={setTheme}
         />
       )}
       {settings.capacityEnabled && settings.capacityPlan && (
