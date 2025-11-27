@@ -36,6 +36,43 @@ const getActiveMobilizations = (job: Job): MobilizationPhase[] => {
   );
 };
 
+// Calculate labor hours for a specific phase
+const getPhaseHours = (job: Job, phase: MobilizationPhase): number => {
+  // Skip if no labor cost per hour is set
+  if (!job.laborCostPerHour || job.laborCostPerHour <= 0) return 0;
+  
+  // Calculate total labor hours for the job
+  const totalLaborHours = job.costToComplete.labor / job.laborCostPerHour;
+  if (totalLaborHours <= 0) return 0;
+  
+  // Get all active phases
+  const activeMobs = getActiveMobilizations(job);
+  if (activeMobs.length === 0) return 0;
+  
+  // Calculate total days across all phases
+  let totalDaysInPhases = 0;
+  activeMobs.forEach(mob => {
+    const [startYear, startMonth, startDay] = mob.mobilizeDate.split('-').map(Number);
+    const [endYear, endMonth, endDay] = mob.demobilizeDate.split('-').map(Number);
+    const start = new Date(startYear, startMonth - 1, startDay);
+    const end = new Date(endYear, endMonth - 1, endDay);
+    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    totalDaysInPhases += days;
+  });
+  
+  if (totalDaysInPhases === 0) return 0;
+  
+  // Calculate days in this specific phase
+  const [startYear, startMonth, startDay] = phase.mobilizeDate.split('-').map(Number);
+  const [endYear, endMonth, endDay] = phase.demobilizeDate.split('-').map(Number);
+  const phaseStart = new Date(startYear, startMonth - 1, startDay);
+  const phaseEnd = new Date(endYear, endMonth - 1, endDay);
+  const phaseDays = Math.ceil((phaseEnd.getTime() - phaseStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  
+  // Return proportional hours for this phase
+  return totalLaborHours * (phaseDays / totalDaysInPhases);
+};
+
 // Phase colors for the Gantt bars
 const phaseColors = [
   { bg: 'bg-emerald-500 hover:bg-emerald-600', light: 'bg-emerald-400' },
@@ -661,6 +698,20 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                           {barStyle.width > 60 && (
                             <span>{activeMobs.length > 1 ? `P${phase.id}` : job.jobNo}</span>
                           )}
+                          {/* Show labor hours for this phase */}
+                          {barStyle.width > 80 && (() => {
+                            const phaseHours = getPhaseHours(job, phase);
+                            if (phaseHours > 0) {
+                              return (
+                                <span className="ml-1 opacity-90 font-semibold">
+                                  {phaseHours >= 1000 
+                                    ? `${(phaseHours / 1000).toFixed(1)}k` 
+                                    : Math.round(phaseHours)} hrs
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
                           {barStyle.width > 100 && phase.description && (
                             <span className="ml-1 opacity-75">{phase.description}</span>
                           )}
