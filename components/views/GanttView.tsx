@@ -703,18 +703,18 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                       style={{ width: header.width * pxPerDay }}
                     >
                       {hours > 0 && (
-                        <>
-                          <div 
-                            className={`w-[90%] ${bgColor} rounded-t-sm transition-all`}
-                            style={{ 
-                              height: `${Math.max(20, intensity * 100)}%`,
-                            }}
-                            title={`${header.label}: ${Math.round(hours).toLocaleString()} labor hours`}
-                          />
-                          <span className="absolute bottom-1 text-[10px] font-medium text-gray-700 dark:text-gray-300 drop-shadow-sm">
+                        <div 
+                          className={`relative w-[90%] ${bgColor} rounded-t-sm transition-all flex items-end justify-center pb-1`}
+                          style={{ 
+                            height: `${Math.max(25, intensity * 100)}%`,
+                            minHeight: '25px',
+                          }}
+                          title={`${header.label}: ${Math.round(hours).toLocaleString()} labor hours`}
+                        >
+                          <span className="text-[10px] font-bold text-white drop-shadow-md">
                             {hours >= 1000 ? `${(hours / 1000).toFixed(1)}k` : Math.round(hours)}
                           </span>
-                        </>
+                        </div>
                       )}
                     </div>
                   );
