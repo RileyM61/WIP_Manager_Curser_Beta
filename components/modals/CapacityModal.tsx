@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CapacityPlan, CapacityRow, CapacityDiscipline, StaffingDiscipline } from '../../types';
 import { XIcon, PlusIcon } from '../shared/icons';
+import InfoTooltip from '../help/InfoTooltip';
 
 interface CapacityModalProps {
   isOpen: boolean;
@@ -181,22 +182,58 @@ const CapacityModal: React.FC<CapacityModalProps> = ({ isOpen, onClose, capacity
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             <div className="bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Available Hours</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Available Hours</p>
+                <InfoTooltip
+                  title="Total Available Hours"
+                  shortText="The maximum hours your team can work in a week."
+                  detailedText="Total Available Hours represents your team's maximum weekly capacity. It's calculated by multiplying the headcount in each discipline by their expected hours per person, then summing across all disciplines. This is your theoretical ceiling for how much work your team can handle."
+                  formula="Available = Σ (Headcount × Hours per Person)"
+                  example="If you have 3 Project Managers at 40 hrs each and 5 Field Laborers at 45 hrs each:\n3 × 40 + 5 × 45 = 120 + 225 = 345 total available hours"
+                />
+              </div>
               <p className="mt-2 text-2xl font-bold text-brand-blue dark:text-brand-light-blue">{hoursFormatter.format(totals.totalAvailable)} hrs</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Across {draftPlan.rows.length} discipline{draftPlan.rows.length === 1 ? '' : 's'}</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Committed Hours</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Committed Hours</p>
+                <InfoTooltip
+                  title="Committed Hours"
+                  shortText="Hours already allocated to active and upcoming projects."
+                  detailedText="Committed Hours represents the labor hours you've already promised to active and pipeline jobs. This should reflect realistic estimates of the weekly effort needed across all your current commitments. Compare this to Available Hours to understand if you're over or under capacity."
+                  formula="Committed = Σ (Committed Hours per Discipline)"
+                  example="If your Project Managers are committed to 100 hrs of work and Field Labor to 200 hrs:\nTotal Committed = 100 + 200 = 300 hours"
+                />
+              </div>
               <p className="mt-2 text-2xl font-bold text-yellow-600 dark:text-yellow-400">{hoursFormatter.format(totals.totalCommitted)} hrs</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Within {draftPlan.planningHorizonWeeks || 1}-week plan</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Capacity Balance</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Capacity Balance</p>
+                <InfoTooltip
+                  title="Capacity Balance"
+                  shortText="Available hours minus committed hours. Positive = room for more work."
+                  detailedText="Capacity Balance shows whether you have spare capacity or are overcommitted. A positive balance (green) means you have room to take on additional work. A negative balance (red) indicates you've committed more hours than your team can deliver, which may lead to overtime, delays, or quality issues."
+                  formula="Balance = Available Hours − Committed Hours"
+                  example="If you have 345 available hours and 300 committed:\nBalance = 345 − 300 = +45 hours (room for more work)\n\nIf committed is 400:\nBalance = 345 − 400 = −55 hours (overcommitted)"
+                />
+              </div>
               <p className={`mt-2 text-2xl font-bold ${capacityBalanceColor}`}>{hoursFormatter.format(totals.balance)} hrs</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Positive indicates slack capacity</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Utilization</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Utilization</p>
+                <InfoTooltip
+                  title="Utilization Rate"
+                  shortText="Percentage of available capacity that's committed to work."
+                  detailedText="Utilization measures how much of your available capacity is being used. 100% means you're fully booked with no slack. Above 100% (red) means you're overcommitted. Most healthy organizations target 75-90% utilization to leave buffer for unexpected issues, administrative work, and employee development."
+                  formula="Utilization = (Committed Hours ÷ Available Hours) × 100%"
+                  example="If you have 300 committed hours and 345 available:\nUtilization = (300 ÷ 345) × 100% = 87%\n\n• 70-85%: Healthy with buffer\n• 85-95%: Fully loaded\n• >100%: Overcommitted"
+                />
+              </div>
               <p className={`mt-2 text-2xl font-bold ${utilizationColor}`}>{totals.utilization.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Target &lt;= 100%</p>
             </div>
