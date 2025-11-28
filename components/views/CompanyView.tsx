@@ -215,27 +215,15 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Operational Capacity</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">Staffing lens for the next {capacityHorizonLabel}-week horizon.</p>
           </div>
-          {capacityEnabled ? (
-            <button
-              type="button"
-              onClick={onEditCapacity}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-brand-blue text-sm font-medium text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
-            >
-              Manage Capacity
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onEditCapacity}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-md border border-dashed border-gray-400 text-sm font-medium text-gray-500 dark:text-gray-300"
-            >
-              Enable in Settings
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onEditCapacity}
+            className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-brand-blue text-sm font-medium text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
+          >
+            Manage Capacity
+          </button>
         </div>
 
-        {capacityEnabled ? (
-        <>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
           <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Jobs</p>
@@ -301,7 +289,7 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
                 <span>Capacity plan last updated {capacityLastUpdated}</span>
               )}
             </div>
-            {capacityPlan.notes && (
+            {capacityPlan?.notes && (
               <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-md p-3">
                 <span className="font-semibold text-gray-600 dark:text-gray-300 mr-2">Notes:</span>{capacityPlan.notes}
               </div>
@@ -309,27 +297,13 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
           </div>
         ) : (
           <div className="bg-gray-50 dark:bg-gray-700/40 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-sm text-gray-500 dark:text-gray-400">
-            <p>No staffing capacity has been captured yet. Use the button above to create a plan.</p>
+            <p>No staffing capacity has been captured yet. Click the button above to create a plan.</p>
             <button
               type="button"
               onClick={onEditCapacity}
               className="mt-3 inline-flex items-center px-3 py-2 rounded-md border border-brand-blue text-brand-blue hover:bg-brand-blue/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
             >
               Add Capacity Plan
-            </button>
-          </div>
-        )}
-        </>
-        ) : (
-          <div className="bg-gray-50 dark:bg-gray-700/40 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-sm text-gray-500 dark:text-gray-400">
-            <p>This workspace isn't tracking staffing capacity yet.</p>
-            <p className="mt-2">Enable capacity tracking in Settings to forecast headcount, labor hours, and weekly utilization.</p>
-            <button
-              type="button"
-              onClick={onEditCapacity}
-              className="mt-4 inline-flex items-center px-4 py-2 rounded-md border border-brand-blue text-brand-blue hover:bg-brand-blue/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
-            >
-              Open Settings
             </button>
           </div>
         )}

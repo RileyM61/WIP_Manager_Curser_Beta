@@ -250,11 +250,7 @@ function App() {
         setFilter('company');
         setViewMode('table');
         setPmFilter('all');
-        if (settings.capacityEnabled) {
-          setIsCapacityModalOpen(true);
-        } else {
-          alert('Enable capacity tracking in Settings before managing staffing plans.');
-        }
+        setIsCapacityModalOpen(true);
         break;
       case 'pm-my-jobs':
         setFilter(JobStatus.Active);
@@ -280,26 +276,20 @@ function App() {
   }, [activeProjectManager, settings, setFilter, setFocusMode, setPmFilter, setViewMode]);
 
   const handleOpenCapacityModal = useCallback(() => {
-    if (!settings?.capacityEnabled) {
-      alert('Enable capacity tracking in Settings before editing the plan.');
-      return;
-    }
     setIsCapacityModalOpen(true);
-  }, [settings]);
+  }, []);
 
   const handleCloseCapacityModal = useCallback(() => {
     setIsCapacityModalOpen(false);
   }, []);
 
   const handleSaveCapacityPlan = useCallback(async (plan: CapacityPlan) => {
-    if (!settings || !settings.capacityEnabled) {
-      alert('Enable capacity tracking in Settings before editing the plan.');
-      return;
-    }
+    if (!settings) return;
     
     try {
       await updateSettings({
         ...settings,
+        capacityEnabled: true, // Auto-enable when saving a plan
         capacityPlan: plan,
       });
       setIsCapacityModalOpen(false);
@@ -648,14 +638,12 @@ function App() {
           onThemeChange={setTheme}
         />
       )}
-      {settings.capacityEnabled && (
-        <CapacityModal
-          isOpen={isCapacityModalOpen}
-          onClose={handleCloseCapacityModal}
-          capacityPlan={settings.capacityPlan || DEFAULT_CAPACITY_PLAN}
-          onSave={handleSaveCapacityPlan}
-        />
-      )}
+      <CapacityModal
+        isOpen={isCapacityModalOpen}
+        onClose={handleCloseCapacityModal}
+        capacityPlan={settings.capacityPlan || DEFAULT_CAPACITY_PLAN}
+        onSave={handleSaveCapacityPlan}
+      />
 
       {/* Guided Tour */}
       <GuidedTour
