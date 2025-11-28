@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSupabaseJobs } from './hooks/useSupabaseJobs';
-import { useSupabaseSettings } from './hooks/useSupabaseSettings';
+import { useSupabaseSettings, DEFAULT_CAPACITY_PLAN } from './hooks/useSupabaseSettings';
 import { useSupabaseNotes } from './hooks/useSupabaseNotes';
 import { useAuth } from './context/AuthContext';
 import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
@@ -250,7 +250,7 @@ function App() {
         setFilter('company');
         setViewMode('table');
         setPmFilter('all');
-        if (settings.capacityEnabled && settings.capacityPlan) {
+        if (settings.capacityEnabled) {
           setIsCapacityModalOpen(true);
         } else {
           alert('Enable capacity tracking in Settings before managing staffing plans.');
@@ -280,7 +280,7 @@ function App() {
   }, [activeProjectManager, settings, setFilter, setFocusMode, setPmFilter, setViewMode]);
 
   const handleOpenCapacityModal = useCallback(() => {
-    if (!settings?.capacityEnabled || !settings.capacityPlan) {
+    if (!settings?.capacityEnabled) {
       alert('Enable capacity tracking in Settings before editing the plan.');
       return;
     }
@@ -648,11 +648,11 @@ function App() {
           onThemeChange={setTheme}
         />
       )}
-      {settings.capacityEnabled && settings.capacityPlan && (
+      {settings.capacityEnabled && (
         <CapacityModal
           isOpen={isCapacityModalOpen}
           onClose={handleCloseCapacityModal}
-          capacityPlan={settings.capacityPlan}
+          capacityPlan={settings.capacityPlan || DEFAULT_CAPACITY_PLAN}
           onSave={handleSaveCapacityPlan}
         />
       )}
