@@ -658,7 +658,7 @@ function App() {
 
       {/* Glossary Page (full-screen overlay) */}
       {showGlossary && (
-        <div className="fixed inset-0 z-[100] bg-gray-50 dark:bg-gray-900">
+        <div className="fixed inset-0 z-[100] bg-gray-50 dark:bg-gray-900 overflow-y-auto">
           <GlossaryPage onBack={() => setShowGlossary(false)} />
         </div>
       )}
