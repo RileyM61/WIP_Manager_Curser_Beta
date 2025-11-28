@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, WeekDay, JobStatus, UserRole } from '../../types';
+import { DEFAULT_CAPACITY_PLAN } from '../../hooks/useSupabaseSettings';
 
 interface DefaultsSettingsProps {
   settings: Settings;
@@ -31,7 +32,8 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
     const nextEnabled = !settings.capacityEnabled;
     onChange({
       capacityEnabled: nextEnabled,
-      capacityPlan: nextEnabled ? settings.capacityPlan : undefined,
+      // Use existing plan if available, otherwise use default plan when enabling
+      capacityPlan: nextEnabled ? (settings.capacityPlan ?? DEFAULT_CAPACITY_PLAN) : undefined,
     });
     setHasChanges(true);
   };

@@ -10,7 +10,7 @@ const DEFAULT_CAPACITY_ROWS = [
   { discipline: StaffingDiscipline.Safety, label: 'Safety', headcount: 2, hoursPerPerson: 40, committedHours: 60 },
 ] as const;
 
-const DEFAULT_CAPACITY_PLAN: CapacityPlan = {
+export const DEFAULT_CAPACITY_PLAN: CapacityPlan = {
   planningHorizonWeeks: 8,
   notes: 'Baseline staffing plan for your workload.',
   rows: DEFAULT_CAPACITY_ROWS.map((row, index) => ({
