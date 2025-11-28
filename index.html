@@ -35,12 +35,28 @@
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/"
   }
-}
+  }
 </script>
-<link rel="stylesheet" href="/index.css">
 <style>
   html {
     scroll-behavior: smooth;
+  }
+  
+  /* Graph paper background pattern */
+  :root {
+    --grid-color: rgba(59, 130, 246, 0.08);
+    --grid-size: 12px;
+  }
+  
+  .dark {
+    --grid-color: rgba(100, 150, 200, 0.06);
+  }
+  
+  .bg-graph-paper {
+    background-image:
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
   }
   
   /* Help panel slide-in animation */
