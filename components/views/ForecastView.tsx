@@ -1,5 +1,6 @@
 import React from 'react';
 import { Job, CostBreakdown, JobStatus } from '../../types';
+import InfoTooltip from '../help/InfoTooltip';
 
 interface ForecastViewProps {
   jobs: Job[];
@@ -96,19 +97,46 @@ const ForecastView: React.FC<ForecastViewProps> = ({ jobs }) => {
         <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Company-Wide Forecast Summary</h3>
         <div className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Backlog (Revenue to Earn)</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Backlog (Revenue to Earn)</p>
+              <InfoTooltip
+                title="Backlog (Revenue to Earn)"
+                shortText="The remaining contract value yet to be earned across all active and future jobs."
+                detailedText="Backlog represents the total revenue you have under contract but haven't yet earned. It's calculated by taking each job's total contract value and subtracting the revenue already earned (based on percent complete). This is your pipeline of committed future revenue and a key indicator of business health."
+                formula="Backlog = Σ (Contract Value − Earned Revenue)"
+                example="If a job has a $500,000 contract and you're 60% complete:\nEarned Revenue = $500,000 × 60% = $300,000\nBacklog = $500,000 − $300,000 = $200,000\n\nSum this across all jobs for total backlog."
+              />
+            </div>
             <p className="text-2xl font-bold text-brand-blue dark:text-brand-light-blue">
               {currencyFormatter.format(totals.revenueToEarn)}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Est. Cost to Complete</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Est. Cost to Complete</p>
+              <InfoTooltip
+                title="Estimated Cost to Complete"
+                shortText="The total estimated costs remaining to finish all active and future jobs."
+                detailedText="Cost to Complete is your project team's estimate of the remaining labor, material, and other costs needed to finish each job. This is a forward-looking estimate that should be updated regularly as work progresses. Accurate cost to complete estimates are essential for reliable profit forecasting."
+                formula="Cost to Complete = Σ (Labor CTC + Material CTC + Other CTC)"
+                example="For a job with:\n• Labor remaining: $50,000\n• Materials to purchase: $30,000\n• Other costs: $10,000\n\nCost to Complete = $90,000\n\nSum across all jobs for total."
+              />
+            </div>
             <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {currencyFormatter.format(totals.costToComplete)}
             </p>
           </div>
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Forecasted Profit</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Forecasted Profit</p>
+              <InfoTooltip
+                title="Total Forecasted Profit"
+                shortText="The expected profit when all jobs are complete, based on current cost estimates."
+                detailedText="Forecasted Profit is what you expect to earn after all costs are paid. It's calculated by taking the total contract value and subtracting both costs already incurred and estimated costs to complete. This number will change as your cost estimates are updated throughout the project lifecycle."
+                formula="Forecasted Profit = Contract Value − (Costs Incurred + Cost to Complete)"
+                example="For a $500,000 contract job:\n• Costs incurred to date: $250,000\n• Cost to complete: $180,000\n• Total forecasted cost: $430,000\n\nForecasted Profit = $500,000 − $430,000 = $70,000\nProfit Margin = $70,000 ÷ $500,000 = 14%"
+              />
+            </div>
             <p className={`text-2xl font-bold ${totals.forecastedProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {currencyFormatter.format(totals.forecastedProfit)}
             </p>
