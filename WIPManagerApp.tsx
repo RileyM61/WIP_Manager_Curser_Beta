@@ -566,7 +566,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-gray dark:bg-gray-900 text-brand-dark-gray dark:text-gray-300">
+    <div className="min-h-screen bg-brand-gray dark:bg-gray-900 text-brand-dark-gray dark:text-gray-300 bg-graph-paper">
       <Header 
         companyName={settings.companyName} 
         companyLogo={settings.companyLogo}
