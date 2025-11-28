@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { Invitation, TeamMember, UserRole } from '../types';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 interface UseInvitationsReturn {
   invitations: Invitation[];
   teamMembers: TeamMember[];
@@ -9,10 +11,10 @@ interface UseInvitationsReturn {
   error: string | null;
   fetchInvitations: (companyId: string) => Promise<void>;
   fetchTeamMembers: (companyId: string) => Promise<void>;
-  sendInvitation: (email: string, role: UserRole, companyId: string) => Promise<{ success: boolean; error?: string; invitation?: Invitation }>;
+  sendInvitation: (companyId: string, email: string, role: UserRole) => Promise<{ success: boolean; error?: string; invitation?: Invitation }>;
   cancelInvitation: (invitationId: string) => Promise<{ success: boolean; error?: string }>;
   resendInvitation: (invitationId: string) => Promise<{ success: boolean; error?: string }>;
-  removeTeamMember: (userId: string) => Promise<{ success: boolean; error?: string }>;
+  removeTeamMember: (companyId: string, userId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export function useInvitations(): UseInvitationsReturn {
@@ -89,9 +91,9 @@ export function useInvitations(): UseInvitationsReturn {
   }, []);
 
   const sendInvitation = useCallback(async (
+    companyId: string,
     email: string,
-    role: UserRole,
-    companyId: string
+    role: UserRole
   ): Promise<{ success: boolean; error?: string; invitation?: Invitation }> => {
     try {
       const { data: { user } } = await supabase!.auth.getUser();
@@ -111,6 +113,15 @@ export function useInvitations(): UseInvitationsReturn {
       if (existing) {
         return { success: false, error: 'An invitation has already been sent to this email' };
       }
+
+      // Get company name for the email
+      const { data: settingsData } = await supabase!
+        .from('settings')
+        .select('company_name')
+        .eq('company_id', companyId)
+        .single();
+
+      const companyName = settingsData?.company_name || 'WIP Insights';
 
       const { data, error: insertError } = await supabase!
         .from('invitations')
@@ -135,6 +146,40 @@ export function useInvitations(): UseInvitationsReturn {
         createdAt: data.created_at,
         expiresAt: data.expires_at,
       };
+
+      // Send invitation email via Edge Function
+      const inviteLink = `${window.location.origin}/auth?invite=${data.token}`;
+      
+      try {
+        const { data: { session } } = await supabase!.auth.getSession();
+        
+        const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-invitation-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            to: email.toLowerCase().trim(),
+            inviteLink,
+            companyName,
+            role,
+            inviterEmail: user.email,
+          }),
+        });
+
+        const emailResult = await emailResponse.json();
+        
+        if (!emailResponse.ok) {
+          console.warn('[useInvitations] Email sending failed, but invitation was created:', emailResult);
+          // Don't fail the whole operation - invitation was created, email just didn't send
+        } else {
+          console.log('[useInvitations] Invitation email sent successfully');
+        }
+      } catch (emailErr) {
+        console.warn('[useInvitations] Error sending email (invitation still created):', emailErr);
+        // Don't fail - the invitation link can still be copied manually
+      }
 
       setInvitations(prev => [invitation, ...prev]);
 
@@ -164,6 +209,12 @@ export function useInvitations(): UseInvitationsReturn {
 
   const resendInvitation = useCallback(async (invitationId: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Get the invitation details first
+      const invitation = invitations.find(inv => inv.id === invitationId);
+      if (!invitation) {
+        return { success: false, error: 'Invitation not found' };
+      }
+
       // Update expires_at to extend the invitation
       const { error: updateError } = await supabase!
         .from('invitations')
@@ -173,6 +224,47 @@ export function useInvitations(): UseInvitationsReturn {
         .eq('id', invitationId);
 
       if (updateError) throw updateError;
+
+      // Get company name for the email
+      const { data: settingsData } = await supabase!
+        .from('settings')
+        .select('company_name')
+        .eq('company_id', invitation.companyId)
+        .single();
+
+      const companyName = settingsData?.company_name || 'WIP Insights';
+
+      // Resend the invitation email
+      const inviteLink = `${window.location.origin}/auth?invite=${invitation.token}`;
+      
+      try {
+        const { data: { session } } = await supabase!.auth.getSession();
+        const { data: { user } } = await supabase!.auth.getUser();
+        
+        const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-invitation-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            to: invitation.email,
+            inviteLink,
+            companyName,
+            role: invitation.role,
+            inviterEmail: user?.email,
+          }),
+        });
+
+        if (!emailResponse.ok) {
+          const emailResult = await emailResponse.json();
+          console.warn('[useInvitations] Email resend failed:', emailResult);
+        } else {
+          console.log('[useInvitations] Invitation email resent successfully');
+        }
+      } catch (emailErr) {
+        console.warn('[useInvitations] Error resending email:', emailErr);
+      }
 
       // Update local state
       setInvitations(prev => prev.map(inv => 
@@ -186,14 +278,15 @@ export function useInvitations(): UseInvitationsReturn {
       console.error('[useInvitations] Error resending invitation:', err);
       return { success: false, error: err.message || 'Failed to resend invitation' };
     }
-  }, []);
+  }, [invitations]);
 
-  const removeTeamMember = useCallback(async (userId: string): Promise<{ success: boolean; error?: string }> => {
+  const removeTeamMember = useCallback(async (companyId: string, userId: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const { error: deleteError } = await supabase!
         .from('profiles')
         .delete()
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('company_id', companyId);
 
       if (deleteError) throw deleteError;
 
