@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { PlusIcon, Cog6ToothIcon, SunIcon, MoonIcon } from '../shared/icons';
 import { UserRole } from '../../types';
-import { APP_PAGES } from '@/constants';
+import { ROUTES } from '../../constants';
 
 interface HeaderProps {
   companyName: string;
@@ -56,14 +57,24 @@ const Header: React.FC<HeaderProps> = ({
     <header className="bg-white dark:bg-gray-800 shadow-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Left: Logo */}
-          <div className="flex-shrink-0" data-tour="header-logo">
-            <a
-              href={APP_PAGES.home}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3"
+          {/* Left: Logo & Dashboard Link */}
+          <div className="flex items-center gap-4" data-tour="header-logo">
+            {/* Dashboard Link */}
+            <Link
+              to={ROUTES.dashboard}
+              className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
+              title="Back to Dashboard"
             >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <span className="hidden sm:inline text-xs font-medium uppercase tracking-wide">Dashboard</span>
+            </Link>
+
+            <span className="text-gray-300 dark:text-gray-600 text-xl font-light hidden sm:inline">|</span>
+
+            {/* WIP Insights Logo */}
+            <div className="flex items-center gap-3">
               <img 
                 src="/images/wip-insights-logo.png" 
                 alt="WIP-Insights" 
@@ -80,7 +91,7 @@ const Header: React.FC<HeaderProps> = ({
                   />
                 </>
               )}
-            </a>
+            </div>
           </div>
 
           {/* Center: Primary Action */}

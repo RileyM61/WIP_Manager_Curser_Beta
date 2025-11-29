@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // ============================================================================
@@ -275,11 +275,11 @@ const TestimonialCard: React.FC<{
 // ============================================================================
 // MAIN LANDING PAGE COMPONENT
 // ============================================================================
-const LandingPage: React.FC = () => {
+const WIPInsightsLanding: React.FC = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/auth?mode=signup');
+    navigate('/auth?mode=signup&product=wip');
   };
 
   const handleLogin = () => {
@@ -326,8 +326,8 @@ const LandingPage: React.FC = () => {
     },
   ];
 
-const features = [
-  {
+  const features = [
+    {
       icon: (
         <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
@@ -338,7 +338,7 @@ const features = [
           />
         </svg>
       ),
-    title: 'Real-Time Job Profitability',
+      title: 'Real-Time Job Profitability',
       description:
         'Track actual costs, billings, and earned revenue as work happens. Know your margins before the month closes.',
     },
@@ -353,7 +353,7 @@ const features = [
           />
         </svg>
       ),
-    title: 'Labor & Backlog Visibility',
+      title: 'Labor & Backlog Visibility',
       description:
         "Understand how your workforce lines up with backlog. Spot when you're overloaded or underutilized before it's too late.",
     },
@@ -410,12 +410,12 @@ const features = [
       name: 'David Chen',
       role: 'Operations Director',
       company: 'Pacific General Contractors',
-  },
-];
+    },
+  ];
 
-const plans = [
-  {
-    name: 'Essential',
+  const plans = [
+    {
+      name: 'Essential',
       price: '$99',
       period: '/month',
       description: 'For small contractors getting off Excel',
@@ -430,9 +430,9 @@ const plans = [
       cta: 'Start Free Trial',
       popular: false,
       badge: null,
-  },
-  {
-    name: 'Professional',
+    },
+    {
+      name: 'Professional',
       price: '$199',
       period: '/month',
       description: 'For growing GCs who need financial clarity',
@@ -449,9 +449,9 @@ const plans = [
       popular: true,
       badge: 'Most Popular',
       foundersRate: '$99/month for first 20 customers',
-  },
-  {
-    name: 'Controller',
+    },
+    {
+      name: 'Controller',
       price: '$399',
       period: '/month',
       description: 'For larger firms with complex needs',
@@ -521,12 +521,24 @@ const plans = [
                 className="h-72 w-auto"
               />
             </div>
-            <button
-              onClick={handleLogin}
-              className="text-slate-300 hover:text-white transition-colors font-medium"
-            >
-              Sign In →
-            </button>
+            <div className="flex items-center gap-4">
+              {/* ChainLink CFO Suite Badge */}
+              <a
+                href="/"
+                className="hidden sm:flex items-center gap-2 text-xs text-slate-400 hover:text-orange-400 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <span>Part of ChainLink CFO Suite</span>
+              </a>
+              <button
+                onClick={handleLogin}
+                className="text-slate-300 hover:text-white transition-colors font-medium"
+              >
+                Sign In →
+              </button>
+            </div>
           </nav>
 
           <div className="flex flex-col lg:flex-row items-center gap-16 mt-16 lg:mt-0">
@@ -549,13 +561,13 @@ const plans = [
                   Confidence
                 </span>{' '}
                 for Construction Leaders
-            </h1>
+              </h1>
 
               <p
                 className="text-xl text-slate-300 mb-8 max-w-xl mx-auto lg:mx-0"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out 200ms both' }}
               >
-              Real-time visibility into job profitability, earned revenue, and labor performance.
+                Real-time visibility into job profitability, earned revenue, and labor performance.
                 Stop managing by gut feel.
               </p>
 
@@ -563,7 +575,7 @@ const plans = [
                 className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out 300ms both' }}
               >
-              <button
+                <button
                   onClick={handleGetStarted}
                   className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
                   style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}
@@ -613,8 +625,8 @@ const plans = [
                     />
                   </svg>
                   <span>Bank-level security</span>
-            </div>
-          </div>
+                </div>
+              </div>
             </div>
 
             {/* Right: Project Tiles */}
@@ -623,7 +635,7 @@ const plans = [
                 {sampleProjects.map((project, index) => (
                   <SampleProjectTile key={project.jobNumber} {...project} delay={500 + index * 150} />
                 ))}
-            </div>
+              </div>
             </div>
           </div>
 
@@ -721,13 +733,13 @@ const plans = [
             <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
               See what contractors are saying about WIP-Insights
             </p>
-              </div>
+          </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             {testimonials.map((testimonial, index) => (
               <TestimonialCard key={testimonial.name} {...testimonial} delay={index * 100} />
             ))}
-            </div>
+          </div>
         </div>
       </section>
 
@@ -844,6 +856,19 @@ const plans = [
               </div>
             ))}
           </div>
+
+          {/* CFO Suite Callout */}
+          <div className="mt-12 text-center">
+            <a
+              href="/"
+              className="inline-flex items-center gap-2 text-slate-600 hover:text-orange-500 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span>Need more tools? Check out the full ChainLink CFO Suite →</span>
+            </a>
+          </div>
         </div>
       </section>
 
@@ -883,12 +908,21 @@ const plans = [
       <footer className="bg-slate-950 text-slate-400 py-12">
         <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <img 
                 src="/images/wip-insights-logo.png" 
                 alt="WIP-Insights" 
                 className="h-52 w-auto"
               />
+              <a
+                href="/"
+                className="flex items-center gap-2 text-xs text-slate-500 hover:text-orange-400 transition-colors border-l border-slate-700 pl-4"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                <span>Part of ChainLink CFO</span>
+              </a>
             </div>
 
             <div className="flex items-center gap-8 text-sm">
@@ -897,6 +931,9 @@ const plans = [
               </a>
               <a href="#pricing" className="hover:text-white transition-colors">
                 Pricing
+              </a>
+              <a href="/" className="hover:text-white transition-colors">
+                CFO Suite
               </a>
               <a href="#" className="hover:text-white transition-colors">
                 Privacy
@@ -916,4 +953,5 @@ const plans = [
   );
 };
 
-export default LandingPage;
+export default WIPInsightsLanding;
+
