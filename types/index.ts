@@ -1,0 +1,210 @@
+/**
+ * Core Application Types
+ * 
+ * This file contains all shared types used across the AI CFO Suite platform.
+ * Module-specific types should be placed in their respective module folders.
+ */
+
+// Re-export module system types
+export * from './modules';
+
+// ============================================================================
+// Job Status & Enums
+// ============================================================================
+
+export enum JobStatus {
+  Future = 'Future',
+  Active = 'Active',
+  OnHold = 'On Hold',
+  Completed = 'Completed',
+  Archived = 'Archived',
+}
+
+// ============================================================================
+// Financial Types
+// ============================================================================
+
+export interface CostBreakdown {
+  labor: number;
+  material: number;
+  other: number;
+}
+
+export type JobType = 'fixed-price' | 'time-material';
+
+export type LaborBillingType = 'fixed-rate' | 'markup';
+
+export interface TMSettings {
+  laborBillingType: LaborBillingType;
+  laborBillRate?: number;      // $/hour when laborBillingType = 'fixed-rate'
+  laborHours?: number;         // Total hours worked (needed for fixed-rate calculation)
+  laborMarkup?: number;        // e.g., 1.5 = 50% markup when laborBillingType = 'markup'
+  materialMarkup: number;      // e.g., 1.15 = 15% markup
+  otherMarkup: number;         // e.g., 1.10 = 10% markup
+}
+
+// ============================================================================
+// Scheduling Types
+// ============================================================================
+
+export interface MobilizationPhase {
+  id: number;                  // 1-4 for the four possible phases
+  enabled: boolean;            // Whether this phase is active
+  mobilizeDate: string;        // Date work begins for this phase
+  demobilizeDate: string;      // Date work ends for this phase
+  description?: string;        // Optional description (e.g., "Foundation", "Framing")
+}
+
+// ============================================================================
+// Job & Notes
+// ============================================================================
+
+export interface Note {
+  id: string;
+  text: string;
+  date: string;
+}
+
+export interface Job {
+  id: string;
+  jobNo: string;
+  jobName: string;
+  client: string;
+  projectManager: string;
+  startDate: string;
+  endDate: string;
+  contract: CostBreakdown;
+  invoiced: CostBreakdown;
+  costs: CostBreakdown;
+  budget: CostBreakdown;
+  costToComplete: CostBreakdown;
+  status: JobStatus;
+  notes?: Note[];
+  onHoldDate?: string;
+  lastUpdated?: string;
+  targetProfit?: number;
+  targetMargin?: number;
+  targetEndDate?: string;
+  companyId?: string;
+  estimator?: string;
+  jobType: JobType;
+  tmSettings?: TMSettings;
+  mobilizations?: MobilizationPhase[];  // Up to 4 mobilization/demobilization phases
+  laborCostPerHour?: number;  // $/hr rate for converting labor costs to hours
+}
+
+export interface JobsSnapshot {
+  timestamp: string;
+  jobs: Job[];
+}
+
+// ============================================================================
+// View & UI Types
+// ============================================================================
+
+export type ViewMode = 'grid' | 'table' | 'gantt';
+
+export type SortKey = 'jobName' | 'startDate' | 'jobNo';
+
+export type SortDirection = 'asc' | 'desc';
+
+export type FilterType = JobStatus | 'company' | 'forecast';
+
+export type WeekDay = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+
+// ============================================================================
+// User & Role Types
+// ============================================================================
+
+export type UserRole = 'owner' | 'projectManager' | 'estimator';
+
+// ============================================================================
+// Capacity Planning Types
+// ============================================================================
+
+export enum StaffingDiscipline {
+  ProjectManagement = 'Project Management',
+  Superintendents = 'Superintendents',
+  Engineering = 'Engineering',
+  FieldLabor = 'Field Labor',
+  Safety = 'Safety'
+}
+
+export type CapacityDiscipline = StaffingDiscipline | 'Custom';
+
+export interface CapacityRow {
+  id: string;
+  discipline: CapacityDiscipline;
+  label: string;
+  headcount: number;
+  hoursPerPerson: number;
+  committedHours: number;
+}
+
+export interface CapacityPlan {
+  planningHorizonWeeks: number;
+  rows: CapacityRow[];
+  notes?: string;
+  lastUpdated?: string;
+  companyId?: string;
+}
+
+// ============================================================================
+// Settings & Company Types
+// ============================================================================
+
+import { SubscriptionTier, ModuleId } from './modules';
+
+export interface Settings {
+  companyName: string;
+  projectManagers: string[];
+  estimators: string[];
+  weekEndDay: WeekDay;
+  defaultStatus: JobStatus;
+  companyLogo?: string;
+  defaultRole: UserRole;
+  capacityEnabled: boolean;
+  capacityPlan?: CapacityPlan | null;
+  companyId?: string;
+  
+  // Subscription & Module Access (Phase 1 - AI CFO Suite)
+  subscriptionTier?: SubscriptionTier;
+  enabledModules?: ModuleId[];
+  subscriptionExpiresAt?: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  createdAt?: string;
+}
+
+// ============================================================================
+// Team & Invitation Types
+// ============================================================================
+
+export interface Profile {
+  userId: string;
+  companyId: string | null;
+  role: UserRole;
+}
+
+export interface Invitation {
+  id: string;
+  companyId: string;
+  email: string;
+  role: UserRole;
+  token: string;
+  invitedBy: string;
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt?: string;
+}
+
+export interface TeamMember {
+  userId: string;
+  email: string;
+  role: UserRole;
+  joinedAt: string;
+}
+
