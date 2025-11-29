@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ChainLinkCFOLanding from './pages/ChainLinkCFOLanding';
 import WIPInsightsLanding from './pages/WIPInsightsLanding';
+import CFOProPage from './pages/CFOProPage';
 import AuthPage from './pages/AuthPage';
 import ModuleDashboard from './pages/ModuleDashboard';
 import AppShell from './components/layout/AppShell';
@@ -33,6 +34,9 @@ function App() {
           
           {/* WIP Insights standalone landing (for direct marketing) */}
           <Route path="/wip" element={<WIPInsightsLanding />} />
+          
+          {/* CFO Pro - Premium managed service */}
+          <Route path="/cfo-pro" element={<CFOProPage />} />
           
           {/* Authentication */}
           <Route path="/auth" element={<AuthPage />} />

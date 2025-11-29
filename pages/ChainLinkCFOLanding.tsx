@@ -525,6 +525,88 @@ const ChainLinkCFOLanding: React.FC = () => {
       </section>
 
       {/* ================================================================== */}
+      {/* CFO PRO CALLOUT - Premium Managed Service */}
+      {/* ================================================================== */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900" />
+        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_center,_rgba(249,115,22,0.15),_transparent_70%)]" />
+        
+        <div className="relative mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
+          <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-2 border-orange-500/50 rounded-3xl p-8 md:p-12 shadow-2xl shadow-orange-500/10">
+            <div className="grid lg:grid-cols-2 gap-10 items-center">
+              {/* Left: Content */}
+              <div>
+                <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 rounded-full px-4 py-1.5 mb-6">
+                  <span className="text-xl">👔</span>
+                  <span className="text-sm text-orange-300 font-semibold uppercase tracking-wide">Premium Service</span>
+                </div>
+                
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                  ChainLink CFO{' '}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
+                    Pro
+                  </span>
+                </h2>
+                
+                <p className="text-lg text-slate-300 mb-6 leading-relaxed">
+                  Don't want to set it up yourself? Our CFO experts will interview your team, 
+                  configure every tool, train your people, and partner with you for ongoing success.
+                </p>
+                
+                <ul className="space-y-3 mb-8">
+                  {[
+                    'Personal CFO discovery interview',
+                    'Custom tool configuration',
+                    'Hands-on team onboarding',
+                    'Ongoing success management',
+                    'Dedicated CFO advisor',
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <span className="text-slate-200">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <a
+                  href="/cfo-pro"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-lg rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
+                >
+                  Learn More & Apply
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+              </div>
+              
+              {/* Right: Pricing */}
+              <div className="text-center lg:text-right">
+                <div className="inline-block bg-slate-950/50 border border-white/10 rounded-2xl p-8">
+                  <p className="text-slate-400 text-sm uppercase tracking-wide mb-2">Pricing</p>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <p className="text-3xl font-bold text-white">$5,000</p>
+                      <p className="text-slate-400">One-time setup</p>
+                    </div>
+                    <div className="text-2xl text-slate-500">+</div>
+                    <div>
+                      <p className="text-3xl font-bold text-white">$2,500<span className="text-lg font-normal text-slate-400">/mo</span></p>
+                      <p className="text-slate-400">Ongoing partnership</p>
+                    </div>
+                  </div>
+                  <p className="mt-6 text-sm text-slate-500">Cancel anytime. No long-term contracts.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================== */}
       {/* WIP INSIGHTS CALLOUT */}
       {/* ================================================================== */}
       <section className="py-16 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border-y border-orange-500/20">
