@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan } from './types';
+import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan, ModuleId } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSupabaseJobs } from './hooks/useSupabaseJobs';
 import { useSupabaseSettings, DEFAULT_CAPACITY_PLAN } from './hooks/useSupabaseSettings';
 import { useSupabaseNotes } from './hooks/useSupabaseNotes';
+import { useManagedCompanies } from './hooks/useManagedCompanies';
 import { useAuth } from './context/AuthContext';
 import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
+import CompanySwitcher from './components/layout/CompanySwitcher';
 import JobCardGrid from './components/jobs/JobCardGrid';
 import JobTable from './components/jobs/JobTable';
 import GanttView from './components/views/GanttView';
@@ -17,6 +19,7 @@ import ForecastView from './components/views/ForecastView';
 import NotesModal from './components/modals/NotesModal';
 import SettingsPage from './components/settings/SettingsPage';
 import CapacityModal from './components/modals/CapacityModal';
+import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import { tourSteps, markTourCompleted } from './lib/tourSteps';
@@ -57,6 +60,14 @@ function App() {
   const { settings, loading: settingsLoading, error: settingsError, updateSettings, refreshSettings } = useSupabaseSettings(companyId);
   const { loadNotes, addNote: addNoteToSupabase } = useSupabaseNotes(companyId);
   
+  // CFO Practice - managed companies
+  const { 
+    managedCompanies, 
+    loading: managedCompaniesLoading, 
+    createManagedCompany,
+    updateGrantedModules,
+  } = useManagedCompanies(user?.id || null, companyId);
+  
   // Local storage for UI preferences (not stored in Supabase)
   const [snapshot, setSnapshot] = useLocalStorage<JobsSnapshot | null>('wip-jobs-snapshot', null);
   const [userRole, setUserRole] = useLocalStorage<UserRole>('wip-user-role', 'owner');
@@ -80,6 +91,7 @@ function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [focusMode, setFocusMode] = useState<FocusMode>('default');
   const [isCapacityModalOpen, setIsCapacityModalOpen] = useState(false);
+  const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   
   // Help & Learning state
   const [isTourOpen, setIsTourOpen] = useState(false);
@@ -636,8 +648,30 @@ function App() {
           currentUserId={user.id}
           theme={theme}
           onThemeChange={setTheme}
+          managedCompanies={managedCompanies}
+          managedCompaniesLoading={managedCompaniesLoading}
+          onAddClient={() => setIsAddClientModalOpen(true)}
+          onUpdateClientModules={async (clientCompanyId, modules) => {
+            await updateGrantedModules(clientCompanyId, modules);
+          }}
         />
       )}
+      
+      {/* Add Client Company Modal */}
+      <AddClientCompanyModal
+        isOpen={isAddClientModalOpen}
+        onClose={() => setIsAddClientModalOpen(false)}
+        onSubmit={async (companyName, ownerEmail, grantedModules) => {
+          const result = await createManagedCompany(
+            companyName,
+            settings.companyName || 'Junction Peak', // Use company name as practice name
+            grantedModules,
+            ownerEmail
+          );
+          return result;
+        }}
+        practiceName={settings.companyName || 'Junction Peak'}
+      />
       <CapacityModal
         isOpen={isCapacityModalOpen}
         onClose={handleCloseCapacityModal}

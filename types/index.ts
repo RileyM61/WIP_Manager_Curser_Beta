@@ -155,6 +155,9 @@ export interface CapacityPlan {
 
 import { SubscriptionTier, ModuleId } from './modules';
 
+// Company classification - managed by CFO vs self-service subscriber
+export type CompanyType = 'managed' | 'direct';
+
 export interface Settings {
   companyName: string;
   projectManagers: string[];
@@ -167,7 +170,16 @@ export interface Settings {
   capacityPlan?: CapacityPlan | null;
   companyId?: string;
   
-  // Subscription & Module Access (Phase 1 - AI CFO Suite)
+  // Company Classification
+  companyType: CompanyType;              // 'managed' = CFO client, 'direct' = self-service subscriber
+  
+  // For Managed Companies (CFO Clients)
+  managedByCfoUserId?: string;           // The CFO's user ID who manages this company
+  managedByCfoCompanyId?: string;        // The CFO's company ID
+  managedByPracticeName?: string;        // Display name (e.g., "Junction Peak")
+  grantedModules?: ModuleId[];           // Modules the CFO has granted to this client
+  
+  // For Direct Companies (Self-Service Subscribers)
   subscriptionTier?: SubscriptionTier;
   enabledModules?: ModuleId[];
   subscriptionExpiresAt?: string;
@@ -176,6 +188,18 @@ export interface Settings {
 export interface Company {
   id: string;
   name: string;
+  createdAt?: string;
+}
+
+// ============================================================================
+// CFO Practice Types (for company switcher)
+// ============================================================================
+
+export interface ManagedCompany {
+  id: string;
+  name: string;
+  companyType: CompanyType;
+  grantedModules: ModuleId[];
   createdAt?: string;
 }
 

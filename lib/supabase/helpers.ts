@@ -1,4 +1,4 @@
-import { Job, Note, JobStatus, JobType, TMSettings, MobilizationPhase } from '../../types';
+import { Job, Note, JobStatus, JobType, TMSettings, MobilizationPhase, Settings, CompanyType, ManagedCompany, ModuleId } from '../../types';
 
 // Transform Supabase job row to app Job type
 export function dbJobToAppJob(dbJob: any): Job {
@@ -145,6 +145,78 @@ export function dbNoteToAppNote(dbNote: any): Note {
     id: dbNote.id,
     text: dbNote.body,
     date: dbNote.created_at,
+  };
+}
+
+// Transform Supabase settings row to app Settings type (with managed company fields)
+export function dbSettingsToAppSettings(dbSettings: any): Settings {
+  return {
+    companyName: dbSettings.company_name || '',
+    projectManagers: dbSettings.project_managers || [],
+    estimators: dbSettings.estimators || [],
+    weekEndDay: dbSettings.week_end_day || 'Friday',
+    defaultStatus: dbSettings.default_status || 'Active',
+    companyLogo: dbSettings.company_logo || undefined,
+    defaultRole: dbSettings.default_role || 'owner',
+    capacityEnabled: dbSettings.capacity_enabled || false,
+    capacityPlan: dbSettings.capacity_plan || null,
+    companyId: dbSettings.company_id || undefined,
+    
+    // Company classification
+    companyType: (dbSettings.company_type as CompanyType) || 'direct',
+    
+    // Managed company fields
+    managedByCfoUserId: dbSettings.managed_by_cfo_user_id || undefined,
+    managedByCfoCompanyId: dbSettings.managed_by_cfo_company_id || undefined,
+    managedByPracticeName: dbSettings.managed_by_practice_name || undefined,
+    grantedModules: dbSettings.granted_modules || undefined,
+    
+    // Subscription fields
+    subscriptionTier: dbSettings.subscription_tier || undefined,
+    enabledModules: dbSettings.enabled_modules || undefined,
+    subscriptionExpiresAt: dbSettings.subscription_expires_at || undefined,
+  };
+}
+
+// Transform app Settings to Supabase update format
+export function appSettingsToDbSettings(settings: Partial<Settings>): any {
+  const dbSettings: any = {};
+  
+  if (settings.companyName !== undefined) dbSettings.company_name = settings.companyName;
+  if (settings.projectManagers !== undefined) dbSettings.project_managers = settings.projectManagers;
+  if (settings.estimators !== undefined) dbSettings.estimators = settings.estimators;
+  if (settings.weekEndDay !== undefined) dbSettings.week_end_day = settings.weekEndDay;
+  if (settings.defaultStatus !== undefined) dbSettings.default_status = settings.defaultStatus;
+  if (settings.companyLogo !== undefined) dbSettings.company_logo = settings.companyLogo;
+  if (settings.defaultRole !== undefined) dbSettings.default_role = settings.defaultRole;
+  if (settings.capacityEnabled !== undefined) dbSettings.capacity_enabled = settings.capacityEnabled;
+  if (settings.capacityPlan !== undefined) dbSettings.capacity_plan = settings.capacityPlan;
+  
+  // Company classification
+  if (settings.companyType !== undefined) dbSettings.company_type = settings.companyType;
+  
+  // Managed company fields
+  if (settings.managedByCfoUserId !== undefined) dbSettings.managed_by_cfo_user_id = settings.managedByCfoUserId;
+  if (settings.managedByCfoCompanyId !== undefined) dbSettings.managed_by_cfo_company_id = settings.managedByCfoCompanyId;
+  if (settings.managedByPracticeName !== undefined) dbSettings.managed_by_practice_name = settings.managedByPracticeName;
+  if (settings.grantedModules !== undefined) dbSettings.granted_modules = settings.grantedModules;
+  
+  // Subscription fields
+  if (settings.subscriptionTier !== undefined) dbSettings.subscription_tier = settings.subscriptionTier;
+  if (settings.enabledModules !== undefined) dbSettings.enabled_modules = settings.enabledModules;
+  if (settings.subscriptionExpiresAt !== undefined) dbSettings.subscription_expires_at = settings.subscriptionExpiresAt;
+  
+  return dbSettings;
+}
+
+// Transform Supabase managed company row to app ManagedCompany type
+export function dbManagedCompanyToApp(dbCompany: any): ManagedCompany {
+  return {
+    id: dbCompany.company_id,
+    name: dbCompany.company_name,
+    companyType: dbCompany.company_type || 'managed',
+    grantedModules: dbCompany.granted_modules || [],
+    createdAt: dbCompany.created_at,
   };
 }
 

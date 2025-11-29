@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, UserRole } from '../../types';
+import { Settings, UserRole, ManagedCompany, ModuleId } from '../../types';
 import { XIcon } from '../shared/icons';
 import CompanySettings from './CompanySettings';
 import UsersSettings from './UsersSettings';
@@ -7,9 +7,11 @@ import DefaultsSettings from './DefaultsSettings';
 import AppearanceSettings from './AppearanceSettings';
 import LegalSettings from './LegalSettings';
 import ComingSoonSection from './ComingSoonSection';
+import PracticeSettings from './PracticeSettings';
 
 type SettingsSection = 
   | 'company' 
+  | 'practice'
   | 'users' 
   | 'defaults' 
   | 'appearance' 
@@ -29,6 +31,11 @@ interface SettingsPageProps {
   currentUserId: string;
   theme: 'light' | 'dark';
   onThemeChange: (theme: 'light' | 'dark') => void;
+  // CFO Practice props
+  managedCompanies?: ManagedCompany[];
+  managedCompaniesLoading?: boolean;
+  onAddClient?: () => void;
+  onUpdateClientModules?: (companyId: string, modules: ModuleId[]) => Promise<void>;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -41,27 +48,40 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   currentUserId,
   theme,
   onThemeChange,
+  managedCompanies = [],
+  managedCompaniesLoading = false,
+  onAddClient,
+  onUpdateClientModules,
 }) => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('company');
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
   const isOwner = userRole === 'owner';
+  const isManaged = settings.companyType === 'managed';
+  const isCfo = managedCompanies.length > 0 || (!isManaged && isOwner);
 
   // Navigation items with access control
-  const navItems: { id: SettingsSection; label: string; icon: string; ownerOnly: boolean }[] = [
+  const navItems: { id: SettingsSection; label: string; icon: string; ownerOnly: boolean; show?: boolean }[] = [
     { id: 'company', label: 'Company', icon: '🏢', ownerOnly: true },
+    { id: 'practice', label: 'CFO Practice', icon: '🏠', ownerOnly: true, show: isCfo || isManaged },
     { id: 'users', label: 'Users & Team', icon: '👥', ownerOnly: true },
     { id: 'defaults', label: 'Job Defaults', icon: '⚙️', ownerOnly: true },
     { id: 'appearance', label: 'Appearance', icon: '🎨', ownerOnly: false },
     { id: 'notifications', label: 'Notifications', icon: '🔔', ownerOnly: false },
     { id: 'integrations', label: 'Integrations', icon: '🔗', ownerOnly: true },
     { id: 'reports', label: 'Export & Reports', icon: '📊', ownerOnly: true },
-    { id: 'billing', label: 'Billing', icon: '💳', ownerOnly: true },
+    { id: 'billing', label: 'Billing', icon: '💳', ownerOnly: true, show: !isManaged },
     { id: 'legal', label: 'Legal', icon: '📜', ownerOnly: false },
   ];
 
-  // Filter nav items based on user role
-  const visibleNavItems = navItems.filter(item => !item.ownerOnly || isOwner);
+  // Filter nav items based on user role and show conditions
+  const visibleNavItems = navItems.filter(item => {
+    // Check role-based access
+    if (item.ownerOnly && !isOwner) return false;
+    // Check custom show condition
+    if (item.show !== undefined && !item.show) return false;
+    return true;
+  });
 
   // Update currentSettings when settings prop changes
   React.useEffect(() => {
@@ -98,6 +118,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             settings={currentSettings}
             onChange={handleSettingsChange}
             onSave={handleSave}
+          />
+        );
+      case 'practice':
+        return (
+          <PracticeSettings
+            settings={currentSettings}
+            managedCompanies={managedCompanies}
+            managedCompaniesLoading={managedCompaniesLoading}
+            onAddClient={onAddClient || (() => {})}
+            onUpdateClientModules={onUpdateClientModules || (async () => {})}
           />
         );
       case 'users':
