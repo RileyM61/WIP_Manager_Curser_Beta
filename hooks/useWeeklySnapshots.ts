@@ -154,6 +154,40 @@ export const getMonthInfo = (date: Date) => {
 };
 
 /**
+ * Filter jobs by their asOfDate to get jobs effective for a specific period
+ * If a job has no asOfDate, uses lastUpdated or falls back to including it
+ */
+export const filterJobsByPeriod = (
+  jobs: Job[],
+  periodStart: Date,
+  periodEnd: Date
+): Job[] => {
+  return jobs.filter(job => {
+    // Use asOfDate if available, otherwise fall back to lastUpdated
+    const effectiveDate = job.asOfDate 
+      ? new Date(job.asOfDate)
+      : job.lastUpdated 
+        ? new Date(job.lastUpdated)
+        : new Date(); // If neither exists, assume current
+    
+    return effectiveDate >= periodStart && effectiveDate <= periodEnd;
+  });
+};
+
+/**
+ * Get the effective date for a job (asOfDate or lastUpdated)
+ */
+export const getJobEffectiveDate = (job: Job): Date => {
+  if (job.asOfDate) {
+    return new Date(job.asOfDate);
+  }
+  if (job.lastUpdated) {
+    return new Date(job.lastUpdated);
+  }
+  return new Date();
+};
+
+/**
  * Calculate aggregate metrics for a set of jobs
  */
 const calculateJobMetrics = (jobs: Job[]) => {

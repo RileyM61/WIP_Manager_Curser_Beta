@@ -60,6 +60,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       targetEndDate: 'TBD',
       jobType: 'fixed-price',
       mobilizations: getDefaultMobilizations(),
+      asOfDate: new Date().toISOString().split('T')[0], // Default to today
     };
 
     if (jobToEdit) {
@@ -72,6 +73,12 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       }
       if (jobWithFormattedDates.targetEndDate && jobWithFormattedDates.targetEndDate !== 'TBD') {
         jobWithFormattedDates.targetEndDate = new Date(jobWithFormattedDates.targetEndDate).toISOString().split('T')[0];
+      }
+      // Format asOfDate (default to today if not set)
+      if (jobWithFormattedDates.asOfDate) {
+        jobWithFormattedDates.asOfDate = new Date(jobWithFormattedDates.asOfDate).toISOString().split('T')[0];
+      } else {
+        jobWithFormattedDates.asOfDate = new Date().toISOString().split('T')[0];
       }
       // Format mobilization dates
       if (jobWithFormattedDates.mobilizations) {
@@ -902,6 +909,34 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                     <div>
                       <label htmlFor="invoiced.other" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Other</label>
                       <CurrencyInput id="invoiced.other" name="invoiced.other" value={job.invoiced.other} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Data As Of Date */}
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-800 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <label htmlFor="asOfDate" className="block text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                        Financial Data As Of
+                      </label>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mb-2">
+                        Set the date this cost/billing data represents (for accurate period reporting)
+                      </p>
+                      <input
+                        type="date"
+                        id="asOfDate"
+                        name="asOfDate"
+                        value={job.asOfDate || ''}
+                        onChange={(e) => setJob(prev => ({ ...prev, asOfDate: e.target.value }))}
+                        className="w-48 px-3 py-2 border border-amber-300 dark:border-amber-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        disabled={isEstimatorWithRestrictedAccess}
+                      />
                     </div>
                   </div>
                 </div>

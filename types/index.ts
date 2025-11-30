@@ -82,6 +82,7 @@ export interface Job {
   notes?: Note[];
   onHoldDate?: string;
   lastUpdated?: string;
+  asOfDate?: string;  // Date the financial data represents (for period-accurate reporting)
   targetProfit?: number;
   targetMargin?: number;
   targetEndDate?: string;
