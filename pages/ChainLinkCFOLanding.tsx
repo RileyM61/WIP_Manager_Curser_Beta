@@ -271,8 +271,8 @@ const ChainLinkCFOLanding: React.FC = () => {
               <a href="#pricing" className="text-slate-300 hover:text-white transition-colors hidden sm:block">
                 Pricing
               </a>
-              <a href="/wip" className="text-slate-300 hover:text-white transition-colors hidden sm:block">
-                WIP Insights
+              <a href="/value-builder" className="text-emerald-400 hover:text-emerald-300 transition-colors hidden sm:block font-medium">
+                Free Calculator
               </a>
               <button
                 onClick={handleLogin}
@@ -525,6 +525,59 @@ const ChainLinkCFOLanding: React.FC = () => {
       </section>
 
       {/* ================================================================== */}
+      {/* VALUE BUILDER FREE TOOL CALLOUT */}
+      {/* ================================================================== */}
+      <section className="py-20 bg-gradient-to-br from-emerald-900/20 to-green-900/20 border-y border-emerald-500/20">
+        <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
+          <div className="flex flex-col lg:flex-row items-center gap-10">
+            {/* Left: Content */}
+            <div className="flex-1 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full px-4 py-1.5 mb-4">
+                <span className="text-lg">🆓</span>
+                <span className="text-sm text-emerald-300 font-semibold uppercase tracking-wide">Free Tool</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                What's Your Business{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-400">
+                  Really Worth?
+                </span>
+              </h2>
+              <p className="text-lg text-slate-300 mb-6 max-w-xl">
+                Think like an investor. Use our free Value Builder calculator to 
+                see your business value using the same Adjusted EBITDA × Multiple 
+                formula that private equity uses.
+              </p>
+              <a
+                href="/value-builder"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white font-semibold text-lg rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all hover:scale-105"
+              >
+                Try Free Calculator
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
+            
+            {/* Right: Visual */}
+            <div className="flex-shrink-0">
+              <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 w-72">
+                <div className="text-center mb-4">
+                  <p className="text-slate-400 text-sm mb-1">Business Value</p>
+                  <p className="text-4xl font-bold text-emerald-400">$2.4M</p>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-slate-400 text-sm">
+                  <span className="bg-slate-700 px-3 py-1 rounded">$600K</span>
+                  <span>×</span>
+                  <span className="bg-slate-700 px-3 py-1 rounded">4.0x</span>
+                </div>
+                <p className="text-center text-xs text-slate-500 mt-3">EBITDA × Multiple</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================== */}
       {/* CFO PRO CALLOUT - Premium Managed Service */}
       {/* ================================================================== */}
       <section className="py-24 relative overflow-hidden">
@@ -682,9 +735,9 @@ const ChainLinkCFOLanding: React.FC = () => {
             <div className="flex items-center gap-8 text-sm text-slate-400">
               <a href="#modules" className="hover:text-white transition-colors">Tools</a>
               <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
+              <a href="/value-builder" className="text-emerald-400 hover:text-emerald-300 transition-colors">Free Calculator</a>
               <a href="/wip" className="hover:text-white transition-colors">WIP Insights</a>
               <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
             </div>
 
             <p className="text-sm text-slate-500">

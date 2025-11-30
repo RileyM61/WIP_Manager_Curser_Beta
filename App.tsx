@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ChainLinkCFOLanding from './pages/ChainLinkCFOLanding';
 import WIPInsightsLanding from './pages/WIPInsightsLanding';
 import CFOProPage from './pages/CFOProPage';
+import ValueBuilderLanding from './pages/ValueBuilderLanding';
+import ValueBuilderCalculator from './pages/ValueBuilderCalculator';
 import AuthPage from './pages/AuthPage';
 import ModuleDashboard from './pages/ModuleDashboard';
 import AppShell from './components/layout/AppShell';
@@ -37,6 +39,10 @@ function App() {
           
           {/* CFO Pro - Premium managed service */}
           <Route path="/cfo-pro" element={<CFOProPage />} />
+          
+          {/* Value Builder - Free calculator lead gen */}
+          <Route path="/value-builder" element={<ValueBuilderLanding />} />
+          <Route path="/value-builder/calculate" element={<ValueBuilderCalculator />} />
           
           {/* Authentication */}
           <Route path="/auth" element={<AuthPage />} />
