@@ -524,7 +524,15 @@ function App() {
         );
     }
     if (viewMode === 'gantt') {
-      return <GanttView jobs={sortedAndFilteredJobs} onUpdateJob={handleSaveJob} onEditJob={handleEditJobClick} />;
+      return (
+        <GanttView 
+          jobs={sortedAndFilteredJobs} 
+          onUpdateJob={handleSaveJob} 
+          onEditJob={handleEditJobClick}
+          capacityPlan={settings?.capacityPlan}
+          capacityEnabled={settings?.capacityEnabled}
+        />
+      );
     }
     if (viewMode === 'grid') {
       return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} activeEstimator={activeEstimator}/>;

@@ -1,11 +1,21 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { Job, JobStatus, MobilizationPhase } from '../../types';
+import { Job, JobStatus, MobilizationPhase, CapacityPlan } from '../../types';
 import { getMobilizationWarnings } from '../../lib/jobCalculations';
 
 interface GanttViewProps {
   jobs: Job[];
   onUpdateJob: (job: Job) => void;
   onEditJob: (job: Job) => void;
+  capacityPlan?: CapacityPlan | null;
+  capacityEnabled?: boolean;
+}
+
+// Job hours breakdown for a period
+interface JobHoursEntry {
+  jobId: string;
+  jobNo: string;
+  jobName: string;
+  hours: number;
 }
 
 type ZoomLevel = 'week' | 'month' | 'quarter';
@@ -87,8 +97,18 @@ const phaseColors = [
   { bg: 'bg-amber-500 hover:bg-amber-600', light: 'bg-amber-400' },
 ];
 
-const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) => {
+const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob, capacityPlan, capacityEnabled }) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
+  
+  // Calculate total weekly capacity from settings
+  const weeklyCapacity = useMemo(() => {
+    if (!capacityEnabled || !capacityPlan || !capacityPlan.rows || capacityPlan.rows.length === 0) {
+      return null; // No capacity configured
+    }
+    return capacityPlan.rows.reduce((total, row) => {
+      return total + (row.headcount * row.hoursPerPerson);
+    }, 0);
+  }, [capacityPlan, capacityEnabled]);
   const [dragState, setDragState] = useState<{
     jobId: string;
     phaseId: number;
@@ -348,9 +368,10 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     };
   }, [dragState, jobs, pxPerDay, onUpdateJob]);
 
-  // Calculate labor hours per day for workload visualization
-  const laborHoursByDay = useMemo(() => {
+  // Calculate labor hours per day with job breakdown for workload visualization
+  const laborHoursData = useMemo(() => {
     const hours: Map<string, number> = new Map();
+    const jobBreakdown: Map<string, JobHoursEntry[]> = new Map();
     
     activeJobs.forEach(job => {
       // Skip jobs without labor cost per hour set
@@ -393,14 +414,35 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
           const month = String(current.getMonth() + 1).padStart(2, '0');
           const day = String(current.getDate()).padStart(2, '0');
           const key = `${year}-${month}-${day}`;
+          
+          // Add to total hours
           hours.set(key, (hours.get(key) || 0) + hoursPerDay);
+          
+          // Add to job breakdown
+          const entries = jobBreakdown.get(key) || [];
+          const existingEntry = entries.find(e => e.jobId === job.id);
+          if (existingEntry) {
+            existingEntry.hours += hoursPerDay;
+          } else {
+            entries.push({
+              jobId: job.id,
+              jobNo: job.jobNo,
+              jobName: job.jobName,
+              hours: hoursPerDay,
+            });
+          }
+          jobBreakdown.set(key, entries);
+          
           current.setDate(current.getDate() + 1);
         }
       });
     });
     
-    return hours;
+    return { hours, jobBreakdown };
   }, [activeJobs]);
+  
+  const laborHoursByDay = laborHoursData.hours;
+  const laborJobBreakdown = laborHoursData.jobBreakdown;
 
   // Helper to format date as YYYY-MM-DD in local time (not UTC)
   const formatDateKey = (date: Date): string => {
@@ -423,9 +465,9 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
     }
   }, [zoomLevel]);
 
-  // Aggregate labor hours by zoom level (week, month, quarter)
+  // Aggregate labor hours by zoom level (week, month, quarter) with job breakdown
   const aggregatedHours = useMemo(() => {
-    const aggregated: Map<string, { hours: number; startDate: Date; endDate: Date }> = new Map();
+    const aggregated: Map<string, { hours: number; startDate: Date; endDate: Date; jobs: JobHoursEntry[] }> = new Map();
     
     laborHoursByDay.forEach((hours, dateKey) => {
       // Parse the date key as local date (YYYY-MM-DD)
@@ -456,11 +498,28 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
         periodKey = `${date.getFullYear()}-Q${quarter + 1}`;
       }
       
+      // Get job breakdown for this day
+      const dayJobs = laborJobBreakdown.get(dateKey) || [];
+      
       const existing = aggregated.get(periodKey);
       if (existing) {
         existing.hours += hours;
+        // Merge job breakdowns
+        dayJobs.forEach(dayJob => {
+          const existingJob = existing.jobs.find(j => j.jobId === dayJob.jobId);
+          if (existingJob) {
+            existingJob.hours += dayJob.hours;
+          } else {
+            existing.jobs.push({ ...dayJob });
+          }
+        });
       } else {
-        aggregated.set(periodKey, { hours, startDate: periodStart, endDate: periodEnd });
+        aggregated.set(periodKey, { 
+          hours, 
+          startDate: periodStart, 
+          endDate: periodEnd,
+          jobs: dayJobs.map(j => ({ ...j }))
+        });
       }
     });
     
@@ -758,35 +817,79 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
                   
                   const periodData = aggregatedHours.get(periodKey);
                   const hours = periodData?.hours || 0;
-                  const intensity = maxHours > 0 ? hours / maxHours : 0;
+                  const jobsList = periodData?.jobs || [];
                   
-                  // Color based on intensity
+                  // Calculate capacity utilization or relative intensity
+                  let capacityPercent: number | null = null;
+                  let intensity: number;
+                  
+                  if (weeklyCapacity && weeklyCapacity > 0) {
+                    // Calculate period capacity based on zoom level
+                    let periodCapacity = weeklyCapacity;
+                    if (zoomLevel === 'month') {
+                      periodCapacity = weeklyCapacity * 4.33; // ~4.33 weeks per month
+                    } else if (zoomLevel === 'quarter') {
+                      periodCapacity = weeklyCapacity * 13; // 13 weeks per quarter
+                    }
+                    capacityPercent = (hours / periodCapacity) * 100;
+                    intensity = Math.min(capacityPercent / 100, 1.5); // Cap at 150% for bar height
+                  } else {
+                    // Fall back to relative intensity if no capacity configured
+                    intensity = maxHours > 0 ? hours / maxHours : 0;
+                  }
+                  
+                  // Color based on capacity % (if available) or relative intensity
                   let bgColor = 'bg-gray-200 dark:bg-gray-600';
                   if (hours > 0) {
-                    if (intensity > 0.8) bgColor = 'bg-red-500';
-                    else if (intensity > 0.6) bgColor = 'bg-orange-500';
-                    else if (intensity > 0.4) bgColor = 'bg-amber-400';
-                    else if (intensity > 0.2) bgColor = 'bg-blue-400';
-                    else bgColor = 'bg-blue-300';
+                    if (capacityPercent !== null) {
+                      // Capacity-based coloring
+                      if (capacityPercent > 100) bgColor = 'bg-red-500'; // Over capacity
+                      else if (capacityPercent > 80) bgColor = 'bg-orange-500'; // Near capacity
+                      else if (capacityPercent > 60) bgColor = 'bg-amber-400'; // Healthy
+                      else if (capacityPercent > 40) bgColor = 'bg-blue-400'; // Available
+                      else bgColor = 'bg-emerald-400'; // Underutilized
+                    } else {
+                      // Relative coloring (fallback)
+                      if (intensity > 0.8) bgColor = 'bg-red-500';
+                      else if (intensity > 0.6) bgColor = 'bg-orange-500';
+                      else if (intensity > 0.4) bgColor = 'bg-amber-400';
+                      else if (intensity > 0.2) bgColor = 'bg-blue-400';
+                      else bgColor = 'bg-blue-300';
+                    }
                   }
+                  
+                  // Build tooltip with job breakdown
+                  const tooltipLines = [
+                    `${header.label}: ${Math.round(hours).toLocaleString()} hrs`,
+                    capacityPercent !== null ? `${Math.round(capacityPercent)}% of capacity` : '',
+                    '',
+                    ...jobsList
+                      .sort((a, b) => b.hours - a.hours)
+                      .slice(0, 8) // Show top 8 jobs
+                      .map(j => `${j.jobNo}: ${Math.round(j.hours)} hrs`),
+                    jobsList.length > 8 ? `+${jobsList.length - 8} more jobs` : ''
+                  ].filter(Boolean).join('\n');
                   
                   return (
                     <div
                       key={idx}
-                      className="relative flex flex-col items-center justify-end h-full"
+                      className="relative flex flex-col items-center justify-end h-full group"
                       style={{ width: header.width * pxPerDay }}
                     >
                       {hours > 0 && (
                         <div 
-                          className={`relative w-[90%] ${bgColor} rounded-t-sm transition-all flex items-end justify-center pb-1`}
+                          className={`relative w-[90%] ${bgColor} rounded-t-sm transition-all flex items-end justify-center pb-1 cursor-pointer`}
                           style={{ 
-                            height: `${Math.max(25, intensity * 100)}%`,
+                            height: `${Math.max(25, Math.min(intensity, 1) * 100)}%`,
                             minHeight: '25px',
                           }}
-                          title={`${header.label}: ${Math.round(hours).toLocaleString()} labor hours`}
+                          title={tooltipLines}
                         >
                           <span className="text-[10px] font-bold text-white drop-shadow-md">
-                            {hours >= 1000 ? `${(hours / 1000).toFixed(1)}k` : Math.round(hours)}
+                            {capacityPercent !== null 
+                              ? `${Math.round(capacityPercent)}%`
+                              : (hours >= 1000 ? `${(hours / 1000).toFixed(1)}k` : Math.round(hours))
+                            }
                           </span>
                         </div>
                       )}
@@ -813,14 +916,70 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob }) =
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 flex justify-between">
-        <span>
-          Timeline: {timelineStart.toLocaleDateString()} — {timelineEnd.toLocaleDateString()}
-        </span>
-        <span>
-          🔴 Today | Labor Hours: bars show remaining hours per {zoomLevel}
-        </span>
+      {/* Footer with Legend */}
+      <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex justify-between items-center">
+          <span>
+            Timeline: {timelineStart.toLocaleDateString()} — {timelineEnd.toLocaleDateString()}
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Today
+          </span>
+        </div>
+        
+        {/* Capacity Legend */}
+        <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-gray-600 dark:text-gray-300">
+              Labor Hours ({zoomLevel === 'week' ? 'Weekly' : zoomLevel === 'month' ? 'Monthly' : 'Quarterly'})
+              {weeklyCapacity && (
+                <span className="ml-2 text-gray-400">
+                  Capacity: {weeklyCapacity.toLocaleString()} hrs/week
+                </span>
+              )}
+            </span>
+            
+            {/* Color Legend */}
+            <div className="flex items-center gap-3">
+              {weeklyCapacity ? (
+                // Capacity-based legend
+                <>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-emerald-400" /> &lt;40%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-blue-400" /> 40-60%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-amber-400" /> 60-80%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-orange-500" /> 80-100%
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-red-500" /> &gt;100%
+                  </span>
+                </>
+              ) : (
+                // Relative legend (no capacity set)
+                <>
+                  <span className="text-gray-400 italic">
+                    Set up Capacity in Settings for % utilization
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-blue-300" /> Low
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-amber-400" /> Med
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-red-500" /> High
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
