@@ -768,8 +768,8 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob, cap
                             const phaseHours = getPhaseHours(job, phase);
                             if (phaseHours > 0 && barStyle.startDate && barStyle.endDate) {
                               // Calculate weeks in phase
-                              const startTime = barStyle.startDate.getTime();
-                              const endTime = barStyle.endDate.getTime();
+                              const startTime = new Date(barStyle.startDate).getTime();
+                              const endTime = new Date(barStyle.endDate).getTime();
                               if (isNaN(startTime) || isNaN(endTime)) {
                                 // Invalid dates, just show total hours
                                 return (
