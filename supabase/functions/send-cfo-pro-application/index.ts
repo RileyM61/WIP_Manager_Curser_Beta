@@ -173,7 +173,7 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ChainLink CFO <notifications@chainlinkcfo.com>",
+        from: "ChainLink CFO <onboarding@resend.dev>",
         to: [NOTIFICATION_EMAIL],
         subject: `🎉 New CFO Pro Application: ${data.companyName}`,
         html: emailHtml,

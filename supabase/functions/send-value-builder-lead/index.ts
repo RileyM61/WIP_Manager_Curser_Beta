@@ -142,7 +142,7 @@ serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "ChainLink CFO <notifications@chainlinkcfo.com>",
+        from: "ChainLink CFO <onboarding@resend.dev>",
         to: [NOTIFICATION_EMAIL],
         subject: `📊 New Value Builder Lead: ${data.companyName} (${revenueLabels[data.annualRevenue] || data.annualRevenue})`,
         html: emailHtml,
