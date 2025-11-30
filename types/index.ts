@@ -128,8 +128,17 @@ export enum StaffingDiscipline {
   Superintendents = 'Superintendents',
   Engineering = 'Engineering',
   FieldLabor = 'Field Labor',
+  Foreman = 'Foreman',
+  Shop = 'Shop',
   Safety = 'Safety'
 }
+
+// Disciplines that directly perform work on jobs (used for capacity vs workload comparison)
+export const PRODUCTIVE_DISCIPLINES: StaffingDiscipline[] = [
+  StaffingDiscipline.FieldLabor,
+  StaffingDiscipline.Foreman,
+  StaffingDiscipline.Engineering,
+];
 
 export type CapacityDiscipline = StaffingDiscipline | 'Custom';
 

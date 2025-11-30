@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
-import { Job, JobStatus, MobilizationPhase, CapacityPlan } from '../../types';
+import { Job, JobStatus, MobilizationPhase, CapacityPlan, PRODUCTIVE_DISCIPLINES, StaffingDiscipline } from '../../types';
 import { getMobilizationWarnings } from '../../lib/jobCalculations';
 
 interface GanttViewProps {
@@ -100,14 +100,17 @@ const phaseColors = [
 const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob, capacityPlan, capacityEnabled }) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
   
-  // Calculate total weekly capacity from settings
+  // Calculate total weekly capacity from settings (only productive disciplines)
   const weeklyCapacity = useMemo(() => {
     if (!capacityEnabled || !capacityPlan || !capacityPlan.rows || capacityPlan.rows.length === 0) {
       return null; // No capacity configured
     }
-    return capacityPlan.rows.reduce((total, row) => {
-      return total + (row.headcount * row.hoursPerPerson);
-    }, 0);
+    // Only count disciplines that directly perform work on jobs
+    return capacityPlan.rows
+      .filter(row => PRODUCTIVE_DISCIPLINES.includes(row.discipline as StaffingDiscipline))
+      .reduce((total, row) => {
+        return total + (row.headcount * row.hoursPerPerson);
+      }, 0);
   }, [capacityPlan, capacityEnabled]);
   const [dragState, setDragState] = useState<{
     jobId: string;
