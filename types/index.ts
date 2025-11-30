@@ -102,13 +102,13 @@ export interface JobsSnapshot {
 // View & UI Types
 // ============================================================================
 
-export type ViewMode = 'grid' | 'table' | 'gantt';
+export type ViewMode = 'grid' | 'table' | 'gantt' | 'reports';
 
 export type SortKey = 'jobName' | 'startDate' | 'jobNo';
 
 export type SortDirection = 'asc' | 'desc';
 
-export type FilterType = JobStatus | 'company' | 'forecast';
+export type FilterType = JobStatus | 'company' | 'forecast' | 'reports';
 
 export type WeekDay = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
 

@@ -22,6 +22,7 @@ import CapacityModal from './components/modals/CapacityModal';
 import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
+import { ReportsView } from './components/reports';
 import { tourSteps, markTourCompleted } from './lib/tourSteps';
 import { hasScheduleWarnings } from './lib/jobCalculations';
 
@@ -510,6 +511,15 @@ function App() {
     }
     if (filter === 'forecast') {
         return <ForecastView jobs={jobs} />;
+    }
+    if (filter === 'reports') {
+        return (
+          <ReportsView 
+            jobs={jobs} 
+            companyId={companyId!} 
+            companyName={settings?.companyName}
+          />
+        );
     }
     if (viewMode === 'gantt') {
       return <GanttView jobs={sortedAndFilteredJobs} onUpdateJob={handleSaveJob} onEditJob={handleEditJobClick} />;

@@ -116,8 +116,8 @@ const Controls: React.FC<ControlsProps> = ({
     setSortDirection(direction);
   };
   
-  const showJobControls = filter !== 'company' && filter !== 'forecast';
-  const isJobsView = filter !== 'company' && filter !== 'forecast';
+  const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
+  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
 
   const ownerBacklogActive = userRole === 'owner' && filter === 'forecast' && focusMode === 'default';
   const ownerCapacityActive = userRole === 'owner' && filter === 'company' && focusMode === 'default';
@@ -166,6 +166,16 @@ const Controls: React.FC<ControlsProps> = ({
                 }`}
               >
                 Forecast
+              </button>
+              <button
+                onClick={() => setFilter('reports')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  filter === 'reports'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                }`}
+              >
+                Reports
               </button>
             </div>
           </div>
