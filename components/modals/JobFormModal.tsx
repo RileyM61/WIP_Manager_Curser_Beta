@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType, MobilizationPhase } from '../../types';
 import { XIcon } from '../shared/icons';
 import { CurrencyInput } from '../shared/CurrencyInput';
-import { getDefaultTMSettings } from '../../lib/jobCalculations';
+import { getDefaultTMSettings, sumBreakdown } from '../../lib/jobCalculations';
 import InfoTooltip from '../help/InfoTooltip';
 import { helpContent } from '../../lib/helpContent';
 
@@ -101,6 +101,15 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
   const [job, setJob] = useState<Job>(getInitialState());
 
+  // Auto-calculate Target Profit and Margin from Contract and Budget
+  const calculatedTargets = useMemo(() => {
+    const totalContract = sumBreakdown(job.contract);
+    const totalBudget = sumBreakdown(job.budget);
+    const targetProfit = totalContract - totalBudget;
+    const targetMargin = totalContract > 0 ? (targetProfit / totalContract) * 100 : 0;
+    return { targetProfit, targetMargin };
+  }, [job.contract, job.budget]);
+
   useEffect(() => {
     setJob(getInitialState());
     setActiveTab('details'); // Reset to first tab when modal opens
@@ -126,10 +135,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    if (name === 'targetMargin') {
-      setJob(prev => ({ ...prev, targetMargin: value === '' ? undefined : Number(value) }));
-      return;
-    }
     setJob({ ...job, [name]: value });
   };
 
@@ -216,7 +221,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
         ...job,
         id: jobToEdit ? jobToEdit.id : new Date().getTime().toString(),
         status: job.status,
-        costToComplete: finalCostToComplete
+        costToComplete: finalCostToComplete,
+        // Auto-calculated profit targets
+        targetProfit: calculatedTargets.targetProfit,
+        targetMargin: calculatedTargets.targetMargin,
     };
     onSave(jobToSave);
   };
@@ -403,30 +411,41 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                   </div>
                 </div>
 
-                {/* Targets (only for Fixed Price) */}
+                {/* Calculated Profit Targets (only for Fixed Price) */}
                 {!isTM && (
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Profit Targets</h3>
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                      Profit Targets
+                      <span className="ml-2 text-xs font-normal text-gray-400 dark:text-gray-500">(auto-calculated from Contract - Budget)</span>
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="targetProfit" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Profit</label>
-                        <CurrencyInput id="targetProfit" name="targetProfit" value={job.targetProfit || 0} onChange={handleCurrencyChange} disabled={isEstimatorWithRestrictedAccess} />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Profit</label>
+                        <div className={`px-3 py-2 rounded-lg border ${
+                          calculatedTargets.targetProfit >= 0 
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                        } font-semibold`}>
+                          ${calculatedTargets.targetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
                       </div>
                       <div>
-                        <label htmlFor="targetMargin" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Target Margin (%)</label>
-                        <input
-                          type="number"
-                          id="targetMargin"
-                          name="targetMargin"
-                          value={job.targetMargin ?? ''}
-                          onChange={handleChange}
-                          disabled={isEstimatorWithRestrictedAccess}
-                          className={inputClassName}
-                          step={0.1}
-                          min={0}
-                        />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Margin</label>
+                        <div className={`px-3 py-2 rounded-lg border ${
+                          calculatedTargets.targetMargin >= 0 
+                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                        } font-semibold`}>
+                          {calculatedTargets.targetMargin.toFixed(1)}%
+                        </div>
                       </div>
                     </div>
+                    {calculatedTargets.targetProfit < 0 && (
+                      <p className="mt-2 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                        <span>⚠️</span>
+                        Budget exceeds Contract - this job will lose money at current estimates
+                      </p>
+                    )}
                   </div>
                 )}
 
