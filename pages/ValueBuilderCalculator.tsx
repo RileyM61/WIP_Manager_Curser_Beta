@@ -289,7 +289,7 @@ const MultipleSlider: React.FC<{
         <span>1.5x</span>
         <span>7.0x</span>
       </div>
-      <p className="text-sm text-slate-400 mt-3 text-center">{getMultipleDescription(value)}</p>
+      <p className="text-sm text-emerald-300 mt-3 text-center font-medium">{getMultipleDescription(value)}</p>
     </div>
   );
 };
