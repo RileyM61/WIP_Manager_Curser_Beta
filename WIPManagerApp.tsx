@@ -22,6 +22,7 @@ import CapacityModal from './components/modals/CapacityModal';
 import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
+import WorkflowsPage from './pages/WorkflowsPage';
 import { ReportsView } from './components/reports';
 import { tourSteps, markTourCompleted } from './lib/tourSteps';
 import { hasScheduleWarnings } from './lib/jobCalculations';
@@ -97,6 +98,7 @@ function App() {
   // Help & Learning state
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
+  const [showWorkflows, setShowWorkflows] = useState(false);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -597,6 +599,7 @@ function App() {
         onActiveEstimatorChange={handleActiveEstimatorChange}
         onStartTour={() => setIsTourOpen(true)}
         onOpenGlossary={() => setShowGlossary(true)}
+        onOpenWorkflows={() => setShowWorkflows(true)}
       />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">
@@ -704,6 +707,13 @@ function App() {
       {showGlossary && (
         <div className="fixed inset-0 z-[100] bg-gray-50 dark:bg-gray-900 overflow-y-auto">
           <GlossaryPage onBack={() => setShowGlossary(false)} />
+        </div>
+      )}
+
+      {/* Workflows Page (full-screen overlay) */}
+      {showWorkflows && (
+        <div className="fixed inset-0 z-[100] bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+          <WorkflowsPage onBack={() => setShowWorkflows(false)} />
         </div>
       )}
     </div>
