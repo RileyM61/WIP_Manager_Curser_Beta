@@ -15,6 +15,8 @@ const disciplineOptions: CapacityDiscipline[] = [
   StaffingDiscipline.Superintendents,
   StaffingDiscipline.Engineering,
   StaffingDiscipline.FieldLabor,
+  StaffingDiscipline.Foreman,
+  StaffingDiscipline.Shop,
   StaffingDiscipline.Safety,
   'Custom',
 ];
