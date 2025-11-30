@@ -766,11 +766,21 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob, cap
                           {/* Show labor hours for this phase */}
                           {barStyle.width > 80 && (() => {
                             const phaseHours = getPhaseHours(job, phase);
-                            if (phaseHours > 0) {
+                            if (phaseHours > 0 && barStyle.startDate && barStyle.endDate) {
                               // Calculate weeks in phase
-                              const phaseDays = Math.ceil(
-                                (barStyle.endDate.getTime() - barStyle.startDate.getTime()) / (1000 * 60 * 60 * 24)
-                              ) + 1;
+                              const startTime = barStyle.startDate.getTime();
+                              const endTime = barStyle.endDate.getTime();
+                              if (isNaN(startTime) || isNaN(endTime)) {
+                                // Invalid dates, just show total hours
+                                return (
+                                  <span className="ml-1 opacity-90 font-semibold">
+                                    {phaseHours >= 1000 
+                                      ? `${(phaseHours / 1000).toFixed(1)}k` 
+                                      : Math.round(phaseHours)} hrs
+                                  </span>
+                                );
+                              }
+                              const phaseDays = Math.ceil((endTime - startTime) / (1000 * 60 * 60 * 24)) + 1;
                               const phaseWeeks = phaseDays / 7;
                               const hoursPerWeek = phaseWeeks > 0 ? phaseHours / phaseWeeks : 0;
                               
