@@ -289,22 +289,19 @@ const CapacityModal: React.FC<CapacityModalProps> = ({ isOpen, onClose, capacity
                     <th className="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Hours / Person</th>
                     <th className="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Available</th>
                     <th className="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Committed</th>
-                    <th className="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Balance</th>
                     <th className="px-4 py-3 text-right font-semibold text-gray-600 dark:text-gray-300">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                   {draftPlan.rows.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                      <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
                         No disciplines configured yet. Use "Add Discipline" to get started.
                       </td>
                     </tr>
                   )}
                   {draftPlan.rows.map((row) => {
                     const available = row.headcount * row.hoursPerPerson;
-                    const balance = available - row.committedHours;
-                    const rowBalanceColor = balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
 
                     return (
                       <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
@@ -359,9 +356,6 @@ const CapacityModal: React.FC<CapacityModalProps> = ({ isOpen, onClose, capacity
                             onChange={(event) => handleRowFieldChange(row.id, 'committedHours', event.target.value)}
                             className="block w-full text-right border border-gray-300 dark:border-gray-700 rounded-md py-2 px-2 focus:outline-none focus:ring-brand-blue focus:border-brand-blue dark:bg-gray-800 dark:text-gray-200"
                           />
-                        </td>
-                        <td className={`px-4 py-3 align-top text-right font-semibold ${rowBalanceColor}`}>
-                          {hoursFormatter.format(balance)}
                         </td>
                         <td className="px-4 py-3 align-top text-right">
                           <button
