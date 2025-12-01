@@ -243,38 +243,45 @@ export function isEmployeeCurrentlyActive(employee: Employee): boolean {
 /**
  * Check if an employee is active during a specific month
  * Accounts for both hire date and termination date
+ * 
+ * Rules:
+ * - Employee is active starting from their hire month (inclusive)
+ * - Employee is active up to and including their termination month
+ * - Example: Hired Jan 15, Terminated Mar 20 → Active in Jan, Feb, Mar (with proration)
  */
 export function isEmployeeActiveInMonth(
   employee: Employee,
   year: number,
-  month: number
+  month: number // 0-11 (JavaScript month index)
 ): boolean {
   if (!employee.isActive) return false;
   
-  // Check hire date - employee must be hired by this month
+  // Convert target month to a comparable number (YYYYMM)
+  const targetMonthNum = year * 12 + month;
+  
+  // Check hire date - employee must be hired by this month or earlier
   if (employee.hireDate) {
     const hireDate = parseDate(employee.hireDate);
     if (hireDate) {
-      const hireYear = hireDate.getFullYear();
-      const hireMonth = hireDate.getMonth();
+      const hireMonthNum = hireDate.getFullYear() * 12 + hireDate.getMonth();
       
-      // Not yet hired in this month
-      if (year < hireYear) return false;
-      if (year === hireYear && month < hireMonth) return false;
+      // Target month is before hire month - not yet hired
+      if (targetMonthNum < hireMonthNum) {
+        return false;
+      }
     }
   }
   
-  // Check termination date - employee must not be terminated before this month
+  // Check termination date - employee works through their termination month
   if (employee.terminationDate) {
     const termDate = parseDate(employee.terminationDate);
     if (termDate) {
-      const termYear = termDate.getFullYear();
-      const termMonth = termDate.getMonth();
+      const termMonthNum = termDate.getFullYear() * 12 + termDate.getMonth();
       
-      // Already terminated before this month starts
-      // Employee is terminated AT the end of the termination month, so they work that month
-      if (year > termYear) return false;
-      if (year === termYear && month > termMonth) return false;
+      // Target month is after termination month - already gone
+      if (targetMonthNum > termMonthNum) {
+        return false;
+      }
     }
   }
   
@@ -283,11 +290,16 @@ export function isEmployeeActiveInMonth(
 
 /**
  * Calculate prorated hours for a partial month (when hired mid-month or terminated mid-month)
+ * 
+ * Rules:
+ * - If hired mid-month, prorate from hire day to end of month
+ * - If terminated mid-month, prorate from start of month to termination day
+ * - If both apply in same month, prorate from hire day to termination day
  */
 export function calculateProratedMonthlyHours(
   employee: Employee,
   year: number,
-  month: number
+  month: number // 0-11 (JavaScript month index)
 ): number {
   const fullMonthHours = calculateMonthlyAvailableHours(
     employee.fte,
@@ -297,6 +309,8 @@ export function calculateProratedMonthlyHours(
   );
   
   const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  const targetMonthNum = year * 12 + month;
+  
   let startDay = 1;
   let endDay = lastDayOfMonth;
   
@@ -304,18 +318,18 @@ export function calculateProratedMonthlyHours(
   if (employee.hireDate) {
     const hireDate = parseDate(employee.hireDate);
     if (hireDate) {
-      const hireYear = hireDate.getFullYear();
-      const hireMonth = hireDate.getMonth();
+      const hireMonthNum = hireDate.getFullYear() * 12 + hireDate.getMonth();
       
-      // Not yet hired - no hours
-      if (year < hireYear || (year === hireYear && month < hireMonth)) {
+      // Not yet hired in this month - no hours
+      if (targetMonthNum < hireMonthNum) {
         return 0;
       }
       
-      // Hired this month - start from hire day
-      if (year === hireYear && month === hireMonth) {
+      // Hired this exact month - start from hire day
+      if (targetMonthNum === hireMonthNum) {
         startDay = hireDate.getDate();
       }
+      // If hired before this month, startDay stays at 1 (full month start)
     }
   }
   
@@ -323,18 +337,18 @@ export function calculateProratedMonthlyHours(
   if (employee.terminationDate) {
     const termDate = parseDate(employee.terminationDate);
     if (termDate) {
-      const termYear = termDate.getFullYear();
-      const termMonth = termDate.getMonth();
+      const termMonthNum = termDate.getFullYear() * 12 + termDate.getMonth();
       
-      // Already terminated - no hours
-      if (year > termYear || (year === termYear && month > termMonth)) {
+      // Already terminated before this month - no hours
+      if (targetMonthNum > termMonthNum) {
         return 0;
       }
       
-      // Terminated this month - work until termination day
-      if (year === termYear && month === termMonth) {
+      // Terminated this exact month - end on termination day
+      if (targetMonthNum === termMonthNum) {
         endDay = termDate.getDate();
       }
+      // If terminated after this month, endDay stays at lastDayOfMonth (full month end)
     }
   }
   
