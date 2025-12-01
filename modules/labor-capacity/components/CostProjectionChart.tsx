@@ -78,64 +78,121 @@ const CostProjectionChart: React.FC<CostProjectionChartProps> = ({
         </div>
 
         {/* Bar Chart */}
-        <div className="flex items-end gap-2 h-64">
+        <div className="flex items-end gap-1 sm:gap-2 h-64 px-2">
           {projections.map((projection, pIndex) => {
             const value = showHours ? projection.totalHours : projection.totalCost;
-            const heightPercent = (value / maxValue) * 100;
+            const heightPercent = maxValue > 0 ? (value / maxValue) * 100 : 0;
+            
+            // Determine if this month is higher or lower than previous
+            const prevValue = pIndex > 0 
+              ? (showHours ? projections[pIndex - 1].totalHours : projections[pIndex - 1].totalCost)
+              : value;
+            const isUp = value > prevValue;
+            const isDown = value < prevValue;
 
             return (
               <div
                 key={projection.month}
-                className="flex-1 flex flex-col items-center group"
+                className="flex-1 flex flex-col items-center group relative"
               >
-                {/* Stacked Bar */}
-                <div
-                  className="w-full rounded-t-md overflow-hidden flex flex-col-reverse transition-all hover:opacity-80"
-                  style={{ height: `${heightPercent}%`, minHeight: value > 0 ? '4px' : '0' }}
-                >
-                  {projection.departments.map((dept, dIndex) => {
-                    const deptValue = showHours ? dept.hours : dept.cost;
-                    const deptPercent = value > 0 ? (deptValue / value) * 100 : 0;
-                    
-                    return (
-                      <div
-                        key={dept.departmentId}
-                        style={{
-                          height: `${deptPercent}%`,
-                          backgroundColor: DEPARTMENT_COLORS[dIndex % DEPARTMENT_COLORS.length],
-                        }}
-                        title={`${dept.departmentName}: ${showHours ? `${dept.hours} hrs` : CURRENCY_FORMAT.format(dept.cost)}`}
-                      />
-                    );
-                  })}
+                {/* Bar Container */}
+                <div className="w-full h-48 flex items-end justify-center">
+                  {/* The Bar */}
+                  <div
+                    className={`w-full max-w-[40px] rounded-t-md transition-all duration-300 hover:opacity-80 cursor-pointer ${
+                      value === 0 
+                        ? 'bg-gray-200 dark:bg-gray-700' 
+                        : projection.departments.length > 0 
+                          ? '' 
+                          : 'bg-gradient-to-t from-orange-500 to-amber-400'
+                    }`}
+                    style={{ 
+                      height: `${Math.max(heightPercent, value > 0 ? 8 : 2)}%`,
+                      minHeight: '4px'
+                    }}
+                  >
+                    {/* Stacked colors if departments exist */}
+                    {projection.departments.length > 0 && (
+                      <div className="w-full h-full rounded-t-md overflow-hidden flex flex-col-reverse">
+                        {projection.departments.map((dept, dIndex) => {
+                          const deptValue = showHours ? dept.hours : dept.cost;
+                          const deptPercent = value > 0 ? (deptValue / value) * 100 : 0;
+                          
+                          return (
+                            <div
+                              key={dept.departmentId}
+                              className="w-full transition-all"
+                              style={{
+                                height: `${deptPercent}%`,
+                                backgroundColor: DEPARTMENT_COLORS[dIndex % DEPARTMENT_COLORS.length],
+                              }}
+                              title={`${dept.departmentName}: ${showHours ? `${dept.hours} hrs` : CURRENCY_FORMAT.format(dept.cost)}`}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Value Label - Always visible */}
-                <p className="mt-1 text-xs font-semibold text-gray-900 dark:text-white text-center">
+                {/* Trend Indicator */}
+                {pIndex > 0 && value !== prevValue && (
+                  <div className={`absolute top-0 right-0 text-xs ${isUp ? 'text-green-500' : 'text-red-500'}`}>
+                    {isUp ? '↑' : '↓'}
+                  </div>
+                )}
+
+                {/* Value Label */}
+                <p className="mt-2 text-xs font-bold text-gray-900 dark:text-white text-center whitespace-nowrap">
                   {showHours
                     ? `${Math.round(projection.totalHours).toLocaleString()}`
-                    : `$${Math.round(projection.totalCost / 1000)}k`
+                    : value >= 1000 
+                      ? `$${Math.round(projection.totalCost / 1000)}k`
+                      : CURRENCY_FORMAT.format(projection.totalCost)
                   }
                 </p>
 
                 {/* Month Label */}
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 text-center">
                   {formatMonth(projection.month)}
                 </p>
+
+                {/* Hover Tooltip */}
+                <div className="opacity-0 group-hover:opacity-100 absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-20 pointer-events-none transition-opacity shadow-lg">
+                  <p className="font-semibold">{formatMonth(projection.month)}</p>
+                  <p>{showHours ? `${projection.totalHours.toLocaleString()} hours` : CURRENCY_FORMAT.format(projection.totalCost)}</p>
+                  {projection.departments.length > 0 && (
+                    <div className="mt-1 pt-1 border-t border-gray-700 text-[10px]">
+                      {projection.departments.map((d, i) => (
+                        <p key={d.departmentId} className="flex items-center gap-1">
+                          <span 
+                            className="w-2 h-2 rounded-full inline-block"
+                            style={{ backgroundColor: DEPARTMENT_COLORS[i % DEPARTMENT_COLORS.length] }}
+                          />
+                          {d.departmentName}: {showHours ? `${d.hours} hrs` : CURRENCY_FORMAT.format(d.cost)}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}
         </div>
 
-        {/* Y-axis labels */}
-        <div className="flex justify-between mt-4 text-xs text-gray-500">
-          <span>{showHours ? '0 hrs' : '$0'}</span>
-          <span>
-            {showHours
-              ? `${Math.round(maxValue).toLocaleString()} hrs`
-              : CURRENCY_FORMAT.format(maxValue)
-            }
-          </span>
+        {/* Scale & Trend Legend */}
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mt-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2">
+            <span>Scale: {showHours ? '0' : '$0'} — {showHours ? `${Math.round(maxValue).toLocaleString()} hrs` : CURRENCY_FORMAT.format(maxValue)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-green-500 font-bold">↑</span>
+            <span>Increase</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-red-500 font-bold">↓</span>
+            <span>Decrease</span>
+          </div>
         </div>
       </div>
 
