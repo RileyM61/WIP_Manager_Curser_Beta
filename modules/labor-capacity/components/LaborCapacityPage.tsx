@@ -65,11 +65,33 @@ const LaborCapacityPage: React.FC = () => {
     await deleteEmployee(employee.id);
   };
 
-  const handleSaveEmployee = async (data: EmployeeFormData): Promise<boolean> => {
+  // Get current department for an employee
+  const getEmployeePrimaryDepartment = (employeeId: string): string | undefined => {
+    const empAllocations = allocations.filter(a => a.employeeId === employeeId);
+    if (empAllocations.length === 0) return undefined;
+    // Return the department with highest allocation
+    const sorted = [...empAllocations].sort((a, b) => b.allocationPercent - a.allocationPercent);
+    return sorted[0]?.departmentId;
+  };
+
+  const handleSaveEmployee = async (data: EmployeeFormData, departmentId?: string): Promise<boolean> => {
     if (editingEmployee) {
-      return await updateEmployee(editingEmployee.id, data);
+      const updated = await updateEmployee(editingEmployee.id, data);
+      // If department changed, update allocation
+      if (updated && departmentId) {
+        await updateAllocations(editingEmployee.id, [
+          { departmentId, allocationPercent: 100 }
+        ]);
+      }
+      return updated;
     } else {
       const result = await createEmployee(data);
+      if (result && departmentId) {
+        // Create 100% allocation to selected department
+        await updateAllocations(result.id, [
+          { departmentId, allocationPercent: 100 }
+        ]);
+      }
       return result !== null;
     }
   };
@@ -291,6 +313,8 @@ const LaborCapacityPage: React.FC = () => {
         }}
         onSave={handleSaveEmployee}
         employee={editingEmployee}
+        departments={departments}
+        currentDepartmentId={editingEmployee ? getEmployeePrimaryDepartment(editingEmployee.id) : undefined}
       />
 
       <AllocationEditor

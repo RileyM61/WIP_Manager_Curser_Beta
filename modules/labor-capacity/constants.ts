@@ -15,6 +15,23 @@ export const DEFAULT_UTILIZATION_TARGET = 0.85; // 85% utilization
 export const DEFAULT_ANNUAL_PTO_HOURS = 80; // 2 weeks PTO
 export const DEFAULT_FTE = 1.0;
 
+// Employee role options
+export const EMPLOYEE_ROLES = [
+  'Labor',
+  'Foreman',
+  'Shop',
+  'Project Manager',
+  'Estimator',
+  'Admin',
+  'Bookkeeper',
+  'Sales Manager',
+  'Sales Person',
+  'Owner',
+  'Sr. Management',
+] as const;
+
+export type EmployeeRole = typeof EMPLOYEE_ROLES[number];
+
 // Working days per month (average)
 export const WORKING_DAYS_PER_MONTH: Record<number, number> = {
   0: 22,  // January

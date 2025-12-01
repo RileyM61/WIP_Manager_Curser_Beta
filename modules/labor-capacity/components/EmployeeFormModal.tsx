@@ -3,21 +3,24 @@
 // ============================================================================
 
 import React, { useState, useEffect } from 'react';
-import { Employee, EmployeeFormData } from '../types';
+import { Employee, EmployeeFormData, Department } from '../types';
 import {
   DEFAULT_BURDEN_MULTIPLIER,
   DEFAULT_UTILIZATION_TARGET,
   DEFAULT_ANNUAL_PTO_HOURS,
   DEFAULT_FTE,
   CURRENCY_FORMAT_DECIMAL,
+  EMPLOYEE_ROLES,
 } from '../constants';
 import { calculateLoadedCostPerHour, calculateAnnualLoadedCost } from '../lib/calculations';
 
 interface EmployeeFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: EmployeeFormData) => Promise<boolean>;
+  onSave: (data: EmployeeFormData, departmentId?: string) => Promise<boolean>;
   employee?: Employee | null;
+  departments: Department[];
+  currentDepartmentId?: string;
 }
 
 const initialFormData: EmployeeFormData = {
@@ -38,8 +41,11 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
   onClose,
   onSave,
   employee,
+  departments,
+  currentDepartmentId,
 }) => {
   const [formData, setFormData] = useState<EmployeeFormData>(initialFormData);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,11 +64,13 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         isActive: employee.isActive,
         notes: employee.notes || '',
       });
+      setSelectedDepartmentId(currentDepartmentId || '');
     } else {
       setFormData(initialFormData);
+      setSelectedDepartmentId(departments[0]?.id || '');
     }
     setError(null);
-  }, [employee, isOpen]);
+  }, [employee, isOpen, currentDepartmentId, departments]);
 
   // Calculate preview values
   const loadedRate = calculateLoadedCostPerHour(formData.hourlyRate, formData.burdenMultiplier);
@@ -81,10 +89,15 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
       return;
     }
 
+    if (!formData.role) {
+      setError('Please select a role');
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
-    const success = await onSave(formData);
+    const success = await onSave(formData, selectedDepartmentId || undefined);
     
     setSaving(false);
     if (success) {
@@ -132,18 +145,44 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
               />
             </div>
 
-            {/* Role */}
+            {/* Role Dropdown */}
             <div className="col-span-2 sm:col-span-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Role / Title
+                Role *
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                placeholder="Field Laborer"
-              />
+                required
+              >
+                <option value="">Select a role...</option>
+                {EMPLOYEE_ROLES.map((role) => (
+                  <option key={role} value={role}>{role}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Department Dropdown */}
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Primary Department
+              </label>
+              <select
+                value={selectedDepartmentId}
+                onChange={(e) => setSelectedDepartmentId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              >
+                <option value="">No department (assign later)</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name} {dept.isProductive ? '(Productive)' : '(Non-productive)'}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Selecting a department will create a 100% allocation. You can adjust this later.
+              </p>
             </div>
 
             {/* FTE */}
