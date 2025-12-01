@@ -229,7 +229,7 @@ const CompanyOnboarding: React.FC = () => {
           <img 
             src="/images/chainlink-cfo-logo.png" 
             alt="ChainLink CFO" 
-            className="h-40 w-auto mx-auto mb-6"
+            className="h-80 w-auto mx-auto mb-6"
           />
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4">
             <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />

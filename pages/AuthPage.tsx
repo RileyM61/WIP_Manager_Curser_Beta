@@ -239,7 +239,7 @@ const AuthPage: React.FC = () => {
             <img 
               src="/images/chainlink-cfo-logo.png" 
               alt="ChainLink CFO" 
-              className="h-64 w-auto mx-auto mb-4"
+              className="h-[512px] w-auto mx-auto mb-4"
             />
           )}
           <h1 className="mt-4 text-3xl font-semibold">{headerCopy.title}</h1>

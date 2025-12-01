@@ -112,7 +112,7 @@ const ModuleDashboard: React.FC = () => {
           <img 
             src="/images/chainlink-cfo-logo.png" 
             alt="ChainLink CFO" 
-            className="h-32 w-auto mx-auto mb-4 animate-pulse"
+            className="h-64 w-auto mx-auto mb-4 animate-pulse"
           />
           <p className="text-gray-600 dark:text-gray-400">Loading your modules...</p>
         </div>
@@ -143,7 +143,7 @@ const ModuleDashboard: React.FC = () => {
             <img 
               src="/images/chainlink-cfo-logo.png" 
               alt="ChainLink CFO" 
-              className="h-24 w-auto"
+              className="h-48 w-auto"
             />
             {settings?.companyName && (
               <div className="border-l border-gray-200 dark:border-gray-700 pl-4">
