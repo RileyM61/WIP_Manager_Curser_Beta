@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType, MobilizationPhase } from '../../types';
+import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType, MobilizationPhase, JobCategory, ProductType, JobComplexity } from '../../types';
 import { XIcon } from '../shared/icons';
 import { CurrencyInput } from '../shared/CurrencyInput';
 import { getDefaultTMSettings, sumBreakdown } from '../../lib/jobCalculations';
@@ -408,6 +408,69 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                         <option key={est} value={est}>{est}</option>
                       ))}
                     </select>
+                  </div>
+                </div>
+
+                {/* Job Classification */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Job Classification</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label htmlFor="jobCategory" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Job Category</label>
+                      <select
+                        name="jobCategory"
+                        id="jobCategory"
+                        value={job.jobCategory || ''}
+                        onChange={handleChange}
+                        disabled={isEstimatorWithRestrictedAccess}
+                        className={inputClassName}
+                      >
+                        <option value="">-- Select Category --</option>
+                        <option value="Commercial">Commercial</option>
+                        <option value="Government">Government</option>
+                        <option value="Residential">Residential</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="productType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product Type</label>
+                      <select
+                        name="productType"
+                        id="productType"
+                        value={job.productType || ''}
+                        onChange={handleChange}
+                        disabled={isEstimatorWithRestrictedAccess}
+                        className={inputClassName}
+                      >
+                        <option value="">-- Select Product --</option>
+                        <option value="Chain Link">Chain Link</option>
+                        <option value="Ornamental">Ornamental</option>
+                        <option value="Field Fencing">Field Fencing</option>
+                        <option value="Vinyl">Vinyl</option>
+                        <option value="Wood">Wood</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="jobComplexity" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Complexity</label>
+                      <select
+                        name="jobComplexity"
+                        id="jobComplexity"
+                        value={job.jobComplexity || ''}
+                        onChange={(e) => {
+                          const value = e.target.value ? parseInt(e.target.value) as JobComplexity : undefined;
+                          setJob(prev => ({ ...prev, jobComplexity: value }));
+                        }}
+                        disabled={isEstimatorWithRestrictedAccess}
+                        className={inputClassName}
+                      >
+                        <option value="">-- Select --</option>
+                        <option value="1">1 - Simple</option>
+                        <option value="2">2 - Basic</option>
+                        <option value="3">3 - Moderate</option>
+                        <option value="4">4 - Complex</option>
+                        <option value="5">5 - Highly Complex</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 

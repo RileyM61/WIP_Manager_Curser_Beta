@@ -20,6 +20,13 @@ export enum JobStatus {
   Archived = 'Archived',
 }
 
+// Job Classification Types (for AI Post-Mortem Analysis)
+export type JobCategory = 'Commercial' | 'Government' | 'Residential';
+
+export type ProductType = 'Chain Link' | 'Ornamental' | 'Field Fencing' | 'Vinyl' | 'Wood' | 'Other';
+
+export type JobComplexity = 1 | 2 | 3 | 4 | 5;
+
 // ============================================================================
 // Financial Types
 // ============================================================================
@@ -92,6 +99,11 @@ export interface Job {
   tmSettings?: TMSettings;
   mobilizations?: MobilizationPhase[];  // Up to 4 mobilization/demobilization phases
   laborCostPerHour?: number;  // $/hr rate for converting labor costs to hours
+  
+  // Job Classification (for AI Post-Mortem Analysis)
+  jobCategory?: JobCategory;    // Commercial, Government, Residential
+  productType?: ProductType;    // Chain Link, Ornamental, Field Fencing, Vinyl, Wood, Other
+  jobComplexity?: JobComplexity; // 1-5 complexity rating
 }
 
 export interface JobsSnapshot {

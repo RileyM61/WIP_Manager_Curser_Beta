@@ -1,4 +1,4 @@
-import { Job, Note, JobStatus, JobType, TMSettings, MobilizationPhase, Settings, CompanyType, ManagedCompany, ModuleId } from '../../types';
+import { Job, Note, JobStatus, JobType, TMSettings, MobilizationPhase, Settings, CompanyType, ManagedCompany, ModuleId, JobCategory, ProductType, JobComplexity } from '../../types';
 
 // Transform Supabase job row to app Job type
 export function dbJobToAppJob(dbJob: any): Job {
@@ -81,6 +81,11 @@ export function dbJobToAppJob(dbJob: any): Job {
     tmSettings,
     mobilizations,
     laborCostPerHour: dbJob.labor_cost_per_hour ? Number(dbJob.labor_cost_per_hour) : undefined,
+    
+    // Job Classification
+    jobCategory: dbJob.job_category as JobCategory || undefined,
+    productType: dbJob.product_type as ProductType || undefined,
+    jobComplexity: dbJob.job_complexity ? (Number(dbJob.job_complexity) as JobComplexity) : undefined,
   };
 }
 
@@ -138,6 +143,11 @@ export function appJobToDbJob(job: Job): any {
         }))
       : null,
     labor_cost_per_hour: job.laborCostPerHour || null,
+    
+    // Job Classification
+    job_category: job.jobCategory || null,
+    product_type: job.productType || null,
+    job_complexity: job.jobComplexity || null,
   };
 }
 
