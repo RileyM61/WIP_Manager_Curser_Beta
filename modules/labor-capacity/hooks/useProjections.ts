@@ -8,6 +8,7 @@ import {
   calculateEmployeeMetrics,
   calculateDepartmentSummary,
   generateMonthlyProjections,
+  isEmployeeCurrentlyActive,
 } from '../lib/calculations';
 
 export function useProjections(
@@ -18,7 +19,8 @@ export function useProjections(
 ) {
   // Calculate capacity summary
   const summary = useMemo<CapacitySummary>(() => {
-    const activeEmployees = employees.filter(e => e.isActive);
+    // Only include employees who are currently active (not future hires)
+    const activeEmployees = employees.filter(e => isEmployeeCurrentlyActive(e));
     
     // Calculate totals
     let totalFte = 0;

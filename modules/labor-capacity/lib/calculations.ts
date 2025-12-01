@@ -142,6 +142,7 @@ export function calculateEmployeeMetrics(employee: Employee): EmployeeMetrics {
 
 /**
  * Calculate department summary from employees and their allocations
+ * Only includes employees who are currently hired (not future hires)
  */
 export function calculateDepartmentSummary(
   department: Department,
@@ -151,9 +152,11 @@ export function calculateDepartmentSummary(
   // Filter allocations for this department
   const deptAllocations = allocations.filter(a => a.departmentId === department.id);
   
-  // Get unique employees allocated to this department
+  // Get unique employees allocated to this department - ONLY those currently active (not future hires)
   const employeeIds = new Set(deptAllocations.map(a => a.employeeId));
-  const deptEmployees = employees.filter(e => employeeIds.has(e.id) && e.isActive);
+  const deptEmployees = employees.filter(e => 
+    employeeIds.has(e.id) && isEmployeeCurrentlyActive(e)
+  );
 
   let totalFte = 0;
   let totalHours = 0;
@@ -186,6 +189,23 @@ export function calculateDepartmentSummary(
     totalCost,
     averageLoadedRate,
   };
+}
+
+/**
+ * Check if an employee is currently active (hired and not in the future)
+ */
+export function isEmployeeCurrentlyActive(employee: Employee): boolean {
+  if (!employee.isActive) return false;
+  
+  // If no hire date, assume they're active
+  if (!employee.hireDate) return true;
+  
+  // Check if hire date is in the past or today
+  const hireDate = new Date(employee.hireDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  return hireDate <= today;
 }
 
 /**
