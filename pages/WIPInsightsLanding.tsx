@@ -279,11 +279,11 @@ const WIPInsightsLanding: React.FC = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/auth?mode=signup&product=wip');
+    navigate('/auth?mode=signup&source=wip');
   };
 
   const handleLogin = () => {
-    navigate('/auth?mode=login');
+    navigate('/auth?mode=login&source=wip');
   };
 
   // Sample project data for the hero tiles
