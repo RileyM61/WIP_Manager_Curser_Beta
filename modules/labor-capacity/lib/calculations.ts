@@ -275,6 +275,14 @@ export function isEmployeeCurrentlyActive(employee: Employee): boolean {
 }
 
 /**
+ * Convert year and month to YYYYMM number for easy comparison
+ * month is 1-12 (calendar month)
+ */
+function toYearMonth(year: number, month: number): number {
+  return year * 100 + month;
+}
+
+/**
  * Check if an employee is active during a specific month
  * Accounts for both hire date and termination date
  * 
@@ -291,34 +299,34 @@ export function isEmployeeActiveInMonth(
 ): boolean {
   if (!employee.isActive) return false;
   
-  // Convert target month to 1-12 for comparison with extracted date parts
-  const targetMonth = month + 1; // Now 1-12 to match extractDateParts
+  // Convert JS month (0-11) to calendar month (1-12) and create YYYYMM
+  const targetYM = toYearMonth(year, month + 1);
   
   // Check hire date - employee must be hired by this month or earlier
   if (employee.hireDate) {
     const hireParts = extractDateParts(employee.hireDate);
     if (hireParts) {
-      // Compare: is target (year, month) before hire (year, month)?
-      if (year < hireParts.year) {
-        return false; // Target year is before hire year
-      }
-      if (year === hireParts.year && targetMonth < hireParts.month) {
-        return false; // Same year but target month is before hire month
+      const hireYM = toYearMonth(hireParts.year, hireParts.month);
+      // Target month is before hire month - not yet hired
+      if (targetYM < hireYM) {
+        return false;
       }
     }
   }
   
   // Check termination date - employee works through their termination month
-  // Termination date is the LAST day they work
   if (employee.terminationDate) {
     const termParts = extractDateParts(employee.terminationDate);
     if (termParts) {
-      // Compare: is target (year, month) after termination (year, month)?
-      if (year > termParts.year) {
-        return false; // Target year is after termination year
-      }
-      if (year === termParts.year && targetMonth > termParts.month) {
-        return false; // Same year but target month is after termination month
+      const termYM = toYearMonth(termParts.year, termParts.month);
+      
+      // DEBUG: Log the comparison (remove after debugging)
+      console.log(`[DEBUG] ${employee.name}: targetYM=${targetYM}, termYM=${termYM}, termDate=${employee.terminationDate}, termParts=`, termParts);
+      
+      // Target month is AFTER termination month - already gone
+      if (targetYM > termYM) {
+        console.log(`[DEBUG] ${employee.name}: EXCLUDED from ${targetYM} (after termYM ${termYM})`);
+        return false;
       }
     }
   }
@@ -347,7 +355,7 @@ export function calculateProratedMonthlyHours(
   );
   
   const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-  const targetMonth = month + 1; // Convert to 1-12 for comparison
+  const targetYM = toYearMonth(year, month + 1); // Convert JS month to calendar month
   
   let startDay = 1;
   let endDay = lastDayOfMonth;
@@ -356,13 +364,15 @@ export function calculateProratedMonthlyHours(
   if (employee.hireDate) {
     const hireParts = extractDateParts(employee.hireDate);
     if (hireParts) {
+      const hireYM = toYearMonth(hireParts.year, hireParts.month);
+      
       // Not yet hired in this month - no hours
-      if (year < hireParts.year || (year === hireParts.year && targetMonth < hireParts.month)) {
+      if (targetYM < hireYM) {
         return 0;
       }
       
       // Hired this exact month - start from hire day
-      if (year === hireParts.year && targetMonth === hireParts.month) {
+      if (targetYM === hireYM) {
         startDay = hireParts.day;
       }
       // If hired before this month, startDay stays at 1 (full month start)
@@ -373,13 +383,15 @@ export function calculateProratedMonthlyHours(
   if (employee.terminationDate) {
     const termParts = extractDateParts(employee.terminationDate);
     if (termParts) {
+      const termYM = toYearMonth(termParts.year, termParts.month);
+      
       // Already terminated before this month - no hours
-      if (year > termParts.year || (year === termParts.year && targetMonth > termParts.month)) {
+      if (targetYM > termYM) {
         return 0;
       }
       
       // Terminated this exact month - end on termination day (inclusive)
-      if (year === termParts.year && targetMonth === termParts.month) {
+      if (targetYM === termYM) {
         endDay = termParts.day;
       }
       // If terminated after this month, endDay stays at lastDayOfMonth (full month end)
