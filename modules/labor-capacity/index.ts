@@ -15,6 +15,7 @@ export * from './lib/calculations';
 export { useEmployees } from './hooks/useEmployees';
 export { useDepartments } from './hooks/useDepartments';
 export { useProjections } from './hooks/useProjections';
+export { useCapacityForWIP } from './hooks/useCapacityForWIP';
 
 // Components
 export { default as LaborCapacityPage } from './components/LaborCapacityPage';

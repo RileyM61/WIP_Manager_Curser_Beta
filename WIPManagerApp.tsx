@@ -5,8 +5,10 @@ import { useSupabaseJobs } from './hooks/useSupabaseJobs';
 import { useSupabaseSettings, DEFAULT_CAPACITY_PLAN } from './hooks/useSupabaseSettings';
 import { useSupabaseNotes } from './hooks/useSupabaseNotes';
 import { useManagedCompanies } from './hooks/useManagedCompanies';
+import { useModuleAccess } from './hooks/useModuleAccess';
 import { useAuth } from './context/AuthContext';
 import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
+import { useCapacityForWIP } from './modules/labor-capacity';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
 import CompanySwitcher from './components/layout/CompanySwitcher';
@@ -69,6 +71,15 @@ function App() {
     createManagedCompany,
     updateGrantedModules,
   } = useManagedCompanies(user?.id || null, companyId);
+  
+  // Module access check
+  const { hasAccess } = useModuleAccess(settings);
+  const hasLaborCapacityAccess = hasAccess('labor-capacity');
+  
+  // Labor Capacity integration - fetch data if user has access
+  const { capacity: laborCapacity, loading: laborCapacityLoading } = useCapacityForWIP(
+    hasLaborCapacityAccess ? companyId : null
+  );
   
   // Local storage for UI preferences (not stored in Supabase)
   const [snapshot, setSnapshot] = useLocalStorage<JobsSnapshot | null>('wip-jobs-snapshot', null);
@@ -291,7 +302,16 @@ function App() {
   }, [activeProjectManager, settings, setFilter, setFocusMode, setPmFilter, setViewMode]);
 
   const handleOpenCapacityModal = useCallback(() => {
+    // If user has Labor Capacity access, navigate to that module instead
+    if (hasLaborCapacityAccess) {
+      window.location.href = '/app/capacity';
+      return;
+    }
     setIsCapacityModalOpen(true);
+  }, [hasLaborCapacityAccess]);
+
+  const handleNavigateToLaborCapacity = useCallback(() => {
+    window.location.href = '/app/capacity';
   }, []);
 
   const handleCloseCapacityModal = useCallback(() => {
@@ -508,6 +528,9 @@ function App() {
           capacityPlan={settings.capacityPlan || null}
           capacityEnabled={settings.capacityEnabled}
           onEditCapacity={handleOpenCapacityModal}
+          laborCapacity={laborCapacity}
+          laborCapacityEnabled={hasLaborCapacityAccess && !!laborCapacity}
+          onNavigateToLaborCapacity={handleNavigateToLaborCapacity}
         />
       );
     }
@@ -531,6 +554,8 @@ function App() {
           onEditJob={handleEditJobClick}
           capacityPlan={settings?.capacityPlan}
           capacityEnabled={settings?.capacityEnabled}
+          laborCapacityHours={laborCapacity?.weeklyProductiveHours}
+          laborCapacityEnabled={hasLaborCapacityAccess && !!laborCapacity}
         />
       );
     }

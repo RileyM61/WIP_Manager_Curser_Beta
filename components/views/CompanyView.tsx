@@ -2,6 +2,18 @@ import React from 'react';
 import { Job, JobStatus, JobsSnapshot, CapacityPlan, CapacityRow } from '../../types';
 import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../../modules/wip/lib/jobCalculations';
 
+interface LaborCapacityData {
+  weeklyProductiveHours: number;
+  monthlyProductiveHours: number;
+  productiveFte: number;
+  lastUpdated: string | null;
+  departmentBreakdown: {
+    name: string;
+    weeklyHours: number;
+    fte: number;
+  }[];
+}
+
 interface CompanyViewProps {
   jobs: Job[];
   snapshot: JobsSnapshot | null;
@@ -9,6 +21,10 @@ interface CompanyViewProps {
   capacityPlan?: CapacityPlan | null;
   capacityEnabled: boolean;
   onEditCapacity: () => void;
+  // Labor Capacity integration
+  laborCapacity?: LaborCapacityData | null;
+  laborCapacityEnabled?: boolean;
+  onNavigateToLaborCapacity?: () => void;
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -39,7 +55,17 @@ const calculateTotalEarnedRevenue = (jobList: Job[]): number => {
   }, 0);
 };
 
-const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManagers, capacityPlan, capacityEnabled, onEditCapacity }) => {
+const CompanyView: React.FC<CompanyViewProps> = ({ 
+  jobs, 
+  snapshot, 
+  projectManagers, 
+  capacityPlan, 
+  capacityEnabled, 
+  onEditCapacity,
+  laborCapacity,
+  laborCapacityEnabled,
+  onNavigateToLaborCapacity,
+}) => {
   
   const jobsWithMetrics = jobs.map(job => {
     const isTM = job.jobType === 'time-material';
@@ -212,16 +238,41 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
       <div className="p-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">Operational Capacity</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Staffing lens for the next {capacityHorizonLabel}-week horizon.</p>
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+              Operational Capacity
+              {laborCapacityEnabled && laborCapacity && (
+                <span className="ml-2 px-2 py-0.5 text-xs font-medium rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                  Powered by Labor Capacity
+                </span>
+              )}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {laborCapacityEnabled && laborCapacity 
+                ? 'Employee-based capacity from your Labor Capacity module.'
+                : `Staffing lens for the next ${capacityHorizonLabel}-week horizon.`
+              }
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={onEditCapacity}
-            className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-brand-blue text-sm font-medium text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
-          >
-            Manage Capacity
-          </button>
+          {laborCapacityEnabled && onNavigateToLaborCapacity ? (
+            <button
+              type="button"
+              onClick={onNavigateToLaborCapacity}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-emerald-600 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              Open Labor Capacity
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onEditCapacity}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-brand-blue text-sm font-medium text-white hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue"
+            >
+              Manage Capacity
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -238,14 +289,61 @@ const CompanyView: React.FC<CompanyViewProps> = ({ jobs, snapshot, projectManage
             <p className={`text-2xl font-bold ${pmLoadClass}`}>{avgJobsPerPm.toFixed(1)}</p>
             <p className="text-xs text-gray-400 dark:text-gray-500">Across {pmCount} project manager{pmCount === 1 ? '' : 's'}</p>
           </div>
-          <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Weekly Capacity Balance</p>
-            <p className={`text-2xl font-bold ${capacityBalanceClass}`}>{hoursFormatter.format(capacityBalance)} hrs</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500">Available {hoursFormatter.format(totalAvailableCapacity)} hrs • Committed {hoursFormatter.format(totalCommittedCapacity)} hrs</p>
-          </div>
+          {/* Show Labor Capacity data OR simple capacity data */}
+          {laborCapacityEnabled && laborCapacity ? (
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Weekly Productive Capacity</p>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {hoursFormatter.format(laborCapacity.weeklyProductiveHours)} hrs
+              </p>
+              <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70">
+                {laborCapacity.productiveFte} FTE across {laborCapacity.departmentBreakdown.length} productive dept{laborCapacity.departmentBreakdown.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Weekly Capacity Balance</p>
+              <p className={`text-2xl font-bold ${capacityBalanceClass}`}>{hoursFormatter.format(capacityBalance)} hrs</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Available {hoursFormatter.format(totalAvailableCapacity)} hrs • Committed {hoursFormatter.format(totalCommittedCapacity)} hrs</p>
+            </div>
+          )}
         </div>
 
-        {capacityRows.length > 0 ? (
+        {/* Show Labor Capacity department breakdown OR simple capacity table */}
+        {laborCapacityEnabled && laborCapacity ? (
+          <div className="space-y-3">
+            {laborCapacity.departmentBreakdown.length > 0 && (
+              <div className="overflow-x-auto border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                <table className="min-w-full divide-y divide-emerald-200 dark:divide-emerald-800 text-sm">
+                  <thead className="bg-emerald-50 dark:bg-emerald-900/30">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-semibold text-emerald-700 dark:text-emerald-400">Productive Department</th>
+                      <th className="px-4 py-2 text-right font-semibold text-emerald-700 dark:text-emerald-400">FTE</th>
+                      <th className="px-4 py-2 text-right font-semibold text-emerald-700 dark:text-emerald-400">Weekly Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-emerald-100 dark:divide-emerald-900">
+                    {laborCapacity.departmentBreakdown.map((dept) => (
+                      <tr key={dept.name}>
+                        <td className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">{dept.name}</td>
+                        <td className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">{dept.fte}</td>
+                        <td className="px-4 py-2 text-right font-semibold text-emerald-600 dark:text-emerald-400">{hoursFormatter.format(dept.weeklyHours)} hrs</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <span>
+                Total monthly capacity: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{hoursFormatter.format(laborCapacity.monthlyProductiveHours)} hrs</span>
+              </span>
+              {laborCapacity.lastUpdated && (
+                <span>Data from Labor Capacity module</span>
+              )}
+            </div>
+          </div>
+        ) : capacityRows.length > 0 ? (
           <div className="space-y-3">
             <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">

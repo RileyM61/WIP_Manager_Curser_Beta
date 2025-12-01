@@ -8,6 +8,9 @@ interface GanttViewProps {
   onEditJob: (job: Job) => void;
   capacityPlan?: CapacityPlan | null;
   capacityEnabled?: boolean;
+  // Labor Capacity integration - takes precedence over simple capacityPlan
+  laborCapacityHours?: number | null;
+  laborCapacityEnabled?: boolean;
 }
 
 // Job hours breakdown for a period
@@ -97,11 +100,25 @@ const phaseColors = [
   { bg: 'bg-amber-500 hover:bg-amber-600', light: 'bg-amber-400' },
 ];
 
-const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob, capacityPlan, capacityEnabled }) => {
+const GanttView: React.FC<GanttViewProps> = ({ 
+  jobs, 
+  onUpdateJob, 
+  onEditJob, 
+  capacityPlan, 
+  capacityEnabled,
+  laborCapacityHours,
+  laborCapacityEnabled,
+}) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
   
-  // Calculate total weekly capacity from settings (only productive disciplines)
+  // Calculate total weekly capacity - prefer Labor Capacity module data when available
   const weeklyCapacity = useMemo(() => {
+    // Priority 1: Labor Capacity module data (if enabled and has data)
+    if (laborCapacityEnabled && laborCapacityHours && laborCapacityHours > 0) {
+      return laborCapacityHours;
+    }
+    
+    // Priority 2: Simple capacity plan (fallback)
     if (!capacityEnabled || !capacityPlan || !capacityPlan.rows || capacityPlan.rows.length === 0) {
       return null; // No capacity configured
     }
@@ -111,7 +128,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob, cap
       .reduce((total, row) => {
         return total + (row.headcount * row.hoursPerPerson);
       }, 0);
-  }, [capacityPlan, capacityEnabled]);
+  }, [capacityPlan, capacityEnabled, laborCapacityHours, laborCapacityEnabled]);
   const [dragState, setDragState] = useState<{
     jobId: string;
     phaseId: number;
