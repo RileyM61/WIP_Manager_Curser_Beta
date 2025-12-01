@@ -390,6 +390,11 @@ export function calculateProratedMonthlyHours(
     if (termParts) {
       const termYM = toYearMonth(termParts.year, termParts.month);
       
+      // DEBUG: Log proration check
+      if (targetYM >= 202607 && targetYM <= 202609) {
+        console.log(`[PRORATE] ${employee.name} for ${targetYM}: termYM=${termYM}, check=${targetYM > termYM ? 'EXCLUDE' : 'INCLUDE'}`);
+      }
+      
       // Already terminated before this month - no hours
       if (targetYM > termYM) {
         return 0;
@@ -398,6 +403,7 @@ export function calculateProratedMonthlyHours(
       // Terminated this exact month - end on termination day (inclusive)
       if (targetYM === termYM) {
         endDay = termParts.day;
+        console.log(`[PRORATE] ${employee.name}: termination month! endDay=${endDay}`);
       }
       // If terminated after this month, endDay stays at lastDayOfMonth (full month end)
     }
@@ -406,8 +412,14 @@ export function calculateProratedMonthlyHours(
   // Calculate prorated fraction
   const daysWorking = Math.max(0, endDay - startDay + 1);
   const fractionOfMonth = daysWorking / lastDayOfMonth;
+  const result = fullMonthHours * fractionOfMonth;
   
-  return fullMonthHours * fractionOfMonth;
+  // DEBUG: Log result for July-Sep 2026
+  if (targetYM >= 202607 && targetYM <= 202609) {
+    console.log(`[PRORATE RESULT] ${employee.name} for ${targetYM}: startDay=${startDay}, endDay=${endDay}, days=${daysWorking}, fraction=${fractionOfMonth.toFixed(2)}, hours=${result.toFixed(1)}`);
+  }
+  
+  return result;
 }
 
 /**
