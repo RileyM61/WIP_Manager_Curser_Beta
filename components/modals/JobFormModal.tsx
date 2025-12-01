@@ -17,6 +17,9 @@ const getDefaultMobilizations = (): MobilizationPhase[] => [
 // Tab type
 type FormTab = 'details' | 'scheduling' | 'financials';
 
+// Draft storage key for auto-saving form data
+const DRAFT_STORAGE_KEY = 'wip-job-form-draft';
+
 interface JobFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -100,6 +103,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
   };
 
   const [job, setJob] = useState<Job>(getInitialState());
+  const [hasDraft, setHasDraft] = useState(false);
 
   // Auto-calculate Target Profit and Margin from Contract and Budget
   const calculatedTargets = useMemo(() => {
@@ -114,6 +118,40 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
     setJob(getInitialState());
     setActiveTab('details'); // Reset to first tab when modal opens
   }, [jobToEdit, isOpen, projectManagers, defaultStatus, userRole, activeEstimator]);
+
+  // Restore draft for new jobs when modal opens
+  useEffect(() => {
+    if (isOpen && !jobToEdit) {
+      const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (savedDraft) {
+        try {
+          const draft = JSON.parse(savedDraft);
+          // Merge draft with initial state to preserve defaults
+          setJob(prev => ({ ...prev, ...draft }));
+          setHasDraft(true);
+        } catch (e) {
+          console.warn('Failed to restore job form draft:', e);
+          localStorage.removeItem(DRAFT_STORAGE_KEY);
+          setHasDraft(false);
+        }
+      } else {
+        setHasDraft(false);
+      }
+    } else {
+      setHasDraft(false);
+    }
+  }, [isOpen, jobToEdit]);
+
+  // Auto-save draft for new jobs on every change
+  useEffect(() => {
+    if (isOpen && !jobToEdit) {
+      // Debounce the save to avoid excessive writes
+      const timeoutId = setTimeout(() => {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(job));
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [job, isOpen, jobToEdit]);
   
   const handleDateTBDChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'startDate' | 'endDate') => {
     const isChecked = e.target.checked;
@@ -226,7 +264,35 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
         targetProfit: calculatedTargets.targetProfit,
         targetMargin: calculatedTargets.targetMargin,
     };
+    
+    // Clear draft after successful save
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
     onSave(jobToSave);
+  };
+
+  // Clear draft when user explicitly cancels
+  const handleCancel = () => {
+    if (!jobToEdit && (job.jobName || job.client || job.jobNo)) {
+      // User has entered some data - confirm discard
+      if (window.confirm('You have unsaved changes. Your draft will be saved automatically. Click OK to close, or Cancel to continue editing.')) {
+        onClose();
+      }
+    } else {
+      // No significant data entered or editing existing job
+      if (!jobToEdit) {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+      }
+      onClose();
+    }
+  };
+
+  // Clear draft completely (discard)
+  const handleDiscardDraft = () => {
+    if (window.confirm('Are you sure you want to discard this draft and start fresh?')) {
+      localStorage.removeItem(DRAFT_STORAGE_KEY);
+      setJob(getInitialState());
+      setHasDraft(false);
+    }
   };
 
   const handleDelete = () => {
@@ -257,8 +323,27 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
         {/* Header */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{jobToEdit ? 'Edit Job' : 'Add New Job'}</h2>
-            <button onClick={onClose} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{jobToEdit ? 'Edit Job' : 'Add New Job'}</h2>
+              {hasDraft && !jobToEdit && (
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+                    </svg>
+                    Draft Restored
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDiscardDraft}
+                    className="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 underline"
+                  >
+                    Discard
+                  </button>
+                </div>
+              )}
+            </div>
+            <button onClick={handleCancel} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
                 <XIcon />
             </button>
           </div>
@@ -1151,7 +1236,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               )}
             </div>
             <div className="flex space-x-3">
-              <button type="button" onClick={onClose} className="bg-white dark:bg-gray-600 dark:border-gray-500 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
+              <button type="button" onClick={handleCancel} className="bg-white dark:bg-gray-600 dark:border-gray-500 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
                 {isEstimatorWithRestrictedAccess ? 'Close' : 'Cancel'}
               </button>
               {!isEstimatorWithRestrictedAccess && (
