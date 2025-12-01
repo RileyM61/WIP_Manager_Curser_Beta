@@ -110,16 +110,16 @@ const CostProjectionChart: React.FC<CostProjectionChartProps> = ({
                   })}
                 </div>
 
-                {/* Tooltip on hover */}
-                <div className="opacity-0 group-hover:opacity-100 absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10 pointer-events-none transition-opacity">
+                {/* Value Label - Always visible */}
+                <p className="mt-1 text-xs font-semibold text-gray-900 dark:text-white text-center">
                   {showHours
-                    ? `${projection.totalHours.toLocaleString()} hrs`
-                    : CURRENCY_FORMAT.format(projection.totalCost)
+                    ? `${Math.round(projection.totalHours).toLocaleString()}`
+                    : `$${Math.round(projection.totalCost / 1000)}k`
                   }
-                </div>
+                </p>
 
                 {/* Month Label */}
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                   {formatMonth(projection.month)}
                 </p>
               </div>
