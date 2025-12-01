@@ -22,6 +22,7 @@ export interface Employee {
   burdenMultiplier: number; // Default 1.16 (16% burden)
   annualPtoHours: number;
   hireDate: string | null;
+  terminationDate: string | null; // If set, employee is terminated on this date
   utilizationTarget: number; // 0.85 = 85%
   isActive: boolean;
   notes: string | null;
@@ -74,6 +75,7 @@ export interface EmployeeFormData {
   burdenMultiplier: number;
   annualPtoHours: number;
   hireDate: string;
+  terminationDate: string; // Empty string if not terminated
   utilizationTarget: number;
   isActive: boolean;
   notes: string;
@@ -167,6 +169,7 @@ export interface DbEmployee {
   burden_multiplier: number;
   annual_pto_hours: number;
   hire_date: string | null;
+  termination_date: string | null;
   utilization_target: number;
   is_active: boolean;
   notes: string | null;

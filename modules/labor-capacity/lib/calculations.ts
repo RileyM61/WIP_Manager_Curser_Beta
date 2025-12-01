@@ -192,44 +192,57 @@ export function calculateDepartmentSummary(
 }
 
 /**
- * Check if an employee is currently active (hired and not in the future)
+ * Parse a date string safely (handles YYYY-MM-DD format to avoid timezone issues)
+ */
+function parseDate(dateStr: string | null): Date | null {
+  if (!dateStr) return null;
+  
+  if (typeof dateStr === 'string') {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      if (!isNaN(date.getTime())) return date;
+    }
+    const fallback = new Date(dateStr);
+    if (!isNaN(fallback.getTime())) return fallback;
+  }
+  
+  return null;
+}
+
+/**
+ * Check if an employee is currently active (hired and not terminated)
  */
 export function isEmployeeCurrentlyActive(employee: Employee): boolean {
   if (!employee.isActive) return false;
   
-  // If no hire date, assume they're active
-  if (!employee.hireDate) return true;
-  
-  // Parse the hire date - handle both Date objects and strings
-  let hireDate: Date;
-  if (typeof employee.hireDate === 'string') {
-    // Parse ISO date string (YYYY-MM-DD) to avoid timezone issues
-    const parts = employee.hireDate.split('-');
-    if (parts.length === 3) {
-      hireDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    } else {
-      hireDate = new Date(employee.hireDate);
-    }
-  } else {
-    hireDate = new Date(employee.hireDate);
-  }
-  
-  // Validate the date
-  if (isNaN(hireDate.getTime())) {
-    return true; // Invalid date - assume active
-  }
-  
-  // Check if hire date is in the past or today
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  hireDate.setHours(0, 0, 0, 0);
   
-  return hireDate <= today;
+  // Check hire date - if in the future, not yet active
+  if (employee.hireDate) {
+    const hireDate = parseDate(employee.hireDate);
+    if (hireDate) {
+      hireDate.setHours(0, 0, 0, 0);
+      if (hireDate > today) return false;
+    }
+  }
+  
+  // Check termination date - if in the past, no longer active
+  if (employee.terminationDate) {
+    const termDate = parseDate(employee.terminationDate);
+    if (termDate) {
+      termDate.setHours(0, 0, 0, 0);
+      if (termDate <= today) return false;
+    }
+  }
+  
+  return true;
 }
 
 /**
  * Check if an employee is active during a specific month
- * Accounts for hire date (employee must be hired by the start of the month)
+ * Accounts for both hire date and termination date
  */
 export function isEmployeeActiveInMonth(
   employee: Employee,
@@ -238,46 +251,38 @@ export function isEmployeeActiveInMonth(
 ): boolean {
   if (!employee.isActive) return false;
   
-  // If no hire date, assume they're active for all months
-  if (!employee.hireDate) return true;
-  
-  // Parse the hire date - handle both Date objects and strings
-  let hireDate: Date;
-  if (typeof employee.hireDate === 'string') {
-    // Parse ISO date string (YYYY-MM-DD) to avoid timezone issues
-    const parts = employee.hireDate.split('-');
-    if (parts.length === 3) {
-      hireDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    } else {
-      hireDate = new Date(employee.hireDate);
+  // Check hire date - employee must be hired by this month
+  if (employee.hireDate) {
+    const hireDate = parseDate(employee.hireDate);
+    if (hireDate) {
+      const hireYear = hireDate.getFullYear();
+      const hireMonth = hireDate.getMonth();
+      
+      // Not yet hired in this month
+      if (year < hireYear) return false;
+      if (year === hireYear && month < hireMonth) return false;
     }
-  } else {
-    hireDate = new Date(employee.hireDate);
   }
   
-  // Validate the date
-  if (isNaN(hireDate.getTime())) {
-    // Invalid date - assume they're active
-    return true;
+  // Check termination date - employee must not be terminated before this month
+  if (employee.terminationDate) {
+    const termDate = parseDate(employee.terminationDate);
+    if (termDate) {
+      const termYear = termDate.getFullYear();
+      const termMonth = termDate.getMonth();
+      
+      // Already terminated before this month starts
+      // Employee is terminated AT the end of the termination month, so they work that month
+      if (year > termYear) return false;
+      if (year === termYear && month > termMonth) return false;
+    }
   }
   
-  const hireYear = hireDate.getFullYear();
-  const hireMonth = hireDate.getMonth(); // 0-11
-  
-  // Compare year first, then month
-  // Employee is active if the target month is >= hire month
-  if (year > hireYear) {
-    return true;
-  }
-  if (year === hireYear && month >= hireMonth) {
-    return true;
-  }
-  
-  return false;
+  return true;
 }
 
 /**
- * Calculate prorated hours for a partial month (when hired mid-month)
+ * Calculate prorated hours for a partial month (when hired mid-month or terminated mid-month)
  */
 export function calculateProratedMonthlyHours(
   employee: Employee,
@@ -291,48 +296,53 @@ export function calculateProratedMonthlyHours(
     month
   );
   
-  if (!employee.hireDate) return fullMonthHours;
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  let startDay = 1;
+  let endDay = lastDayOfMonth;
   
-  // Parse the hire date - handle both Date objects and strings
-  let hireDate: Date;
-  if (typeof employee.hireDate === 'string') {
-    // Parse ISO date string (YYYY-MM-DD) to avoid timezone issues
-    const parts = employee.hireDate.split('-');
-    if (parts.length === 3) {
-      hireDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    } else {
-      hireDate = new Date(employee.hireDate);
+  // Check hire date proration
+  if (employee.hireDate) {
+    const hireDate = parseDate(employee.hireDate);
+    if (hireDate) {
+      const hireYear = hireDate.getFullYear();
+      const hireMonth = hireDate.getMonth();
+      
+      // Not yet hired - no hours
+      if (year < hireYear || (year === hireYear && month < hireMonth)) {
+        return 0;
+      }
+      
+      // Hired this month - start from hire day
+      if (year === hireYear && month === hireMonth) {
+        startDay = hireDate.getDate();
+      }
     }
-  } else {
-    hireDate = new Date(employee.hireDate);
   }
   
-  // Validate the date
-  if (isNaN(hireDate.getTime())) {
-    return fullMonthHours;
+  // Check termination date proration
+  if (employee.terminationDate) {
+    const termDate = parseDate(employee.terminationDate);
+    if (termDate) {
+      const termYear = termDate.getFullYear();
+      const termMonth = termDate.getMonth();
+      
+      // Already terminated - no hours
+      if (year > termYear || (year === termYear && month > termMonth)) {
+        return 0;
+      }
+      
+      // Terminated this month - work until termination day
+      if (year === termYear && month === termMonth) {
+        endDay = termDate.getDate();
+      }
+    }
   }
   
-  const hireYear = hireDate.getFullYear();
-  const hireMonth = hireDate.getMonth();
+  // Calculate prorated fraction
+  const daysWorking = Math.max(0, endDay - startDay + 1);
+  const fractionOfMonth = daysWorking / lastDayOfMonth;
   
-  // If hired before this month, full hours
-  if (year > hireYear || (year === hireYear && month > hireMonth)) {
-    return fullMonthHours;
-  }
-  
-  // If hired in this month, prorate based on days remaining
-  if (year === hireYear && month === hireMonth) {
-    const hireDay = hireDate.getDate();
-    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-    const daysWorking = lastDayOfMonth - hireDay + 1;
-    
-    // Calculate what fraction of the month they're available
-    const fractionOfMonth = daysWorking / lastDayOfMonth;
-    return fullMonthHours * fractionOfMonth;
-  }
-  
-  // Hired after this month, no hours
-  return 0;
+  return fullMonthHours * fractionOfMonth;
 }
 
 /**

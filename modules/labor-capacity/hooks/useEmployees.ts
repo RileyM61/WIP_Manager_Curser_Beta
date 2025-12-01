@@ -26,6 +26,7 @@ function dbToEmployee(row: DbEmployee): Employee {
     burdenMultiplier: Number(row.burden_multiplier),
     annualPtoHours: row.annual_pto_hours,
     hireDate: row.hire_date,
+    terminationDate: row.termination_date,
     utilizationTarget: Number(row.utilization_target),
     isActive: row.is_active,
     notes: row.notes,
@@ -134,6 +135,7 @@ export function useEmployees(companyId: string | null) {
           burden_multiplier: formData.burdenMultiplier,
           annual_pto_hours: formData.annualPtoHours,
           hire_date: formData.hireDate || null,
+          termination_date: formData.terminationDate || null,
           utilization_target: formData.utilizationTarget,
           is_active: formData.isActive,
           notes: formData.notes || null,
@@ -166,6 +168,7 @@ export function useEmployees(companyId: string | null) {
       if (formData.burdenMultiplier !== undefined) updateData.burden_multiplier = formData.burdenMultiplier;
       if (formData.annualPtoHours !== undefined) updateData.annual_pto_hours = formData.annualPtoHours;
       if (formData.hireDate !== undefined) updateData.hire_date = formData.hireDate || null;
+      if (formData.terminationDate !== undefined) updateData.termination_date = formData.terminationDate || null;
       if (formData.utilizationTarget !== undefined) updateData.utilization_target = formData.utilizationTarget;
       if (formData.isActive !== undefined) updateData.is_active = formData.isActive;
       if (formData.notes !== undefined) updateData.notes = formData.notes || null;

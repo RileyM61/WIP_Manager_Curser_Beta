@@ -31,6 +31,7 @@ const initialFormData: EmployeeFormData = {
   burdenMultiplier: DEFAULT_BURDEN_MULTIPLIER,
   annualPtoHours: DEFAULT_ANNUAL_PTO_HOURS,
   hireDate: '',
+  terminationDate: '',
   utilizationTarget: DEFAULT_UTILIZATION_TARGET,
   isActive: true,
   notes: '',
@@ -60,6 +61,7 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
         burdenMultiplier: employee.burdenMultiplier,
         annualPtoHours: employee.annualPtoHours,
         hireDate: employee.hireDate || '',
+        terminationDate: employee.terminationDate || '',
         utilizationTarget: employee.utilizationTarget,
         isActive: employee.isActive,
         notes: employee.notes || '',
@@ -270,6 +272,25 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
                 onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Future date = planned hire
+              </p>
+            </div>
+
+            {/* Termination Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Termination Date
+              </label>
+              <input
+                type="date"
+                value={formData.terminationDate}
+                onChange={(e) => setFormData({ ...formData, terminationDate: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Leave blank if still employed
+              </p>
             </div>
 
             {/* Utilization Target */}
