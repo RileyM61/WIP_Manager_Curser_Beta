@@ -189,6 +189,75 @@ export function calculateDepartmentSummary(
 }
 
 /**
+ * Check if an employee is active during a specific month
+ * Accounts for hire date (employee must be hired by the month)
+ */
+export function isEmployeeActiveInMonth(
+  employee: Employee,
+  year: number,
+  month: number
+): boolean {
+  if (!employee.isActive) return false;
+  
+  // If no hire date, assume they're active
+  if (!employee.hireDate) return true;
+  
+  // Parse the hire date and get the first of that month
+  const hireDate = new Date(employee.hireDate);
+  const hireYear = hireDate.getFullYear();
+  const hireMonth = hireDate.getMonth();
+  
+  // Employee is active if the target month is >= hire month
+  if (year > hireYear) return true;
+  if (year === hireYear && month >= hireMonth) return true;
+  
+  return false;
+}
+
+/**
+ * Calculate prorated hours for a partial month (when hired mid-month)
+ */
+export function calculateProratedMonthlyHours(
+  employee: Employee,
+  year: number,
+  month: number
+): number {
+  const fullMonthHours = calculateMonthlyAvailableHours(
+    employee.fte,
+    employee.annualPtoHours,
+    year,
+    month
+  );
+  
+  if (!employee.hireDate) return fullMonthHours;
+  
+  const hireDate = new Date(employee.hireDate);
+  const hireYear = hireDate.getFullYear();
+  const hireMonth = hireDate.getMonth();
+  
+  // If hired before this month, full hours
+  if (year > hireYear || (year === hireYear && month > hireMonth)) {
+    return fullMonthHours;
+  }
+  
+  // If hired in this month, prorate based on days remaining
+  if (year === hireYear && month === hireMonth) {
+    const hireDay = hireDate.getDate();
+    const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+    const daysWorking = lastDayOfMonth - hireDay + 1;
+    const workingDays = getWorkingDaysInMonth(year, month);
+    
+    // Calculate what fraction of working days they're available
+    // Simple approximation: (days remaining / total days) * working days
+    const fractionOfMonth = daysWorking / lastDayOfMonth;
+    return fullMonthHours * fractionOfMonth;
+  }
+  
+  // Hired after this month, no hours
+  return 0;
+}
+
+/**
  * Generate monthly projections for a given period
  */
 export function generateMonthlyProjections(
@@ -216,7 +285,11 @@ export function generateMonthlyProjections(
     departments.forEach(dept => {
       const deptAllocations = allocations.filter(a => a.departmentId === dept.id);
       const employeeIds = new Set(deptAllocations.map(a => a.employeeId));
-      const deptEmployees = employees.filter(e => employeeIds.has(e.id) && e.isActive);
+      
+      // Filter employees by allocation AND check if they're active in this specific month
+      const deptEmployees = employees.filter(e => 
+        employeeIds.has(e.id) && isEmployeeActiveInMonth(e, year, month)
+      );
 
       let deptHours = 0;
       let deptCost = 0;
@@ -226,12 +299,9 @@ export function generateMonthlyProjections(
         if (!allocation) return;
 
         const allocationFactor = allocation.allocationPercent / 100;
-        const monthlyHours = calculateMonthlyAvailableHours(
-          employee.fte,
-          employee.annualPtoHours,
-          year,
-          month
-        );
+        
+        // Use prorated hours for new hires
+        const monthlyHours = calculateProratedMonthlyHours(employee, year, month);
         const loadedRate = calculateLoadedCostPerHour(
           employee.hourlyRate,
           employee.burdenMultiplier
@@ -251,7 +321,7 @@ export function generateMonthlyProjections(
 
       totalHours += deptHours;
       totalCost += deptCost;
-      totalEmployees = Math.max(totalEmployees, deptEmployees.length);
+      totalEmployees += deptEmployees.length;
     });
 
     projections.push({
