@@ -274,6 +274,7 @@ const LaborCapacityPage: React.FC = () => {
               </div>
               <CostProjectionChart
                 projections={summary.monthlyProjections}
+                departments={departments}
                 showHours={chartMode === 'hours'}
               />
             </div>
