@@ -7,6 +7,9 @@
 // Active Modules
 export * from './wip';
 
+// Active Modules
+export * from './discovery';
+
 // Coming Soon Modules
 export { FORECASTING_MODULE } from './forecasting';
 export { CAPACITY_MODULE } from './capacity';

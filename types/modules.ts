@@ -20,7 +20,8 @@ export type ModuleId =
   | 'profitability' // Profitability Analytics
   | 'bidnobid'      // Bid/No-Bid Decision Tool
   | 'scenarios'     // Scenario Planning / What-If Analysis
-  | 'reporting';    // Financial Statements & Reporting
+  | 'reporting'     // Financial Statements & Reporting
+  | 'discovery';    // Executive Discovery / Interviews
 
 // Configuration for each module
 export interface ModuleConfig {
@@ -146,6 +147,16 @@ export const MODULES: Record<ModuleId, ModuleConfig> = {
     comingSoon: true,
     routes: ['financials', 'management-reports', 'kpis'],
   },
+  discovery: {
+    id: 'discovery',
+    name: 'Executive Discovery',
+    shortName: 'Discovery',
+    description: 'Structured interviews with leadership team, AI analysis, and strategic recommendations',
+    icon: '🎯',
+    requiredTier: 'cfo-suite',
+    comingSoon: false,
+    routes: ['engagements', 'interviews', 'analysis'],
+  },
 };
 
 // Which modules are included in each tier
@@ -154,7 +165,7 @@ export const TIER_MODULES: Record<SubscriptionTier, ModuleId[]> = {
   starter: ['wip'],
   professional: ['wip', 'forecasting', 'capacity', 'budget'],
   enterprise: ['wip', 'forecasting', 'capacity', 'budget', 'jcurve', 'ar', 'covenant', 'profitability'],
-  'cfo-suite': ['wip', 'forecasting', 'capacity', 'budget', 'jcurve', 'ar', 'covenant', 'profitability', 'bidnobid', 'scenarios', 'reporting'],
+  'cfo-suite': ['wip', 'forecasting', 'capacity', 'budget', 'jcurve', 'ar', 'covenant', 'profitability', 'bidnobid', 'scenarios', 'reporting', 'discovery'],
 };
 
 // Human-readable tier names for UI
