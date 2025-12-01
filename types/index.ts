@@ -180,6 +180,12 @@ import { SubscriptionTier, ModuleId } from './modules';
 // Company classification - managed by CFO vs self-service subscriber
 export type CompanyType = 'managed' | 'direct';
 
+// Onboarding field types
+export type IndustryType = 'Construction' | 'Manufacturing' | 'Professional Services' | 'Retail' | 'Healthcare' | 'Technology' | 'Other';
+export type RevenueRange = 'Under $1M' | '$1M-$5M' | '$5M-$10M' | '$10M-$25M' | '$25M-$50M' | '$50M+';
+export type EmployeeRange = '1-10' | '11-25' | '26-50' | '51-100' | '100+';
+export type ServicePreference = 'self-service' | 'cfo-managed';
+
 export interface Settings {
   companyName: string;
   projectManagers: string[];
@@ -191,6 +197,13 @@ export interface Settings {
   capacityEnabled: boolean;
   capacityPlan?: CapacityPlan | null;
   companyId?: string;
+  
+  // Onboarding Information
+  industry?: IndustryType;
+  annualRevenueRange?: RevenueRange;
+  employeeCountRange?: EmployeeRange;
+  interestedModules?: ModuleId[];
+  servicePreference?: ServicePreference;
   
   // Company Classification
   companyType: CompanyType;              // 'managed' = CFO client, 'direct' = self-service subscriber

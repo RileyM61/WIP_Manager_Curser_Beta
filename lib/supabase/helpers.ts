@@ -1,4 +1,4 @@
-import { Job, Note, JobStatus, JobType, TMSettings, MobilizationPhase, Settings, CompanyType, ManagedCompany, ModuleId, JobCategory, ProductType, JobComplexity } from '../../types';
+import { Job, Note, JobStatus, JobType, TMSettings, MobilizationPhase, Settings, CompanyType, ManagedCompany, ModuleId, JobCategory, ProductType, JobComplexity, IndustryType, RevenueRange, EmployeeRange, ServicePreference } from '../../types';
 
 // Transform Supabase job row to app Job type
 export function dbJobToAppJob(dbJob: any): Job {
@@ -174,6 +174,13 @@ export function dbSettingsToAppSettings(dbSettings: any): Settings {
     capacityPlan: dbSettings.capacity_plan || null,
     companyId: dbSettings.company_id || undefined,
     
+    // Onboarding fields
+    industry: dbSettings.industry as IndustryType || undefined,
+    annualRevenueRange: dbSettings.annual_revenue_range as RevenueRange || undefined,
+    employeeCountRange: dbSettings.employee_count_range as EmployeeRange || undefined,
+    interestedModules: dbSettings.interested_modules || undefined,
+    servicePreference: dbSettings.service_preference as ServicePreference || undefined,
+    
     // Company classification
     companyType: (dbSettings.company_type as CompanyType) || 'direct',
     
@@ -203,6 +210,13 @@ export function appSettingsToDbSettings(settings: Partial<Settings>): any {
   if (settings.defaultRole !== undefined) dbSettings.default_role = settings.defaultRole;
   if (settings.capacityEnabled !== undefined) dbSettings.capacity_enabled = settings.capacityEnabled;
   if (settings.capacityPlan !== undefined) dbSettings.capacity_plan = settings.capacityPlan;
+  
+  // Onboarding fields
+  if (settings.industry !== undefined) dbSettings.industry = settings.industry;
+  if (settings.annualRevenueRange !== undefined) dbSettings.annual_revenue_range = settings.annualRevenueRange;
+  if (settings.employeeCountRange !== undefined) dbSettings.employee_count_range = settings.employeeCountRange;
+  if (settings.interestedModules !== undefined) dbSettings.interested_modules = settings.interestedModules;
+  if (settings.servicePreference !== undefined) dbSettings.service_preference = settings.servicePreference;
   
   // Company classification
   if (settings.companyType !== undefined) dbSettings.company_type = settings.companyType;
