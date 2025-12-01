@@ -69,6 +69,7 @@ export type AppPageKey = keyof typeof APP_PAGES;
  */
 export const ALLOWED_EMAILS = [
   'martin@junctionpeak.com',
+  'martinjunctionpeak@gmail.com',
   'scott@junctionpeak.com',
   'jordan@blueriver.com',
   'todd@ranchfenceinc.com',
