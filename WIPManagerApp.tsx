@@ -10,8 +10,8 @@ import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
 import CompanySwitcher from './components/layout/CompanySwitcher';
-import JobCardGrid from './components/jobs/JobCardGrid';
-import JobTable from './components/jobs/JobTable';
+import JobCardGrid from './modules/wip/components/JobCardGrid';
+import JobTable from './modules/wip/components/JobTable';
 import GanttView from './components/views/GanttView';
 import JobFormModal from './components/modals/JobFormModal';
 import CompanyView from './components/views/CompanyView';
@@ -25,7 +25,7 @@ import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import { ReportsView } from './components/reports';
 import { tourSteps, markTourCompleted } from './lib/tourSteps';
-import { hasScheduleWarnings } from './lib/jobCalculations';
+import { hasScheduleWarnings } from './modules/wip/lib/jobCalculations';
 
 type FocusMode = 'default' | 'pm-at-risk' | 'pm-late';
 

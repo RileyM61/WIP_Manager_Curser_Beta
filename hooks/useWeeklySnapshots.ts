@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Job, JobStatus } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { calculateEarnedRevenue, sumBreakdown, calculateBillingDifference } from '../lib/jobCalculations';
+import { calculateEarnedRevenue, sumBreakdown, calculateBillingDifference } from '../modules/wip/lib/jobCalculations';
 
 // ============================================================================
 // Types
