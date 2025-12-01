@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useModuleAccess } from '../hooks/useModuleAccess';
@@ -96,17 +96,9 @@ const ModuleDashboard: React.FC = () => {
   const { settings, loading: settingsLoading } = useSupabaseSettings(companyId);
   const { hasAccess, getAccessibleModules, isComingSoon, companyType, managedByPracticeName } = useModuleAccess(settings);
 
-  // Get accessible modules for potential auto-redirect
+  // Get accessible modules
   const accessibleModules = getAccessibleModules();
   const accessibleActiveModules = accessibleModules.filter(id => !isComingSoon(id));
-
-  // Auto-redirect if user only has access to one active module
-  useEffect(() => {
-    if (!settingsLoading && accessibleActiveModules.length === 1) {
-      const singleModule = accessibleActiveModules[0];
-      navigate(`/app/${singleModule}`, { replace: true });
-    }
-  }, [settingsLoading, accessibleActiveModules, navigate]);
 
   const handleModuleClick = (moduleId: ModuleId) => {
     navigate(`/app/${moduleId}`);
