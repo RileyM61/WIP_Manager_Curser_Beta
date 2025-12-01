@@ -426,7 +426,8 @@ export function generateMonthlyProjections(
     const targetDate = new Date(startYear, startMonth + i, 1);
     const year = targetDate.getFullYear();
     const month = targetDate.getMonth();
-    const monthStr = targetDate.toISOString().slice(0, 10);
+    // Use local date string to avoid timezone issues with toISOString()
+    const monthStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-01`;
     const monthLabel = `${year}-${String(month + 1).padStart(2, '0')}`;
 
     const departmentData: MonthlyProjection['departments'] = [];

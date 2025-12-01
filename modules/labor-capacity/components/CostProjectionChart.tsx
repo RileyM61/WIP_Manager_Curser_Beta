@@ -42,8 +42,17 @@ const CostProjectionChart: React.FC<CostProjectionChartProps> = ({
     );
   }, [projections, showHours]);
 
-  // Format month label
+  // Format month label - parse without timezone issues
   const formatMonth = (dateStr: string) => {
+    // Parse YYYY-MM-DD format directly to avoid timezone conversion
+    const parts = dateStr.split('-');
+    if (parts.length >= 2) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Convert to 0-indexed
+      const date = new Date(year, month, 1);
+      return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    }
+    // Fallback
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
   };
