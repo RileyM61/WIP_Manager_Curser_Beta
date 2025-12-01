@@ -302,6 +302,11 @@ export function isEmployeeActiveInMonth(
   // Convert JS month (0-11) to calendar month (1-12) and create YYYYMM
   const targetYM = toYearMonth(year, month + 1);
   
+  // DEBUG: Log all employee data for troubleshooting
+  if (targetYM === 202607 || targetYM === 202608) { // July or August 2026
+    console.log(`[ACTIVE CHECK] ${employee.name} for ${targetYM}: terminationDate="${employee.terminationDate}", hireDate="${employee.hireDate}"`);
+  }
+  
   // Check hire date - employee must be hired by this month or earlier
   if (employee.hireDate) {
     const hireParts = extractDateParts(employee.hireDate);
