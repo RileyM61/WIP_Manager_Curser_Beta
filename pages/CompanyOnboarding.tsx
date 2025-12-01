@@ -237,7 +237,7 @@ const CompanyOnboarding: React.FC = () => {
           </h1>
           <p className="text-white/60 mt-2">
             {step === 1 && 'This helps us customize your experience'}
-            {step === 2 && 'We'll recommend the right tools for your business'}
+            {step === 2 && "We'll recommend the right tools for your business"}
             {step === 3 && 'Choose your preferred way to work with us'}
           </p>
         </div>

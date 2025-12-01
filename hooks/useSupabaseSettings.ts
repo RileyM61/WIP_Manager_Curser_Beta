@@ -94,6 +94,7 @@ export function useSupabaseSettings(companyId?: string | null) {
         capacityPlan,
         companyLogo: data.company_logo || undefined,
         companyId,
+        companyType: data.company_type || 'direct',
       };
 
       setSettings(appSettings);

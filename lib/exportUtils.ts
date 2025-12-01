@@ -1,7 +1,7 @@
 import { Job, CostBreakdown } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { sumBreakdown as sumBreakdownUtil, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from './jobCalculations';
+import { sumBreakdown as sumBreakdownUtil, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../modules/wip/lib/jobCalculations';
 
 /**
  * Sums the labor, material, and other fields of a CostBreakdown

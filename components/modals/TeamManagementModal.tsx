@@ -87,7 +87,7 @@ const TeamManagementModal: React.FC<TeamManagementModalProps> = ({
     if (!confirm(`Are you sure you want to remove ${email} from the team?`)) {
       return;
     }
-    const result = await removeTeamMember(userId);
+    const result = await removeTeamMember(companyId, userId);
     if (result.success) {
       setSuccessMessage(`${email} has been removed from the team`);
       setTimeout(() => setSuccessMessage(null), 5000);

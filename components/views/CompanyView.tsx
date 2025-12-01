@@ -1,6 +1,6 @@
 import React from 'react';
 import { Job, JobStatus, JobsSnapshot, CapacityPlan, CapacityRow } from '../../types';
-import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../../lib/jobCalculations';
+import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit } from '../../modules/wip/lib/jobCalculations';
 
 interface CompanyViewProps {
   jobs: Job[];

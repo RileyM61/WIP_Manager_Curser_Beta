@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType, MobilizationPhase, JobCategory, ProductType, JobComplexity } from '../../types';
 import { XIcon } from '../shared/icons';
 import { CurrencyInput } from '../shared/CurrencyInput';
-import { getDefaultTMSettings, sumBreakdown } from '../../lib/jobCalculations';
+import { getDefaultTMSettings, sumBreakdown } from '../../modules/wip/lib/jobCalculations';
 import InfoTooltip from '../help/InfoTooltip';
 import { helpContent } from '../../lib/helpContent';
 

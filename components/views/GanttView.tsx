@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { Job, JobStatus, MobilizationPhase, CapacityPlan, PRODUCTIVE_DISCIPLINES, StaffingDiscipline } from '../../types';
-import { getMobilizationWarnings } from '../../lib/jobCalculations';
+import { getMobilizationWarnings } from '../../modules/wip/lib/jobCalculations';
 
 interface GanttViewProps {
   jobs: Job[];
@@ -530,7 +530,7 @@ const GanttView: React.FC<GanttViewProps> = ({ jobs, onUpdateJob, onEditJob, cap
   }, [laborHoursByDay, zoomLevel]);
 
   const maxHours = useMemo(() => 
-    Math.max(...Array.from(aggregatedHours.values()).map(v => v.hours), 1),
+    Math.max(...Array.from(aggregatedHours.values()).map((v: { hours: number }) => v.hours), 1),
     [aggregatedHours]
   );
 
