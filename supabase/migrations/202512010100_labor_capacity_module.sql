@@ -23,13 +23,13 @@ ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view departments for their company"
   ON public.departments FOR SELECT
   USING (company_id IN (
-    SELECT company_id FROM public.profiles WHERE id = auth.uid()
+    SELECT company_id FROM public.profiles WHERE user_id = auth.uid()
   ));
 
 CREATE POLICY "Users can manage departments for their company"
   ON public.departments FOR ALL
   USING (company_id IN (
-    SELECT company_id FROM public.profiles WHERE id = auth.uid()
+    SELECT company_id FROM public.profiles WHERE user_id = auth.uid()
   ));
 
 -- ============================================================================
@@ -62,13 +62,13 @@ ALTER TABLE public.employees ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view employees for their company"
   ON public.employees FOR SELECT
   USING (company_id IN (
-    SELECT company_id FROM public.profiles WHERE id = auth.uid()
+    SELECT company_id FROM public.profiles WHERE user_id = auth.uid()
   ));
 
 CREATE POLICY "Users can manage employees for their company"
   ON public.employees FOR ALL
   USING (company_id IN (
-    SELECT company_id FROM public.profiles WHERE id = auth.uid()
+    SELECT company_id FROM public.profiles WHERE user_id = auth.uid()
   ));
 
 -- ============================================================================
@@ -98,7 +98,7 @@ CREATE POLICY "Users can view allocations for their company employees"
   USING (employee_id IN (
     SELECT e.id FROM public.employees e
     JOIN public.profiles p ON e.company_id = p.company_id
-    WHERE p.id = auth.uid()
+    WHERE p.user_id = auth.uid()
   ));
 
 CREATE POLICY "Users can manage allocations for their company employees"
@@ -106,7 +106,7 @@ CREATE POLICY "Users can manage allocations for their company employees"
   USING (employee_id IN (
     SELECT e.id FROM public.employees e
     JOIN public.profiles p ON e.company_id = p.company_id
-    WHERE p.id = auth.uid()
+    WHERE p.user_id = auth.uid()
   ));
 
 -- ============================================================================
@@ -135,13 +135,13 @@ ALTER TABLE public.labor_cost_projections ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view projections for their company"
   ON public.labor_cost_projections FOR SELECT
   USING (company_id IN (
-    SELECT company_id FROM public.profiles WHERE id = auth.uid()
+    SELECT company_id FROM public.profiles WHERE user_id = auth.uid()
   ));
 
 CREATE POLICY "Users can manage projections for their company"
   ON public.labor_cost_projections FOR ALL
   USING (company_id IN (
-    SELECT company_id FROM public.profiles WHERE id = auth.uid()
+    SELECT company_id FROM public.profiles WHERE user_id = auth.uid()
   ));
 
 -- ============================================================================
