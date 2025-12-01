@@ -200,17 +200,36 @@ export function isEmployeeCurrentlyActive(employee: Employee): boolean {
   // If no hire date, assume they're active
   if (!employee.hireDate) return true;
   
+  // Parse the hire date - handle both Date objects and strings
+  let hireDate: Date;
+  if (typeof employee.hireDate === 'string') {
+    // Parse ISO date string (YYYY-MM-DD) to avoid timezone issues
+    const parts = employee.hireDate.split('-');
+    if (parts.length === 3) {
+      hireDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    } else {
+      hireDate = new Date(employee.hireDate);
+    }
+  } else {
+    hireDate = new Date(employee.hireDate);
+  }
+  
+  // Validate the date
+  if (isNaN(hireDate.getTime())) {
+    return true; // Invalid date - assume active
+  }
+  
   // Check if hire date is in the past or today
-  const hireDate = new Date(employee.hireDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  hireDate.setHours(0, 0, 0, 0);
   
   return hireDate <= today;
 }
 
 /**
  * Check if an employee is active during a specific month
- * Accounts for hire date (employee must be hired by the month)
+ * Accounts for hire date (employee must be hired by the start of the month)
  */
 export function isEmployeeActiveInMonth(
   employee: Employee,
@@ -219,17 +238,40 @@ export function isEmployeeActiveInMonth(
 ): boolean {
   if (!employee.isActive) return false;
   
-  // If no hire date, assume they're active
+  // If no hire date, assume they're active for all months
   if (!employee.hireDate) return true;
   
-  // Parse the hire date and get the first of that month
-  const hireDate = new Date(employee.hireDate);
-  const hireYear = hireDate.getFullYear();
-  const hireMonth = hireDate.getMonth();
+  // Parse the hire date - handle both Date objects and strings
+  let hireDate: Date;
+  if (typeof employee.hireDate === 'string') {
+    // Parse ISO date string (YYYY-MM-DD) to avoid timezone issues
+    const parts = employee.hireDate.split('-');
+    if (parts.length === 3) {
+      hireDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    } else {
+      hireDate = new Date(employee.hireDate);
+    }
+  } else {
+    hireDate = new Date(employee.hireDate);
+  }
   
+  // Validate the date
+  if (isNaN(hireDate.getTime())) {
+    // Invalid date - assume they're active
+    return true;
+  }
+  
+  const hireYear = hireDate.getFullYear();
+  const hireMonth = hireDate.getMonth(); // 0-11
+  
+  // Compare year first, then month
   // Employee is active if the target month is >= hire month
-  if (year > hireYear) return true;
-  if (year === hireYear && month >= hireMonth) return true;
+  if (year > hireYear) {
+    return true;
+  }
+  if (year === hireYear && month >= hireMonth) {
+    return true;
+  }
   
   return false;
 }
@@ -251,7 +293,25 @@ export function calculateProratedMonthlyHours(
   
   if (!employee.hireDate) return fullMonthHours;
   
-  const hireDate = new Date(employee.hireDate);
+  // Parse the hire date - handle both Date objects and strings
+  let hireDate: Date;
+  if (typeof employee.hireDate === 'string') {
+    // Parse ISO date string (YYYY-MM-DD) to avoid timezone issues
+    const parts = employee.hireDate.split('-');
+    if (parts.length === 3) {
+      hireDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    } else {
+      hireDate = new Date(employee.hireDate);
+    }
+  } else {
+    hireDate = new Date(employee.hireDate);
+  }
+  
+  // Validate the date
+  if (isNaN(hireDate.getTime())) {
+    return fullMonthHours;
+  }
+  
   const hireYear = hireDate.getFullYear();
   const hireMonth = hireDate.getMonth();
   
@@ -265,10 +325,8 @@ export function calculateProratedMonthlyHours(
     const hireDay = hireDate.getDate();
     const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
     const daysWorking = lastDayOfMonth - hireDay + 1;
-    const workingDays = getWorkingDaysInMonth(year, month);
     
-    // Calculate what fraction of working days they're available
-    // Simple approximation: (days remaining / total days) * working days
+    // Calculate what fraction of the month they're available
     const fractionOfMonth = daysWorking / lastDayOfMonth;
     return fullMonthHours * fractionOfMonth;
   }
