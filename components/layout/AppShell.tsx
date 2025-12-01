@@ -20,15 +20,12 @@ const AppShell: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mx-auto animate-pulse">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-orange-300">ChainLink CFO</p>
-            <p className="text-lg text-white/80 mt-1">Preparing your workspace...</p>
-          </div>
+          <img 
+            src="/images/chainlink-cfo-logo.png" 
+            alt="ChainLink CFO" 
+            className="h-20 w-auto mx-auto animate-pulse"
+          />
+          <p className="text-lg text-white/80">Preparing your workspace...</p>
         </div>
       </div>
     );

@@ -109,11 +109,11 @@ const ModuleDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-            </svg>
-          </div>
+          <img 
+            src="/images/chainlink-cfo-logo.png" 
+            alt="ChainLink CFO" 
+            className="h-16 w-auto mx-auto mb-4 animate-pulse"
+          />
           <p className="text-gray-600 dark:text-gray-400">Loading your modules...</p>
         </div>
       </div>
@@ -139,20 +139,17 @@ const ModuleDashboard: React.FC = () => {
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                ChainLink<span className="text-orange-500">CFO</span>
-              </h1>
-              {settings?.companyName && (
+          <div className="flex items-center gap-4">
+            <img 
+              src="/images/chainlink-cfo-logo.png" 
+              alt="ChainLink CFO" 
+              className="h-12 w-auto"
+            />
+            {settings?.companyName && (
+              <div className="border-l border-gray-200 dark:border-gray-700 pl-4">
                 <p className="text-sm text-gray-500 dark:text-gray-400">{settings.companyName}</p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">

@@ -226,6 +226,11 @@ const CompanyOnboarding: React.FC = () => {
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
+          <img 
+            src="/images/chainlink-cfo-logo.png" 
+            alt="ChainLink CFO" 
+            className="h-20 w-auto mx-auto mb-6"
+          />
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4">
             <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
             <span className="text-sm text-orange-300 font-medium">Step {step} of 3</span>

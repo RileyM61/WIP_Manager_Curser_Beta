@@ -253,16 +253,11 @@ const ChainLinkCFOLanding: React.FC = () => {
           {/* Navigation */}
           <nav className="absolute top-6 left-6 right-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                </div>
-                <span className="text-xl font-bold text-white">
-                  ChainLink<span className="text-orange-400">CFO</span>
-                </span>
-              </div>
+              <img 
+                src="/images/chainlink-cfo-logo.png" 
+                alt="ChainLink CFO" 
+                className="h-12 w-auto"
+              />
             </div>
             <div className="flex items-center gap-6">
               <a href="#modules" className="text-slate-300 hover:text-white transition-colors hidden sm:block">
