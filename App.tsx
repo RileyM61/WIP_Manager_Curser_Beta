@@ -11,6 +11,7 @@ import AppShell from './components/layout/AppShell';
 import WIPManagerApp from './WIPManagerApp';
 import { AuthProvider } from './context/AuthContext';
 import { DiscoveryPage } from './modules/discovery';
+import { LaborCapacityPage } from './modules/labor-capacity';
 
 /**
  * Main App Router
@@ -62,10 +63,12 @@ function App() {
             {/* Discovery Module - Executive Interviews */}
             <Route path="discovery/*" element={<DiscoveryPage />} />
             
+            {/* Labor Capacity Module */}
+            <Route path="capacity/*" element={<LaborCapacityPage />} />
+            
             {/* Future Modules - Placeholder routes */}
             {/* These will show "Coming Soon" via the dashboard for now */}
             <Route path="forecasting/*" element={<ComingSoonModule moduleName="Cash Flow Forecasting" />} />
-            <Route path="capacity/*" element={<ComingSoonModule moduleName="Labor Capacity Planning" />} />
             <Route path="budget/*" element={<ComingSoonModule moduleName="Budget vs Actual" />} />
             <Route path="jcurve/*" element={<ComingSoonModule moduleName="J-Curve Investment Analysis" />} />
             <Route path="ar/*" element={<ComingSoonModule moduleName="AR & Collections" />} />
