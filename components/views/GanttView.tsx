@@ -935,10 +935,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                           title={tooltipLines}
                         >
                           <span className="text-[10px] font-bold text-white drop-shadow-md">
-                            {capacityPercent !== null 
-                              ? `${Math.round(capacityPercent)}%`
-                              : (hours >= 1000 ? `${(hours / 1000).toFixed(1)}k` : Math.round(hours))
-                            }
+                            {hours >= 1000 ? `${(hours / 1000).toFixed(1)}k` : Math.round(hours)}
                           </span>
                         </div>
                       )}
