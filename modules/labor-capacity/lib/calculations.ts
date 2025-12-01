@@ -302,11 +302,6 @@ export function isEmployeeActiveInMonth(
   // Convert JS month (0-11) to calendar month (1-12) and create YYYYMM
   const targetYM = toYearMonth(year, month + 1);
   
-  // DEBUG: Log all employee data for troubleshooting
-  if (targetYM === 202607 || targetYM === 202608) { // July or August 2026
-    console.log(`[ACTIVE CHECK] ${employee.name} for ${targetYM}: terminationDate="${employee.terminationDate}", hireDate="${employee.hireDate}"`);
-  }
-  
   // Check hire date - employee must be hired by this month or earlier
   if (employee.hireDate) {
     const hireParts = extractDateParts(employee.hireDate);
@@ -325,12 +320,8 @@ export function isEmployeeActiveInMonth(
     if (termParts) {
       const termYM = toYearMonth(termParts.year, termParts.month);
       
-      // DEBUG: Log the comparison (remove after debugging)
-      console.log(`[DEBUG] ${employee.name}: targetYM=${targetYM}, termYM=${termYM}, termDate=${employee.terminationDate}, termParts=`, termParts);
-      
       // Target month is AFTER termination month - already gone
       if (targetYM > termYM) {
-        console.log(`[DEBUG] ${employee.name}: EXCLUDED from ${targetYM} (after termYM ${termYM})`);
         return false;
       }
     }
@@ -390,11 +381,6 @@ export function calculateProratedMonthlyHours(
     if (termParts) {
       const termYM = toYearMonth(termParts.year, termParts.month);
       
-      // DEBUG: Log proration check
-      if (targetYM >= 202607 && targetYM <= 202609) {
-        console.log(`[PRORATE] ${employee.name} for ${targetYM}: termYM=${termYM}, check=${targetYM > termYM ? 'EXCLUDE' : 'INCLUDE'}`);
-      }
-      
       // Already terminated before this month - no hours
       if (targetYM > termYM) {
         return 0;
@@ -403,7 +389,6 @@ export function calculateProratedMonthlyHours(
       // Terminated this exact month - end on termination day (inclusive)
       if (targetYM === termYM) {
         endDay = termParts.day;
-        console.log(`[PRORATE] ${employee.name}: termination month! endDay=${endDay}`);
       }
       // If terminated after this month, endDay stays at lastDayOfMonth (full month end)
     }
@@ -412,14 +397,8 @@ export function calculateProratedMonthlyHours(
   // Calculate prorated fraction
   const daysWorking = Math.max(0, endDay - startDay + 1);
   const fractionOfMonth = daysWorking / lastDayOfMonth;
-  const result = fullMonthHours * fractionOfMonth;
   
-  // DEBUG: Log result for July-Sep 2026
-  if (targetYM >= 202607 && targetYM <= 202609) {
-    console.log(`[PRORATE RESULT] ${employee.name} for ${targetYM}: startDay=${startDay}, endDay=${endDay}, days=${daysWorking}, fraction=${fractionOfMonth.toFixed(2)}, hours=${result.toFixed(1)}`);
-  }
-  
-  return result;
+  return fullMonthHours * fractionOfMonth;
 }
 
 /**
