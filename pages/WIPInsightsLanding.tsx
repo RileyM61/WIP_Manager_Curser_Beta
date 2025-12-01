@@ -415,40 +415,40 @@ const WIPInsightsLanding: React.FC = () => {
 
   const plans = [
     {
-      name: 'Essential',
-      price: '$99',
-      period: '/month',
-      description: 'For small contractors getting off Excel',
+      name: 'Free',
+      price: '$0',
+      period: '/forever',
+      description: 'Try WIP tracking at no cost',
       features: [
-        'Unlimited jobs',
+        '1 user included',
+        'Up to 5 active projects',
         'Basic WIP calculations',
         'Over/under billing analysis',
-        'CSV export',
-        'Unlimited users',
         'Real-time job tracking',
+        'CSV export',
       ],
-      cta: 'Start Free Trial',
+      cta: 'Get Started Free',
       popular: false,
       badge: null,
     },
     {
-      name: 'Professional',
-      price: '$199',
+      name: 'Pro',
+      price: '$49',
       period: '/month',
-      description: 'For growing GCs who need financial clarity',
+      description: 'For contractors who need full visibility',
       features: [
-        'Everything in Essential',
+        'Unlimited users',
+        'Unlimited projects',
         'Advanced WIP (component-level)',
         'Time & Material job support',
         'Company-wide dashboards',
-        'PDF reports',
+        'PDF reports & CSV export',
         'Role-based access',
         'Profit margin tracking',
       ],
       cta: 'Start Free Trial',
       popular: true,
       badge: 'Most Popular',
-      foundersRate: '$99/month for first 20 customers',
     },
     {
       name: 'Controller',
@@ -456,7 +456,7 @@ const WIPInsightsLanding: React.FC = () => {
       period: '/month',
       description: 'For larger firms with complex needs',
       features: [
-        'Everything in Professional',
+        'Everything in Pro',
         'Priority support',
         'Future: PO integration',
         'Future: QuickBooks sync',
@@ -580,7 +580,7 @@ const WIPInsightsLanding: React.FC = () => {
                   className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
                   style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}
                 >
-                  Start 7-Day Free Trial
+                  Start Free — No Credit Card
                   <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
                 <a
@@ -604,7 +604,7 @@ const WIPInsightsLanding: React.FC = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span>7-day free trial</span>
+                  <span>Free plan available</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
@@ -756,13 +756,13 @@ const WIPInsightsLanding: React.FC = () => {
               Simple Pricing, Serious Results
             </h2>
             <p className="mt-4 text-lg text-slate-600">
-              Start with a 7-day free trial. No credit card required.
+              Start free, upgrade when you're ready. No credit card required.
             </p>
-            <div className="mt-6 inline-flex items-center gap-3 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl px-6 py-3">
-              <span className="text-2xl">🎯</span>
+            <div className="mt-6 inline-flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl px-6 py-3">
+              <span className="text-2xl">🚀</span>
               <div>
-                <p className="text-sm font-semibold text-slate-900">Founder's Rate Available</p>
-                <p className="text-xs text-slate-600">First 20 customers get Professional tier at $99/month forever</p>
+                <p className="text-sm font-semibold text-slate-900">Free Forever Plan</p>
+                <p className="text-xs text-slate-600">Get started with 5 projects at no cost — upgrade to Pro for unlimited</p>
               </div>
             </div>
           </div>
@@ -891,13 +891,13 @@ const WIPInsightsLanding: React.FC = () => {
               onClick={handleGetStarted}
               className="group relative px-10 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-lg rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
             >
-              Start Free Trial
+              Get Started Free
               <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           </div>
 
           <p className="mt-6 text-slate-400 text-sm">
-            7-day free trial • No credit card required • Cancel anytime
+            Free forever plan • No credit card required • Upgrade anytime
           </p>
         </div>
       </section>
