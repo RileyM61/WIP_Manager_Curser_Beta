@@ -666,8 +666,15 @@ const GanttView: React.FC<GanttViewProps> = ({
             className="flex items-center px-4 border-t-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/50"
             style={{ height: 60 }}
           >
-            <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-              Labor Hrs
+            <div className="flex flex-col">
+              <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
+                Labor Hrs
+              </div>
+              {weeklyCapacity && weeklyCapacity > 0 && (
+                <div className={`text-[10px] font-medium ${laborCapacityEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                  {Math.round(weeklyCapacity).toLocaleString()} hrs/wk
+                </div>
+              )}
             </div>
           </div>
         </div>
