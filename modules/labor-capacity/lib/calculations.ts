@@ -415,11 +415,19 @@ export function generateMonthlyProjections(
   const startYear = now.getFullYear();
   const startMonth = now.getMonth();
 
+  // DEBUG: Log employees with termination dates
+  console.log('[PROJECTION DEBUG] All employees:', employees.map(e => ({
+    name: e.name,
+    termDate: e.terminationDate,
+    isActive: e.isActive
+  })));
+
   for (let i = 0; i < monthsAhead; i++) {
     const targetDate = new Date(startYear, startMonth + i, 1);
     const year = targetDate.getFullYear();
     const month = targetDate.getMonth();
     const monthStr = targetDate.toISOString().slice(0, 10);
+    const monthLabel = `${year}-${String(month + 1).padStart(2, '0')}`;
 
     const departmentData: MonthlyProjection['departments'] = [];
     let totalHours = 0;
@@ -434,6 +442,19 @@ export function generateMonthlyProjections(
       const deptEmployees = employees.filter(e => 
         employeeIds.has(e.id) && isEmployeeActiveInMonth(e, year, month)
       );
+
+      // DEBUG: For July and August 2026, log which employees are included
+      if (year === 2026 && (month === 6 || month === 7)) {
+        const allDeptEmps = employees.filter(e => employeeIds.has(e.id));
+        console.log(`[DEPT ${dept.name}] Month ${monthLabel}:`);
+        allDeptEmps.forEach(e => {
+          const isActive = isEmployeeActiveInMonth(e, year, month);
+          const termParts = e.terminationDate ? extractDatePartsExport(e.terminationDate) : null;
+          const termYM = termParts ? termParts.year * 100 + termParts.month : null;
+          const targetYM = year * 100 + (month + 1);
+          console.log(`  - ${e.name}: isActive=${isActive}, termDate=${e.terminationDate}, termYM=${termYM}, targetYM=${targetYM}`);
+        });
+      }
 
       let deptHours = 0;
       let deptCost = 0;
@@ -450,6 +471,11 @@ export function generateMonthlyProjections(
           employee.hourlyRate,
           employee.burdenMultiplier
         );
+
+        // DEBUG: For July/August 2026, log each employee's contribution
+        if (year === 2026 && (month === 6 || month === 7)) {
+          console.log(`  [CALC] ${employee.name} in ${monthLabel}: hours=${monthlyHours.toFixed(1)}, cost=${(monthlyHours * allocationFactor * loadedRate).toFixed(0)}`);
+        }
 
         deptHours += monthlyHours * allocationFactor;
         deptCost += monthlyHours * allocationFactor * loadedRate;
@@ -478,6 +504,11 @@ export function generateMonthlyProjections(
   }
 
   return projections;
+}
+
+// Export extractDateParts for debugging
+export function extractDatePartsExport(dateStr: string | null): { year: number; month: number; day: number } | null {
+  return extractDateParts(dateStr);
 }
 
 /**
