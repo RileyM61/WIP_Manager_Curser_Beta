@@ -17,6 +17,17 @@ const CostProjectionChart: React.FC<CostProjectionChartProps> = ({
   departments,
   showHours = false,
 }) => {
+  // DEBUG: Log what projections the chart receives
+  console.log('[CHART RECEIVED] Projections for Jul/Aug 2026:', 
+    projections
+      .filter(p => p.month.includes('2026-07') || p.month.includes('2026-08'))
+      .map(p => ({
+        month: p.month,
+        totalCost: p.totalCost,
+        depts: p.departments.map(d => ({ name: d.departmentName, cost: d.cost }))
+      }))
+  );
+
   // Create a lookup for department productivity
   const deptProductivityMap = useMemo(() => {
     const map = new Map<string, boolean>();
