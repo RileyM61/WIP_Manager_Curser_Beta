@@ -193,18 +193,41 @@ export function calculateDepartmentSummary(
 
 /**
  * Parse a date string safely (handles YYYY-MM-DD format to avoid timezone issues)
+ * Always returns a date at midnight LOCAL time
  */
 function parseDate(dateStr: string | null): Date | null {
   if (!dateStr) return null;
+  if (typeof dateStr !== 'string') return null;
   
-  if (typeof dateStr === 'string') {
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      if (!isNaN(date.getTime())) return date;
+  // Try YYYY-MM-DD format first (ISO date without time)
+  const isoMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    const year = parseInt(isoMatch[1], 10);
+    const month = parseInt(isoMatch[2], 10) - 1; // JS months are 0-indexed
+    const day = parseInt(isoMatch[3], 10);
+    const date = new Date(year, month, day);
+    if (!isNaN(date.getTime())) {
+      return date;
     }
-    const fallback = new Date(dateStr);
-    if (!isNaN(fallback.getTime())) return fallback;
+  }
+  
+  // Try MM/DD/YYYY format (US format)
+  const usMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (usMatch) {
+    const month = parseInt(usMatch[1], 10) - 1;
+    const day = parseInt(usMatch[2], 10);
+    const year = parseInt(usMatch[3], 10);
+    const date = new Date(year, month, day);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  
+  // Fallback: let JavaScript parse it, but normalize to local midnight
+  const fallback = new Date(dateStr);
+  if (!isNaN(fallback.getTime())) {
+    // Normalize to local midnight to avoid timezone issues
+    return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate());
   }
   
   return null;
@@ -247,7 +270,8 @@ export function isEmployeeCurrentlyActive(employee: Employee): boolean {
  * Rules:
  * - Employee is active starting from their hire month (inclusive)
  * - Employee is active up to and including their termination month
- * - Example: Hired Jan 15, Terminated Mar 20 → Active in Jan, Feb, Mar (with proration)
+ * - Termination date = LAST day of employment, they work that full day/month
+ * - Example: Hired Jan 15, Terminated Aug 1 → Active in Jan-Aug (Aug prorated to 1 day)
  */
 export function isEmployeeActiveInMonth(
   employee: Employee,
@@ -256,30 +280,31 @@ export function isEmployeeActiveInMonth(
 ): boolean {
   if (!employee.isActive) return false;
   
-  // Convert target month to a comparable number (YYYYMM)
-  const targetMonthNum = year * 12 + month;
-  
   // Check hire date - employee must be hired by this month or earlier
   if (employee.hireDate) {
     const hireDate = parseDate(employee.hireDate);
     if (hireDate) {
-      const hireMonthNum = hireDate.getFullYear() * 12 + hireDate.getMonth();
+      const hireYear = hireDate.getFullYear();
+      const hireMonth = hireDate.getMonth();
       
       // Target month is before hire month - not yet hired
-      if (targetMonthNum < hireMonthNum) {
+      if (year < hireYear || (year === hireYear && month < hireMonth)) {
         return false;
       }
     }
   }
   
   // Check termination date - employee works through their termination month
+  // Termination date is the LAST day they work
   if (employee.terminationDate) {
     const termDate = parseDate(employee.terminationDate);
     if (termDate) {
-      const termMonthNum = termDate.getFullYear() * 12 + termDate.getMonth();
+      const termYear = termDate.getFullYear();
+      const termMonth = termDate.getMonth();
       
-      // Target month is after termination month - already gone
-      if (targetMonthNum > termMonthNum) {
+      // Target month is AFTER termination month - already gone
+      // They work the termination month (prorated), but not months after
+      if (year > termYear || (year === termYear && month > termMonth)) {
         return false;
       }
     }
@@ -293,7 +318,7 @@ export function isEmployeeActiveInMonth(
  * 
  * Rules:
  * - If hired mid-month, prorate from hire day to end of month
- * - If terminated mid-month, prorate from start of month to termination day
+ * - If terminated mid-month, prorate from start of month to termination day (inclusive)
  * - If both apply in same month, prorate from hire day to termination day
  */
 export function calculateProratedMonthlyHours(
@@ -309,7 +334,6 @@ export function calculateProratedMonthlyHours(
   );
   
   const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
-  const targetMonthNum = year * 12 + month;
   
   let startDay = 1;
   let endDay = lastDayOfMonth;
@@ -318,15 +342,16 @@ export function calculateProratedMonthlyHours(
   if (employee.hireDate) {
     const hireDate = parseDate(employee.hireDate);
     if (hireDate) {
-      const hireMonthNum = hireDate.getFullYear() * 12 + hireDate.getMonth();
+      const hireYear = hireDate.getFullYear();
+      const hireMonth = hireDate.getMonth();
       
       // Not yet hired in this month - no hours
-      if (targetMonthNum < hireMonthNum) {
+      if (year < hireYear || (year === hireYear && month < hireMonth)) {
         return 0;
       }
       
       // Hired this exact month - start from hire day
-      if (targetMonthNum === hireMonthNum) {
+      if (year === hireYear && month === hireMonth) {
         startDay = hireDate.getDate();
       }
       // If hired before this month, startDay stays at 1 (full month start)
@@ -337,15 +362,16 @@ export function calculateProratedMonthlyHours(
   if (employee.terminationDate) {
     const termDate = parseDate(employee.terminationDate);
     if (termDate) {
-      const termMonthNum = termDate.getFullYear() * 12 + termDate.getMonth();
+      const termYear = termDate.getFullYear();
+      const termMonth = termDate.getMonth();
       
       // Already terminated before this month - no hours
-      if (targetMonthNum > termMonthNum) {
+      if (year > termYear || (year === termYear && month > termMonth)) {
         return 0;
       }
       
-      // Terminated this exact month - end on termination day
-      if (targetMonthNum === termMonthNum) {
+      // Terminated this exact month - end on termination day (inclusive)
+      if (year === termYear && month === termMonth) {
         endDay = termDate.getDate();
       }
       // If terminated after this month, endDay stays at lastDayOfMonth (full month end)
