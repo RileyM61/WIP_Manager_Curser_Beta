@@ -12,6 +12,12 @@ export * from './types';
 // Templates
 export * from './templates';
 
+// Hooks
+export * from './hooks';
+
+// Components
+export * from './components';
+
 // Module metadata
 export const DISCOVERY_MODULE = {
   id: 'discovery' as const,

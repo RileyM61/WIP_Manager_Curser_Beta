@@ -10,6 +10,7 @@ import ModuleDashboard from './pages/ModuleDashboard';
 import AppShell from './components/layout/AppShell';
 import WIPManagerApp from './WIPManagerApp';
 import { AuthProvider } from './context/AuthContext';
+import { DiscoveryPage } from './modules/discovery';
 
 /**
  * Main App Router
@@ -57,6 +58,9 @@ function App() {
             
             {/* WIP Module */}
             <Route path="wip/*" element={<WIPManagerApp />} />
+            
+            {/* Discovery Module - Executive Interviews */}
+            <Route path="discovery/*" element={<DiscoveryPage />} />
             
             {/* Future Modules - Placeholder routes */}
             {/* These will show "Coming Soon" via the dashboard for now */}
