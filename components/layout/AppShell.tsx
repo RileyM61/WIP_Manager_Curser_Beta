@@ -23,7 +23,7 @@ const AppShell: React.FC = () => {
           <img 
             src="/images/chainlink-cfo-logo.png" 
             alt="ChainLink CFO" 
-            className="h-20 w-auto mx-auto animate-pulse"
+            className="h-40 w-auto mx-auto animate-pulse"
           />
           <p className="text-lg text-white/80">Preparing your workspace...</p>
         </div>

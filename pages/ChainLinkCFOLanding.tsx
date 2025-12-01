@@ -256,7 +256,7 @@ const ChainLinkCFOLanding: React.FC = () => {
               <img 
                 src="/images/chainlink-cfo-logo.png" 
                 alt="ChainLink CFO" 
-                className="h-12 w-auto"
+                className="h-24 w-auto"
               />
             </div>
             <div className="flex items-center gap-6">
