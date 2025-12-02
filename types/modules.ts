@@ -13,6 +13,7 @@ export type ModuleId =
   | 'wip'           // WIP Manager (core) - Always available
   | 'forecasting'   // Cash Flow Forecasting
   | 'capacity'      // Labor Capacity Planning (detailed)
+  | 'value-builder' // Business Valuation & Scenario Modeling
   | 'jcurve'        // J-Curve Investment Analysis
   | 'ar'            // Accounts Receivable / Collections
   | 'budget'        // Budget vs Actual Analysis
@@ -66,6 +67,16 @@ export const MODULES: Record<ModuleId, ModuleConfig> = {
     requiredTier: 'professional',
     comingSoon: false,
     routes: ['dashboard', 'employees', 'departments'],
+  },
+  'value-builder': {
+    id: 'value-builder',
+    name: 'Value Builder',
+    shortName: 'Value',
+    description: 'Business valuation scenarios, EBITDA modeling, and value tracking over time',
+    icon: '💎',
+    requiredTier: 'professional',
+    comingSoon: false,
+    routes: ['dashboard', 'scenarios', 'compare'],
   },
   budget: {
     id: 'budget',
@@ -163,9 +174,9 @@ export const MODULES: Record<ModuleId, ModuleConfig> = {
 export const TIER_MODULES: Record<SubscriptionTier, ModuleId[]> = {
   trial: ['wip'],
   starter: ['wip'],
-  professional: ['wip', 'forecasting', 'capacity', 'budget'],
-  enterprise: ['wip', 'forecasting', 'capacity', 'budget', 'jcurve', 'ar', 'covenant', 'profitability'],
-  'cfo-suite': ['wip', 'forecasting', 'capacity', 'budget', 'jcurve', 'ar', 'covenant', 'profitability', 'bidnobid', 'scenarios', 'reporting', 'discovery'],
+  professional: ['wip', 'forecasting', 'capacity', 'value-builder', 'budget'],
+  enterprise: ['wip', 'forecasting', 'capacity', 'value-builder', 'budget', 'jcurve', 'ar', 'covenant', 'profitability'],
+  'cfo-suite': ['wip', 'forecasting', 'capacity', 'value-builder', 'budget', 'jcurve', 'ar', 'covenant', 'profitability', 'bidnobid', 'scenarios', 'reporting', 'discovery'],
 };
 
 // Human-readable tier names for UI

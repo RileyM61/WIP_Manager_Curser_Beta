@@ -12,6 +12,7 @@ import WIPManagerApp from './WIPManagerApp';
 import { AuthProvider } from './context/AuthContext';
 import { DiscoveryPage } from './modules/discovery';
 import { LaborCapacityPage } from './modules/labor-capacity';
+import { ValueBuilderPage } from './modules/value-builder';
 
 /**
  * Main App Router
@@ -65,6 +66,9 @@ function App() {
             
             {/* Labor Capacity Module */}
             <Route path="capacity/*" element={<LaborCapacityPage />} />
+            
+            {/* Value Builder Module */}
+            <Route path="value-builder/*" element={<ValueBuilderPage />} />
             
             {/* Future Modules - Placeholder routes */}
             {/* These will show "Coming Soon" via the dashboard for now */}
