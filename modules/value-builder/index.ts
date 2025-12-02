@@ -9,10 +9,12 @@ export { default as ScenarioList } from './components/ScenarioList';
 export { default as ScenarioForm } from './components/ScenarioForm';
 export { default as ScenarioComparison } from './components/ScenarioComparison';
 export { default as ValueTrendChart } from './components/ValueTrendChart';
+export { default as ValueDriverQuestionnaire } from './components/ValueDriverQuestionnaire';
 
 // Hooks
 export { useValuations } from './hooks/useValuations';
 export { useValueHistory } from './hooks/useValueHistory';
+export { useValueDriverAssessment } from './hooks/useValueDriverAssessment';
 
 // Types
 export * from './types';
@@ -22,4 +24,8 @@ export * from './constants';
 
 // Calculations
 export * from './lib/calculations';
+
+// Questionnaire & Strategic Actions
+export * from './lib/questionnaire';
+export * from './lib/strategicActions';
 

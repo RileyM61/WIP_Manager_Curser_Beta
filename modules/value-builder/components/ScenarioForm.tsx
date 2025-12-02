@@ -3,9 +3,13 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useAuth } from '../../../context/AuthContext';
 import { Valuation, ValuationFormData } from '../types';
 import { DEFAULT_VALUATION, ADDBACK_CATEGORIES, getMultipleDescription, getSuggestedMultiple, MULTIPLE_CONFIG } from '../constants';
 import { calculateValuation, formatCurrency, formatNumber } from '../lib/calculations';
+import ValueDriverQuestionnaire from './ValueDriverQuestionnaire';
+import { QuestionnaireAnswers, calculateAdjustedMultipleRange } from '../lib/questionnaire';
+import { useValueDriverAssessment } from '../hooks/useValueDriverAssessment';
 
 interface ScenarioFormProps {
   valuation: Valuation | null;
@@ -18,6 +22,9 @@ const ScenarioForm: React.FC<ScenarioFormProps> = ({
   onSubmit,
   onClose,
 }) => {
+  const { companyId } = useAuth();
+  const { assessment } = useValueDriverAssessment(companyId ?? undefined);
+  
   const [formData, setFormData] = useState<ValuationFormData>(() => {
     if (valuation) {
       return {
@@ -55,8 +62,19 @@ const ScenarioForm: React.FC<ScenarioFormProps> = ({
     onSubmit(formData);
   };
 
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+
   const handleChange = (field: keyof ValuationFormData, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleQuestionnaireComplete = (
+    answers: QuestionnaireAnswers,
+    adjustedRange: ReturnType<typeof calculateAdjustedMultipleRange>
+  ) => {
+    // Auto-adjust multiple to mid-point of adjusted range
+    handleChange('multiple', adjustedRange.mid);
+    setShowQuestionnaire(false);
   };
 
   return (
@@ -169,6 +187,20 @@ const ScenarioForm: React.FC<ScenarioFormProps> = ({
                         </span>
                       </p>
                     </div>
+                  )}
+
+                  {/* Questionnaire Button */}
+                  {formData.annualRevenue > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowQuestionnaire(true)}
+                      className="mt-3 w-full px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Refine Multiple with Value Driver Questionnaire
+                    </button>
                   )}
                 </div>
 
@@ -295,6 +327,21 @@ const ScenarioForm: React.FC<ScenarioFormProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Questionnaire Modal */}
+      {showQuestionnaire && (
+        <div className="fixed inset-0 bg-black/80 z-[60] flex items-start justify-center p-4 overflow-y-auto">
+          <div className="w-full max-w-6xl my-8">
+            <ValueDriverQuestionnaire
+              annualRevenue={formData.annualRevenue}
+              currentMultiple={formData.multiple}
+              onComplete={handleQuestionnaireComplete}
+              onCancel={() => setShowQuestionnaire(false)}
+              previousAnswers={assessment?.answers}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
