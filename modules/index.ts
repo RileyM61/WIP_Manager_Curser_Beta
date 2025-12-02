@@ -14,7 +14,6 @@ export * from './discovery';
 export { FORECASTING_MODULE } from './forecasting';
 export { CAPACITY_MODULE } from './capacity';
 export { JCURVE_MODULE } from './jcurve';
-export { AR_MODULE } from './ar';
 export { BUDGET_MODULE } from './budget';
 export { COVENANT_MODULE } from './covenant';
 export { PROFITABILITY_MODULE } from './profitability';

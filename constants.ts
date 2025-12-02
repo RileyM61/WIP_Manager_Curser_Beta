@@ -27,7 +27,6 @@ export const ROUTES = {
   capacity: '/app/capacity',
   budget: '/app/budget',
   jcurve: '/app/jcurve',
-  ar: '/app/ar',
   covenant: '/app/covenant',
   profitability: '/app/profitability',
   bidnobid: '/app/bidnobid',

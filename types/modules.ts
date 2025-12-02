@@ -15,7 +15,6 @@ export type ModuleId =
   | 'capacity'      // Labor Capacity Planning (detailed)
   | 'value-builder' // Business Valuation & Scenario Modeling
   | 'jcurve'        // J-Curve Investment Analysis
-  | 'ar'            // Accounts Receivable / Collections
   | 'budget'        // Budget vs Actual Analysis
   | 'covenant'      // Banking & Covenant Compliance
   | 'profitability' // Profitability Analytics
@@ -98,16 +97,6 @@ export const MODULES: Record<ModuleId, ModuleConfig> = {
     comingSoon: true,
     routes: ['jcurve', 'investment-modeling'],
   },
-  ar: {
-    id: 'ar',
-    name: 'AR & Collections',
-    shortName: 'AR',
-    description: 'Accounts receivable aging, collection probability scoring, and cash timing',
-    icon: '💵',
-    requiredTier: 'enterprise',
-    comingSoon: true,
-    routes: ['aging', 'collections', 'payment-patterns'],
-  },
   covenant: {
     id: 'covenant',
     name: 'Covenant Compliance',
@@ -175,8 +164,8 @@ export const TIER_MODULES: Record<SubscriptionTier, ModuleId[]> = {
   trial: ['wip'],
   starter: ['wip'],
   professional: ['wip', 'forecasting', 'capacity', 'value-builder', 'budget'],
-  enterprise: ['wip', 'forecasting', 'capacity', 'value-builder', 'budget', 'jcurve', 'ar', 'covenant', 'profitability'],
-  'cfo-suite': ['wip', 'forecasting', 'capacity', 'value-builder', 'budget', 'jcurve', 'ar', 'covenant', 'profitability', 'bidnobid', 'scenarios', 'reporting', 'discovery'],
+  enterprise: ['wip', 'forecasting', 'capacity', 'value-builder', 'budget', 'jcurve', 'covenant', 'profitability'],
+  'cfo-suite': ['wip', 'forecasting', 'capacity', 'value-builder', 'budget', 'jcurve', 'covenant', 'profitability', 'bidnobid', 'scenarios', 'reporting', 'discovery'],
 };
 
 // Human-readable tier names for UI

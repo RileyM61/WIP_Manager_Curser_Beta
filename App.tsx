@@ -75,7 +75,6 @@ function App() {
             <Route path="forecasting/*" element={<ComingSoonModule moduleName="Cash Flow Forecasting" />} />
             <Route path="budget/*" element={<ComingSoonModule moduleName="Budget vs Actual" />} />
             <Route path="jcurve/*" element={<ComingSoonModule moduleName="J-Curve Investment Analysis" />} />
-            <Route path="ar/*" element={<ComingSoonModule moduleName="AR & Collections" />} />
             <Route path="covenant/*" element={<ComingSoonModule moduleName="Covenant Compliance" />} />
             <Route path="profitability/*" element={<ComingSoonModule moduleName="Profitability Analytics" />} />
             <Route path="bidnobid/*" element={<ComingSoonModule moduleName="Bid/No-Bid Decisions" />} />
