@@ -87,3 +87,33 @@ export interface ValueSummary {
   } | null;
 }
 
+// Value Driver Assessment Types
+import { QuestionnaireAnswers, ValueDriverScore, ValueDriverCategory } from './lib/questionnaire';
+
+export interface ValueDriverAssessment {
+  id: string;
+  companyId: string;
+  valuationId: string | null; // Link to specific valuation if applicable
+  answers: QuestionnaireAnswers;
+  scores: ValueDriverScore[];
+  overallScore: number; // Aggregate score (-2 to +2)
+  strengths: ValueDriverCategory[]; // Top 3 categories
+  weaknesses: ValueDriverCategory[]; // Bottom 3 categories
+  recommendations: StrategicRecommendation[]; // Generated recommendations
+  completedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StrategicRecommendation {
+  category: ValueDriverCategory;
+  priority: 'high' | 'medium' | 'low';
+  currentScore: number;
+  targetScore: number;
+  potentialValueImpact: number; // Estimated multiple increase if addressed
+  actionItems: string[];
+  estimatedCost: number | null;
+  estimatedTimeline: string;
+  roi: number | null; // Return on investment (value increase / cost)
+}
+
