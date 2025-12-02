@@ -139,7 +139,7 @@ const ChainLinkCFOLanding: React.FC = () => {
 
   // Module order for display
   const moduleOrder: ModuleId[] = [
-    'wip', 'forecasting', 'capacity', 'budget', 'ar', 'covenant',
+    'wip', 'forecasting', 'capacity', 'budget', 'covenant',
     'profitability', 'jcurve', 'bidnobid', 'scenarios', 'reporting'
   ];
 
@@ -178,7 +178,6 @@ const ChainLinkCFOLanding: React.FC = () => {
       description: 'For established contractors with complex needs',
       features: [
         'Everything in Professional',
-        'AR & Collections management',
         'Covenant Compliance tracking',
         'Profitability Analytics',
         'J-Curve Investment Analysis',

@@ -31,7 +31,6 @@ const AddClientCompanyModal: React.FC<AddClientCompanyModalProps> = ({
     { id: 'capacity', name: 'Labor Capacity', icon: '👷' },
     { id: 'budget', name: 'Budget vs Actual', icon: '📋' },
     { id: 'jcurve', name: 'J-Curve Analysis', icon: '💰' },
-    { id: 'ar', name: 'AR & Collections', icon: '💵' },
     { id: 'covenant', name: 'Covenant Compliance', icon: '🏦' },
     { id: 'profitability', name: 'Profitability Analytics', icon: '📊' },
     { id: 'bidnobid', name: 'Bid/No-Bid Decisions', icon: '🎯' },
