@@ -29,7 +29,7 @@ const AddClientCompanyModal: React.FC<AddClientCompanyModalProps> = ({
     { id: 'wip', name: 'WIP Manager', icon: '📊' },
     { id: 'forecasting', name: 'Cash Flow Forecasting', icon: '📈' },
     { id: 'capacity', name: 'Labor Capacity', icon: '👷' },
-    { id: 'budget', name: 'Budget vs Actual', icon: '📋' },
+    { id: 'budget', name: 'Forecast vs Actuals', icon: '📋' },
     { id: 'jcurve', name: 'J-Curve Analysis', icon: '💰' },
     { id: 'covenant', name: 'Covenant Compliance', icon: '🏦' },
     { id: 'profitability', name: 'Profitability Analytics', icon: '📊' },

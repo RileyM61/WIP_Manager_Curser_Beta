@@ -165,7 +165,7 @@ const ChainLinkCFOLanding: React.FC = () => {
         'Everything in Starter',
         'Cash Flow Forecasting',
         'Labor Capacity Planning',
-        'Budget vs Actual tracking',
+        'Forecast vs Actuals tracking',
         'Advanced dashboards',
         'Priority support',
       ],

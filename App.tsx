@@ -13,6 +13,7 @@ import { AuthProvider } from './context/AuthContext';
 import { DiscoveryPage } from './modules/discovery';
 import { LaborCapacityPage } from './modules/labor-capacity';
 import { ValueBuilderPage } from './modules/value-builder';
+import { ForecastVsActualsPage } from './modules/budget';
 
 /**
  * Main App Router
@@ -73,7 +74,7 @@ function App() {
             {/* Future Modules - Placeholder routes */}
             {/* These will show "Coming Soon" via the dashboard for now */}
             <Route path="forecasting/*" element={<ComingSoonModule moduleName="Cash Flow Forecasting" />} />
-            <Route path="budget/*" element={<ComingSoonModule moduleName="Budget vs Actual" />} />
+            <Route path="budget/*" element={<ForecastVsActualsPage />} />
             <Route path="jcurve/*" element={<ComingSoonModule moduleName="J-Curve Investment Analysis" />} />
             <Route path="covenant/*" element={<ComingSoonModule moduleName="Covenant Compliance" />} />
             <Route path="profitability/*" element={<ComingSoonModule moduleName="Profitability Analytics" />} />
