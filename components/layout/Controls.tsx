@@ -109,6 +109,17 @@ const Controls: React.FC<ControlsProps> = ({
   const statusOptions: JobStatus[] = [JobStatus.Future, JobStatus.Active, JobStatus.OnHold, JobStatus.Completed, JobStatus.Archived];
   const activePmForFilter = activeProjectManager || 'all';
   const pmRoster = projectManagers.filter(pm => pm !== 'all');
+  const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
+  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
+  const sortLabels: Record<SortKey, string> = {
+    jobNo: 'Job #',
+    jobName: 'Job Name',
+    client: 'Client',
+    projectManager: 'Project Manager',
+    status: 'Status',
+    startDate: 'Start Date',
+  };
+  const showSortDropdown = showJobControls && viewMode !== 'table';
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const [key, direction] = e.target.value.split('-') as [SortKey, SortDirection];
@@ -116,9 +127,6 @@ const Controls: React.FC<ControlsProps> = ({
     setSortDirection(direction);
   };
   
-  const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
-  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
-
   const ownerBacklogActive = userRole === 'owner' && filter === 'forecast' && focusMode === 'default';
   const ownerCapacityActive = userRole === 'owner' && filter === 'company' && focusMode === 'default';
 
@@ -340,22 +348,31 @@ const Controls: React.FC<ControlsProps> = ({
               </div>
 
               {/* Sort */}
-              <div className="hidden sm:flex items-center gap-2">
-                <label htmlFor="sort" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sort:</label>
-                <select
-                  id="sort"
-                  value={`${sortKey}-${sortDirection}`}
-                  onChange={handleSortChange}
-                  className="text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
-                >
-                  <option value="jobNo-asc">Job # (Asc)</option>
-                  <option value="jobNo-desc">Job # (Desc)</option>
-                  <option value="jobName-asc">Name (A-Z)</option>
-                  <option value="jobName-desc">Name (Z-A)</option>
-                  <option value="startDate-desc">Newest</option>
-                  <option value="startDate-asc">Oldest</option>
-                </select>
-              </div>
+              {showSortDropdown ? (
+                <div className="hidden sm:flex items-center gap-2">
+                  <label htmlFor="sort" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sort:</label>
+                  <select
+                    id="sort"
+                    value={`${sortKey}-${sortDirection}`}
+                    onChange={handleSortChange}
+                    className="text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
+                  >
+                    <option value="jobNo-asc">Job # (Asc)</option>
+                    <option value="jobNo-desc">Job # (Desc)</option>
+                    <option value="jobName-asc">Name (A-Z)</option>
+                    <option value="jobName-desc">Name (Z-A)</option>
+                    <option value="startDate-desc">Newest</option>
+                    <option value="startDate-asc">Oldest</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="hidden sm:flex flex-col text-xs text-gray-500 dark:text-gray-400">
+                  <span className="font-semibold text-gray-600 dark:text-gray-300">
+                    Sorted by {sortLabels[sortKey]} ({sortDirection === 'asc' ? 'Asc' : 'Desc'})
+                  </span>
+                  <span>Click a column header to change</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

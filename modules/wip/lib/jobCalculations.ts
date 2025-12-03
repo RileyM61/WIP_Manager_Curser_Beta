@@ -7,6 +7,43 @@ export const sumBreakdown = (breakdown: CostBreakdown): number =>
   breakdown.labor + breakdown.material + breakdown.other;
 
 /**
+ * Redistribute a new total across an existing CostBreakdown while keeping
+ * the original labor/material/other proportions.
+ */
+export const rebalanceBreakdown = (
+  breakdown: CostBreakdown,
+  newTotal: number
+): CostBreakdown => {
+  const safeTotal = Math.max(newTotal, 0);
+  const currentTotal = sumBreakdown(breakdown);
+
+  if (currentTotal === 0) {
+    return {
+      labor: safeTotal,
+      material: 0,
+      other: 0,
+    };
+  }
+
+  const laborPortion = (breakdown.labor / currentTotal) * safeTotal;
+  const materialPortion = (breakdown.material / currentTotal) * safeTotal;
+
+  // Ensure rounding differences roll into "other" so totals always match
+  const roundedLabor = Math.round(laborPortion * 100) / 100;
+  const roundedMaterial = Math.round(materialPortion * 100) / 100;
+  const roundedOther = Math.max(
+    Math.round((safeTotal - roundedLabor - roundedMaterial) * 100) / 100,
+    0
+  );
+
+  return {
+    labor: roundedLabor,
+    material: roundedMaterial,
+    other: roundedOther,
+  };
+};
+
+/**
  * Calculate earned revenue for a job based on its type
  * 
  * Fixed Price: Each component calculated separately:
