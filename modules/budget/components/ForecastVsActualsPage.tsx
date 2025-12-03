@@ -8,6 +8,7 @@ import { useForecastMethodologies } from '../hooks/useForecastMethodologies';
 import { useForecastEngine } from '../hooks/useForecastEngine';
 import { useForecastVariance } from '../hooks/useForecastVariance';
 import { StatementType } from '../types';
+import DashboardNavButton from '../../../components/layout/DashboardNavButton';
 
 const STATEMENT_LABELS: Record<StatementType, string> = {
   income_statement: 'Income Statement',
@@ -119,6 +120,7 @@ const ForecastVsActualsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <DashboardNavButton floating />
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
         <header className="space-y-4">
           <p className="text-xs uppercase tracking-[0.3em] font-semibold text-orange-500">Forecast vs Actuals</p>

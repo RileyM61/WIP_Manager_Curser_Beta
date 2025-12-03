@@ -14,6 +14,7 @@ import { DiscoveryPage } from './modules/discovery';
 import { LaborCapacityPage } from './modules/labor-capacity';
 import { ValueBuilderPage } from './modules/value-builder';
 import { ForecastVsActualsPage } from './modules/budget';
+import DashboardNavButton from './components/layout/DashboardNavButton';
 
 /**
  * Main App Router
@@ -102,6 +103,7 @@ function App() {
 const ComingSoonModule: React.FC<{ moduleName: string }> = ({ moduleName }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-6">
+      <DashboardNavButton floating />
       <div className="text-center max-w-md">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center mx-auto mb-6">
           <svg className="w-10 h-10 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

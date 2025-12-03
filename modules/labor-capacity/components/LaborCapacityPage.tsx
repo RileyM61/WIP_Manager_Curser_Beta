@@ -14,6 +14,7 @@ import EmployeeFormModal from './EmployeeFormModal';
 import DepartmentManager from './DepartmentManager';
 import AllocationEditor from './AllocationEditor';
 import CostProjectionChart from './CostProjectionChart';
+import DashboardNavButton from '../../../components/layout/DashboardNavButton';
 
 type TabId = 'dashboard' | 'employees' | 'departments';
 
@@ -102,12 +103,15 @@ const LaborCapacityPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Loading labor data...</p>
+      <>
+        <DashboardNavButton floating />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">Loading labor data...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -117,13 +121,16 @@ const LaborCapacityPage: React.FC = () => {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Labor Capacity
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Manage workforce, costs, and projections
-              </p>
+            <div className="flex items-center gap-4">
+              <DashboardNavButton />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Labor Capacity
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Manage workforce, costs, and projections
+                </p>
+              </div>
             </div>
             <button
               onClick={handleAddEmployee}
