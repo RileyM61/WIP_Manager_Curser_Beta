@@ -418,6 +418,8 @@ function App() {
             ...targetJob[field],
             [key]: Math.max(value, 0),
           };
+        } else if (payload.type === 'date') {
+          updatedJob.asOfDate = payload.value || null;
         } else {
           const { field, value } = payload;
           if (field === 'invoiced') {
