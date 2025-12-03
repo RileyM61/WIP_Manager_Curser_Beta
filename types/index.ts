@@ -41,7 +41,8 @@ export type FinanceField = 'invoiced' | 'costs' | 'costToComplete';
 
 export type InlineFinanceUpdate =
   | { type: 'total'; field: FinanceField; value: number }
-  | { type: 'component'; field: FinanceField; key: keyof CostBreakdown; value: number };
+  | { type: 'component'; field: FinanceField; key: keyof CostBreakdown; value: number }
+  | { type: 'date'; value: string };
 
 export type JobType = 'fixed-price' | 'time-material';
 

@@ -174,7 +174,7 @@ const JobTable: React.FC<JobTableProps> = ({
             
             const canInlineEdit = !isEstimatorWithRestrictedAccess;
             const weeklyInputClass =
-              'block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-1.5 px-2 text-sm text-right font-semibold text-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent';
+              'block w-full rounded-md border border-amber-200 dark:border-amber-600 bg-amber-50/80 dark:bg-amber-900/20 py-1.5 px-2 text-sm text-right font-semibold text-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent placeholder:text-gray-400';
 
             return (
               <tr key={job.id} className={`hover:bg-gray-50 dark:hover:bg-gray-700 ${rowHighlightClass}`}>
@@ -264,6 +264,29 @@ const JobTable: React.FC<JobTableProps> = ({
 
                 <td className="px-6 py-4 align-top text-sm text-gray-700 dark:text-gray-200">
                   <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                    <div>
+                      <div className="text-xs font-semibold uppercase text-gray-400 dark:text-gray-500">Effective Date</div>
+                        <input
+                          type="date"
+                          value={job.asOfDate ? job.asOfDate.substring(0, 10) : ''}
+                          onChange={(e) => {
+                            if (!canInlineEdit) return;
+                            onQuickUpdate(job.id, { type: 'date', value: e.target.value });
+                          }}
+                          disabled={!canInlineEdit || isSavingField(`${job.id}-asof`)}
+                          className="mt-1 block w-40 rounded-md border border-amber-200 dark:border-amber-600 bg-amber-50/80 dark:bg-amber-900/20 py-1.5 px-3 text-sm text-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        />
+                        {isSavingField(`${job.id}-asof`) && (
+                          <p className="text-[11px] text-orange-500 mt-1">Saving…</p>
+                        )}
+                      </div>
+                      {job.asOfDate && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          Current as of {new Date(job.asOfDate).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
                     <div>
                       <div className="text-xs font-semibold uppercase text-gray-400 dark:text-gray-500">Invoiced to Date</div>
                       <div className="grid grid-cols-3 gap-2 mt-1 text-[10px] font-semibold uppercase text-gray-400 dark:text-gray-500">
