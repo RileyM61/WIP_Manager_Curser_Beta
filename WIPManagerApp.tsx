@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan, ModuleId } from './types';
+import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan, ModuleId, InlineFinanceUpdate } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSupabaseJobs } from './hooks/useSupabaseJobs';
 import { useSupabaseSettings, DEFAULT_CAPACITY_PLAN } from './hooks/useSupabaseSettings';
@@ -27,7 +27,7 @@ import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import { ReportsView } from './components/reports';
 import { tourSteps, markTourCompleted } from './lib/tourSteps';
-import { hasScheduleWarnings } from './modules/wip/lib/jobCalculations';
+import { hasScheduleWarnings, rebalanceBreakdown } from './modules/wip/lib/jobCalculations';
 
 type FocusMode = 'default' | 'pm-at-risk' | 'pm-late';
 
@@ -92,6 +92,7 @@ function App() {
   
   // UI state
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [inlineSaving, setInlineSaving] = useState<Record<string, boolean>>({});
   const [sortKey, setSortKey] = useState<SortKey>('jobNo');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -228,6 +229,15 @@ function App() {
     setFocusMode('default');
     setSortDirection(direction);
   }, [setFocusMode, setSortDirection]);
+
+  const handleTableSortChange = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      handleSortDirectionChange(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      handleSortKeyChange(key);
+      handleSortDirectionChange('asc');
+    }
+  }, [sortKey, sortDirection, handleSortDirectionChange, handleSortKeyChange]);
 
   const handleSearchChange = useCallback((query: string) => {
     setFocusMode('default');
@@ -383,6 +393,56 @@ function App() {
       alert('Failed to save job. Please try again.');
     }
   };
+
+  const handleInlineFinanceUpdate = useCallback(
+    async (jobId: string, payload: InlineFinanceUpdate) => {
+      const targetJob = jobs.find((job) => job.id === jobId);
+      if (!targetJob) return;
+
+      const mapKey =
+        payload.type === 'component'
+          ? `${jobId}-${payload.field}-${payload.key}`
+          : `${jobId}-${payload.field}`;
+      setInlineSaving((prev) => ({ ...prev, [mapKey]: true }));
+
+      try {
+        const updatedJob: Job = {
+          ...targetJob,
+          lastUpdated: new Date().toISOString(),
+          companyId: companyId || targetJob.companyId,
+        };
+
+        if (payload.type === 'component') {
+          const { field, key, value } = payload;
+          updatedJob[field] = {
+            ...targetJob[field],
+            [key]: Math.max(value, 0),
+          };
+        } else {
+          const { field, value } = payload;
+          if (field === 'invoiced') {
+            updatedJob.invoiced = rebalanceBreakdown(targetJob.invoiced, value);
+          } else if (field === 'costs') {
+            updatedJob.costs = rebalanceBreakdown(targetJob.costs, value);
+          } else if (field === 'costToComplete') {
+            updatedJob.costToComplete = rebalanceBreakdown(targetJob.costToComplete, value);
+          }
+        }
+
+        await updateJob(updatedJob);
+      } catch (err) {
+        console.error('Inline update failed:', err);
+        alert('Unable to save your update. Please try again.');
+      } finally {
+        setInlineSaving((prev) => {
+          const next = { ...prev };
+          delete next[mapKey];
+          return next;
+        });
+      }
+    },
+    [jobs, companyId, updateJob]
+  );
 
   const handleDeleteJob = async (jobId: string) => {
     try {
@@ -562,7 +622,21 @@ function App() {
     if (viewMode === 'grid') {
       return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} activeEstimator={activeEstimator}/>;
     }
-    return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode} activeEstimator={activeEstimator}/>;
+    return (
+      <JobTable
+        jobs={sortedAndFilteredJobs}
+        onEdit={handleEditJobClick}
+        onOpenNotes={handleOpenNotes}
+        userRole={userRole}
+        focusMode={focusMode}
+        activeEstimator={activeEstimator}
+        onQuickUpdate={handleInlineFinanceUpdate}
+        inlineSaving={inlineSaving}
+        sortKey={sortKey}
+        sortDirection={sortDirection}
+        onSortChange={handleTableSortChange}
+      />
+    );
   }
 
   // Show loading state while data is being fetched
