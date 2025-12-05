@@ -106,10 +106,10 @@ const SampleProjectTile: React.FC<{
             <p className="text-[10px] text-slate-400 uppercase tracking-wide">Proj. Margin</p>
             <p
               className={`text-sm font-bold ${parseFloat(profitMargin) >= 15
-                  ? 'text-emerald-400'
-                  : parseFloat(profitMargin) >= 10
-                    ? 'text-amber-400'
-                    : 'text-red-400'
+                ? 'text-emerald-400'
+                : parseFloat(profitMargin) >= 10
+                  ? 'text-amber-400'
+                  : 'text-red-400'
                 }`}
             >
               {profitMargin}%
@@ -118,8 +118,8 @@ const SampleProjectTile: React.FC<{
           {(isOverBilled || isUnderBilled) && (
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full ${isOverBilled
-                  ? 'bg-emerald-500/20 text-emerald-300'
-                  : 'bg-red-500/20 text-red-300'
+                ? 'bg-emerald-500/20 text-emerald-300'
+                : 'bg-red-500/20 text-red-300'
                 }`}
             >
               {isOverBilled ? 'Over-billed' : 'Under-billed'}
@@ -284,6 +284,7 @@ const WIPInsightsLanding: React.FC = () => {
   };
 
   // Sample project data for the hero tiles
+  // Sample project data for the hero tiles
   const sampleProjects = [
     {
       jobNumber: 'J-2024-047',
@@ -296,31 +297,7 @@ const WIPInsightsLanding: React.FC = () => {
       costToDate: 1420000,
       billedToDate: 1680000,
       projectedProfit: 392000,
-    },
-    {
-      jobNumber: 'J-2024-051',
-      jobName: 'Riverside Office Complex',
-      client: 'Apex Development',
-      pm: 'Mike Torres',
-      status: 'active' as const,
-      percentComplete: 42,
-      contractValue: 1850000,
-      costToDate: 680000,
-      billedToDate: 590000,
-      projectedProfit: 277500,
-    },
-    {
-      jobNumber: 'J-2024-039',
-      jobName: 'Harbor View Condos',
-      client: 'Coastal Living LLC',
-      pm: 'James Wilson',
-      status: 'pending' as const,
-      percentComplete: 89,
-      contractValue: 3200000,
-      costToDate: 2650000,
-      billedToDate: 2880000,
-      projectedProfit: 480000,
-    },
+    }
   ];
 
   const features = [
@@ -427,6 +404,7 @@ const WIPInsightsLanding: React.FC = () => {
       cta: 'Get Started Free',
       popular: false,
       badge: null,
+      foundersRate: null,
     },
     {
       name: 'Pro',
@@ -640,7 +618,7 @@ const WIPInsightsLanding: React.FC = () => {
 
             {/* Right: Project Tiles */}
             <div className="flex-1 w-full max-w-lg lg:max-w-xl">
-              <div className="grid gap-4">
+              <div className="transform transition-all duration-500 hover:scale-[1.02]">
                 {sampleProjects.map((project, index) => (
                   <SampleProjectTile key={project.jobNumber} {...project} delay={500 + index * 150} />
                 ))}
@@ -781,8 +759,8 @@ const WIPInsightsLanding: React.FC = () => {
               <div
                 key={plan.name}
                 className={`relative flex flex-col rounded-2xl p-8 ${plan.popular
-                    ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl scale-105 border-2 border-orange-500'
-                    : 'bg-white border border-slate-200 shadow-lg'
+                  ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl scale-105 border-2 border-orange-500'
+                  : 'bg-white border border-slate-200 shadow-lg'
                   }`}
               >
                 {plan.badge && (
@@ -853,8 +831,8 @@ const WIPInsightsLanding: React.FC = () => {
                 <button
                   onClick={plan.cta === 'Contact Sales' ? () => window.location.href = 'mailto:support@wip-insights.com?subject=Controller Tier Inquiry' : handleGetStarted}
                   className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${plan.popular
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg hover:shadow-orange-500/30'
-                      : 'bg-slate-900 text-white hover:bg-slate-800'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg hover:shadow-orange-500/30'
+                    : 'bg-slate-900 text-white hover:bg-slate-800'
                     }`}
                 >
                   {plan.cta}
