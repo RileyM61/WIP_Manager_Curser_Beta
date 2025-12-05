@@ -784,9 +784,9 @@ const WIPInsightsLanding: React.FC = () => {
         thumbnailImage="/images/how-to-use-wip-thumbnail.png"
         audioSrc="/audio/how_wip.mp3"
         timeline={[
-          { start: 0, image: "/images/ui_screens/setup_modal.png" },
-          { start: 18, image: "/images/ui_screens/input_mobile.png" },
-          { start: 28, image: "/images/ui_screens/dashboard_alert.png" }
+          { start: 0, image: "/images/ui_screens/job_details.png" },
+          { start: 18, image: "/images/ui_screens/scheduling.png" },
+          { start: 28, image: "/images/ui_screens/financials.png" }
         ]}
         bgColor="bg-slate-50"
       />
