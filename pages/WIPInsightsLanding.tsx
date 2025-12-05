@@ -150,14 +150,24 @@ const VideoSection: React.FC<{
   const [currentImage, setCurrentImage] = React.useState(thumbnailImage);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-  const handlePlay = () => {
-    if (audioSrc) {
+
+
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (audioSrc && audioRef.current) {
       if (isPlaying) {
-        audioRef.current?.pause();
+        audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        audioRef.current?.play();
-        setIsPlaying(true);
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => setIsPlaying(true))
+            .catch(error => {
+              console.error('Playback failed:', error);
+              setIsPlaying(false);
+            });
+        }
       }
     }
   };
