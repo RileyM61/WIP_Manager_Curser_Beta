@@ -15,7 +15,7 @@ export type ModuleId =
   | 'capacity'      // Labor Capacity Planning (detailed)
   | 'value-builder' // Business Valuation & Scenario Modeling
   | 'jcurve'        // J-Curve Investment Analysis
-  | 'budget'        // Budget vs Actual Analysis
+  | 'budget'        // Forecast vs Actuals Analysis
   | 'covenant'      // Banking & Covenant Compliance
   | 'profitability' // Profitability Analytics
   | 'bidnobid'      // Bid/No-Bid Decision Tool
@@ -79,12 +79,12 @@ export const MODULES: Record<ModuleId, ModuleConfig> = {
   },
   budget: {
     id: 'budget',
-    name: 'Budget vs Actual',
-    shortName: 'Budget',
-    description: 'Track variances between budgeted and actual costs with trend alerts',
+    name: 'Forecast vs Actuals',
+    shortName: 'Forecast',
+    description: 'Rolling 12-month Income Statement & Balance Sheet forecasts with automated actuals sync',
     icon: '📋',
     requiredTier: 'professional',
-    comingSoon: true,
+    comingSoon: false,
     routes: ['variance', 'trends', 'cost-codes'],
   },
   jcurve: {

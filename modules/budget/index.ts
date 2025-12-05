@@ -1,15 +1,14 @@
-/**
- * Budget vs Actual Analysis Module
- * 
- * Track variances between budgeted and actual costs with trend alerts.
- * 
- * @status Coming Soon
- */
+import ForecastVsActualsPage from './components/ForecastVsActualsPage';
 
+/**
+ * Forecast vs Actuals Analysis Module
+ */
 export const BUDGET_MODULE = {
   id: 'budget' as const,
-  name: 'Budget vs Actual',
-  description: 'Track variances between budgeted and actual costs with trend alerts',
-  comingSoon: true,
+  name: 'Forecast vs Actuals',
+  description: 'Build rolling forecasts and compare Income Statement & Balance Sheet variances',
+  comingSoon: false,
 };
 
+export { ForecastVsActualsPage };
+export * from './types';

@@ -11,6 +11,7 @@ import ValuationDashboard from './ValuationDashboard';
 import ScenarioList from './ScenarioList';
 import ScenarioForm from './ScenarioForm';
 import ScenarioComparison from './ScenarioComparison';
+import DashboardNavButton from '../../../components/layout/DashboardNavButton';
 
 type TabId = 'dashboard' | 'scenarios' | 'compare';
 
@@ -109,14 +110,17 @@ const ValueBuilderPage: React.FC = () => {
       <header className="bg-slate-900/50 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-                <span className="text-3xl">💎</span>
-                Value Builder
-              </h1>
-              <p className="text-slate-400 mt-1">
-                Track your business value and model scenarios
-              </p>
+            <div className="flex items-center gap-4">
+              <DashboardNavButton className="bg-slate-800/80 border-slate-700 text-slate-200" />
+              <div>
+                <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <span className="text-3xl">💎</span>
+                  Value Builder
+                </h1>
+                <p className="text-slate-400 mt-1">
+                  Track your business value and model scenarios
+                </p>
+              </div>
             </div>
             <button
               onClick={() => {

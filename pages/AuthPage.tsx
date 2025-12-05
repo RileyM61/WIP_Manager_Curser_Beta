@@ -68,7 +68,7 @@ const AuthPage: React.FC = () => {
       if (session && inviteToken && inviteInfo?.valid && !acceptingInvite && !inviteAttempted) {
         setAcceptingInvite(true);
         setInviteAttempted(true); // Prevent retry loop
-        
+
         try {
           const result = await acceptInvitation(inviteToken);
           if (result.success) {
@@ -98,7 +98,10 @@ const AuthPage: React.FC = () => {
         if (error) throw error;
         // If there's an invite, the useEffect will handle accepting it
         if (!inviteToken) {
-          navigate('/app');
+          const returnTo = params.get('returnTo');
+          // Validate returnTo to ensure it's a relative path
+          const redirectPath = returnTo && returnTo.startsWith('/') ? returnTo : '/app';
+          navigate(redirectPath);
         }
       } else {
         // Check if email is allowed (beta access control) - skip for invited users
@@ -107,14 +110,14 @@ const AuthPage: React.FC = () => {
           setLoading(false);
           return;
         }
-        
+
         // For invitations, verify email matches
         if (inviteInfo?.valid && inviteInfo.email?.toLowerCase() !== email.toLowerCase()) {
           setMessage(`This invitation was sent to ${inviteInfo.email}. Please use that email address.`);
           setLoading(false);
           return;
         }
-        
+
         if (password !== confirmPassword) {
           setMessage('Passwords do not match.');
           setLoading(false);
@@ -122,7 +125,7 @@ const AuthPage: React.FC = () => {
         }
         const { error } = await supabase!.auth.signUp({ email, password });
         if (error) throw error;
-        
+
         if (inviteInfo?.valid) {
           setMessage('Account created! Please check your email to confirm, then log in to join the team.');
         } else {
@@ -140,9 +143,12 @@ const AuthPage: React.FC = () => {
   useEffect(() => {
     // Don't auto-redirect if there's an invite token - let the accept flow handle it
     if (session && !inviteToken) {
-      navigate('/app', { replace: true });
+      const returnTo = params.get('returnTo');
+      // Validate returnTo to ensure it's a relative path
+      const redirectPath = returnTo && returnTo.startsWith('/') ? returnTo : '/app';
+      navigate(redirectPath, { replace: true });
     }
-  }, [session, navigate, inviteToken]);
+  }, [session, navigate, inviteToken, params]);
 
   // Show loading state while fetching invite info
   if (inviteLoading) {
@@ -230,15 +236,15 @@ const AuthPage: React.FC = () => {
       <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
         <div className="mb-8 text-center">
           {isFromWip ? (
-            <img 
-              src="/images/wip-insights-logo.png" 
-              alt="WIP-Insights" 
+            <img
+              src="/images/wip-insights-logo.png"
+              alt="WIP-Insights"
               className="h-72 w-auto mx-auto mb-4"
             />
           ) : (
-            <img 
-              src="/images/chainlink-cfo-logo.png" 
-              alt="ChainLink CFO" 
+            <img
+              src="/images/chainlink-cfo-logo.png"
+              alt="ChainLink CFO"
               className="h-[512px] w-auto mx-auto mb-4"
             />
           )}
@@ -265,18 +271,16 @@ const AuthPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setMode('login')}
-            className={`flex-1 rounded-full py-2 transition ${
-              mode === 'login' ? 'bg-white text-slate-900' : 'text-white/70'
-            }`}
+            className={`flex-1 rounded-full py-2 transition ${mode === 'login' ? 'bg-white text-slate-900' : 'text-white/70'
+              }`}
           >
             Log In
           </button>
           <button
             type="button"
             onClick={() => setMode('signup')}
-            className={`flex-1 rounded-full py-2 transition ${
-              mode === 'signup' ? 'bg-white text-slate-900' : 'text-white/70'
-            }`}
+            className={`flex-1 rounded-full py-2 transition ${mode === 'signup' ? 'bg-white text-slate-900' : 'text-white/70'
+              }`}
           >
             Sign Up
           </button>
@@ -291,9 +295,8 @@ const AuthPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={inviteInfo?.valid && mode === 'signup'}
-              className={`mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none ${
-                inviteInfo?.valid && mode === 'signup' ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+              className={`mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none ${inviteInfo?.valid && mode === 'signup' ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               placeholder="you@company.com"
             />
             {mode === 'signup' && !inviteInfo?.valid && (

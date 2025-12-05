@@ -10,6 +10,7 @@ import { Engagement, InterviewSession, InterviewResponse } from '../types';
 import { useEngagements } from '../hooks/useEngagements';
 import { EngagementDashboard } from './EngagementDashboard';
 import { InterviewConductor } from './InterviewConductor';
+import DashboardNavButton from '../../../components/layout/DashboardNavButton';
 
 type ViewMode = 'dashboard' | 'interview';
 
@@ -84,59 +85,71 @@ export const DiscoveryPage: React.FC = () => {
   // Show loading state
   if (loading && engagements.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-slate-400 mt-4">Loading engagements...</p>
+      <>
+        <DashboardNavButton floating />
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-12 h-12 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-slate-400 mt-4">Loading engagements...</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   // Show error state
   if (error && engagements.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+      <>
+        <DashboardNavButton floating />
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-white mb-2">Error Loading Data</h3>
+            <p className="text-slate-400 mb-6">{error}</p>
+            <button
+              onClick={refresh}
+              className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl"
+            >
+              Try Again
+            </button>
           </div>
-          <h3 className="text-xl font-semibold text-white mb-2">Error Loading Data</h3>
-          <p className="text-slate-400 mb-6">{error}</p>
-          <button
-            onClick={refresh}
-            className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl"
-          >
-            Try Again
-          </button>
         </div>
-      </div>
+      </>
     );
   }
 
   // Render based on view mode
   if (viewMode === 'interview' && activeInterview) {
     return (
-      <InterviewConductor
-        session={activeInterview.session}
-        onSaveResponse={handleSaveResponse}
-        onUpdateSession={handleUpdateSession}
-        onComplete={handleCompleteInterview}
-        onExit={handleExitInterview}
-      />
+      <>
+        <DashboardNavButton floating />
+        <InterviewConductor
+          session={activeInterview.session}
+          onSaveResponse={handleSaveResponse}
+          onUpdateSession={handleUpdateSession}
+          onComplete={handleCompleteInterview}
+          onExit={handleExitInterview}
+        />
+      </>
     );
   }
 
   return (
-    <EngagementDashboard
-      engagements={engagements}
-      onCreateEngagement={createEngagement}
-      onSelectEngagement={() => {}}
-      onStartInterview={handleStartInterview}
-      getInterviewSessions={getInterviewSessions}
-    />
+    <>
+      <DashboardNavButton floating />
+      <EngagementDashboard
+        engagements={engagements}
+        onCreateEngagement={createEngagement}
+        onSelectEngagement={() => {}}
+        onStartInterview={handleStartInterview}
+        getInterviewSessions={getInterviewSessions}
+      />
+    </>
   );
 };
 
