@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { WIPCard } from '../components/WIPCard';
 
 // ============================================================================
 // SAMPLE PROJECT TILE COMPONENT - Realistic mid-execution job card
@@ -285,18 +286,27 @@ const WIPInsightsLanding: React.FC = () => {
 
   // Sample project data for the hero tiles
   // Sample project data for the hero tiles
+  // Sample project data for the hero tiles (Lakeside Medical)
   const sampleProjects = [
     {
-      jobNumber: 'J-2024-047',
-      jobName: 'Downtown Medical Center',
-      client: 'Metro Health Systems',
-      pm: 'Sarah Chen',
-      status: 'active' as const,
-      percentComplete: 67,
-      contractValue: 2450000,
-      costToDate: 1420000,
-      billedToDate: 1680000,
-      projectedProfit: 392000,
+      jobNumber: '24-1055',
+      jobName: 'Lakeside Medical Center',
+      client: 'Apex Builders',
+      pm: 'Jordan',
+      startDate: '4/1/2026',
+      contractValue: 235000,
+      originalProfit: 117500,
+      forecastedProfit: 83000,
+      variance: -34500,
+      costToDate: 34500,
+      originalBudget: 117500,
+      forecastedBudget: 152000,
+      earned: 69000,
+      invoiced: 303,
+      underBilled: 68697,
+      laborProgress: 20,
+      materialProgress: 38,
+      otherProgress: 29
     }
   ];
 
@@ -620,7 +630,7 @@ const WIPInsightsLanding: React.FC = () => {
             <div className="flex-1 w-full max-w-lg lg:max-w-xl">
               <div className="transform transition-all duration-500 hover:scale-[1.02]">
                 {sampleProjects.map((project, index) => (
-                  <SampleProjectTile key={project.jobNumber} {...project} delay={500 + index * 150} />
+                  <WIPCard key={project.jobNumber} {...project} delay={500 + index * 150} />
                 ))}
               </div>
             </div>
