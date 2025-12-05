@@ -27,6 +27,22 @@ import DashboardNavButton from './components/layout/DashboardNavButton';
  * /app/wip/*           → WIP Insights module (protected)
  * /app/[module]/*      → Other modules (protected, future)
  */
+/**
+ * Domain Aware Landing Page
+ * Detects which domain the user visited and serves the appropriate landing page.
+ */
+const DomainAwareLanding: React.FC = () => {
+  const hostname = window.location.hostname.toLowerCase();
+
+  // Check for WIP Insights domain (including www subdomain)
+  if (hostname.includes('wip-insights.com')) {
+    return <WIPInsightsLanding />;
+  }
+
+  // Default to ChainLink CFO for chainlinkcfo.com and all other domains (including localhost)
+  return <ChainLinkCFOLanding />;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -35,43 +51,43 @@ function App() {
           {/* ============================================ */}
           {/* PUBLIC ROUTES - Landing Pages */}
           {/* ============================================ */}
-          
-          {/* ChainLink CFO Suite main landing */}
-          <Route path="/" element={<ChainLinkCFOLanding />} />
-          
+
+          {/* Domain-aware main landing - serves different content based on URL */}
+          <Route path="/" element={<DomainAwareLanding />} />
+
           {/* WIP Insights standalone landing (for direct marketing) */}
           <Route path="/wip" element={<WIPInsightsLanding />} />
-          
+
           {/* CFO Pro - Premium managed service */}
           <Route path="/cfo-pro" element={<CFOProPage />} />
-          
+
           {/* Value Builder - Free calculator lead gen */}
           <Route path="/value-builder" element={<ValueBuilderLanding />} />
           <Route path="/value-builder/calculate" element={<ValueBuilderCalculator />} />
-          
+
           {/* Authentication */}
           <Route path="/auth" element={<AuthPage />} />
-          
+
           {/* ============================================ */}
           {/* PROTECTED ROUTES - App Shell */}
           {/* ============================================ */}
-          
+
           <Route path="/app" element={<AppShell />}>
             {/* Module Dashboard - the hub */}
             <Route index element={<ModuleDashboard />} />
-            
+
             {/* WIP Module */}
             <Route path="wip/*" element={<WIPManagerApp />} />
-            
+
             {/* Discovery Module - Executive Interviews */}
             <Route path="discovery/*" element={<DiscoveryPage />} />
-            
+
             {/* Labor Capacity Module */}
             <Route path="capacity/*" element={<LaborCapacityPage />} />
-            
+
             {/* Value Builder Module */}
             <Route path="value-builder/*" element={<ValueBuilderPage />} />
-            
+
             {/* Future Modules - Placeholder routes */}
             {/* These will show "Coming Soon" via the dashboard for now */}
             <Route path="forecasting/*" element={<ComingSoonModule moduleName="Cash Flow Forecasting" />} />
@@ -83,11 +99,11 @@ function App() {
             <Route path="scenarios/*" element={<ComingSoonModule moduleName="Scenario Planning" />} />
             <Route path="reporting/*" element={<ComingSoonModule moduleName="Financial Reporting" />} />
           </Route>
-          
+
           {/* ============================================ */}
           {/* LEGACY REDIRECT - Old /app route behavior */}
           {/* ============================================ */}
-          
+
           {/* Catch-all: redirect unknown routes to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
