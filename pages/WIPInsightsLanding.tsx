@@ -29,108 +29,106 @@ const SampleProjectTile: React.FC<{
   projectedProfit,
   delay = 0,
 }) => {
-  const statusColors = {
-    active: 'bg-emerald-500',
-    pending: 'bg-amber-500',
-    complete: 'bg-slate-400',
-  };
+    const statusColors = {
+      active: 'bg-emerald-500',
+      pending: 'bg-amber-500',
+      complete: 'bg-slate-400',
+    };
 
-  const profitMargin = ((projectedProfit / contractValue) * 100).toFixed(1);
-  const isOverBilled = billedToDate > costToDate * 1.1;
-  const isUnderBilled = billedToDate < costToDate * 0.9;
+    const profitMargin = ((projectedProfit / contractValue) * 100).toFixed(1);
+    const isOverBilled = billedToDate > costToDate * 1.1;
+    const isUnderBilled = billedToDate < costToDate * 0.9;
 
-  return (
-    <div
-      className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
-      style={{
-        animation: `fadeSlideUp 0.6s ease-out ${delay}ms both`,
-      }}
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-mono text-orange-300 bg-orange-500/20 px-2 py-0.5 rounded">
-              {jobNumber}
-            </span>
-            <span className={`w-2 h-2 rounded-full ${statusColors[status]} animate-pulse`} />
+    return (
+      <div
+        className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+        style={{
+          animation: `fadeSlideUp 0.6s ease-out ${delay}ms both`,
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-mono text-orange-300 bg-orange-500/20 px-2 py-0.5 rounded">
+                {jobNumber}
+              </span>
+              <span className={`w-2 h-2 rounded-full ${statusColors[status]} animate-pulse`} />
+            </div>
+            <h3 className="text-white font-semibold text-sm leading-tight">{jobName}</h3>
+            <p className="text-slate-400 text-xs mt-0.5">{client}</p>
           </div>
-          <h3 className="text-white font-semibold text-sm leading-tight">{jobName}</h3>
-          <p className="text-slate-400 text-xs mt-0.5">{client}</p>
+          <div className="text-right">
+            <p className="text-xs text-slate-400">PM</p>
+            <p className="text-xs text-white font-medium">{pm}</p>
+          </div>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-slate-400">PM</p>
-          <p className="text-xs text-white font-medium">{pm}</p>
-        </div>
-      </div>
 
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div className="flex justify-between text-xs mb-1">
-          <span className="text-slate-400">Progress</span>
-          <span className="text-white font-medium">{percentComplete}%</span>
+        {/* Progress Bar */}
+        <div className="mb-4">
+          <div className="flex justify-between text-xs mb-1">
+            <span className="text-slate-400">Progress</span>
+            <span className="text-white font-medium">{percentComplete}%</span>
+          </div>
+          <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-1000"
+              style={{ width: `${percentComplete}%` }}
+            />
+          </div>
         </div>
-        <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-1000"
-            style={{ width: `${percentComplete}%` }}
-          />
-        </div>
-      </div>
 
-      {/* Financial Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div className="bg-slate-800/50 rounded-lg p-2">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide">Contract</p>
-          <p className="text-sm text-white font-semibold">
-            ${(contractValue / 1000).toFixed(0)}K
-          </p>
+        {/* Financial Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="bg-slate-800/50 rounded-lg p-2">
+            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Contract</p>
+            <p className="text-sm text-white font-semibold">
+              ${(contractValue / 1000).toFixed(0)}K
+            </p>
+          </div>
+          <div className="bg-slate-800/50 rounded-lg p-2">
+            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Cost to Date</p>
+            <p className="text-sm text-white font-semibold">
+              ${(costToDate / 1000).toFixed(0)}K
+            </p>
+          </div>
         </div>
-        <div className="bg-slate-800/50 rounded-lg p-2">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide">Cost to Date</p>
-          <p className="text-sm text-white font-semibold">
-            ${(costToDate / 1000).toFixed(0)}K
-          </p>
-        </div>
-      </div>
 
-      {/* Billing Status */}
-      <div className="flex items-center justify-between bg-slate-800/30 rounded-lg p-2">
-        <div>
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide">Billed</p>
-          <p className="text-sm text-white font-semibold">
-            ${(billedToDate / 1000).toFixed(0)}K
-          </p>
+        {/* Billing Status */}
+        <div className="flex items-center justify-between bg-slate-800/30 rounded-lg p-2">
+          <div>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Billed</p>
+            <p className="text-sm text-white font-semibold">
+              ${(billedToDate / 1000).toFixed(0)}K
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Proj. Margin</p>
+            <p
+              className={`text-sm font-bold ${parseFloat(profitMargin) >= 15
+                  ? 'text-emerald-400'
+                  : parseFloat(profitMargin) >= 10
+                    ? 'text-amber-400'
+                    : 'text-red-400'
+                }`}
+            >
+              {profitMargin}%
+            </p>
+          </div>
+          {(isOverBilled || isUnderBilled) && (
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full ${isOverBilled
+                  ? 'bg-emerald-500/20 text-emerald-300'
+                  : 'bg-red-500/20 text-red-300'
+                }`}
+            >
+              {isOverBilled ? 'Over-billed' : 'Under-billed'}
+            </span>
+          )}
         </div>
-        <div className="text-right">
-          <p className="text-[10px] text-slate-400 uppercase tracking-wide">Proj. Margin</p>
-          <p
-            className={`text-sm font-bold ${
-              parseFloat(profitMargin) >= 15
-                ? 'text-emerald-400'
-                : parseFloat(profitMargin) >= 10
-                ? 'text-amber-400'
-                : 'text-red-400'
-            }`}
-          >
-            {profitMargin}%
-          </p>
-        </div>
-        {(isOverBilled || isUnderBilled) && (
-          <span
-            className={`text-[10px] px-2 py-0.5 rounded-full ${
-              isOverBilled
-                ? 'bg-emerald-500/20 text-emerald-300'
-                : 'bg-red-500/20 text-red-300'
-            }`}
-          >
-            {isOverBilled ? 'Over-billed' : 'Under-billed'}
-          </span>
-        )}
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 // ============================================================================
 // VIDEO SECTION COMPONENT - Placeholder for infographic videos
@@ -149,9 +147,8 @@ const VideoSection: React.FC<{
     <section className={`py-20 ${bgColor}`}>
       <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
         <div
-          className={`flex flex-col gap-12 items-center ${
-            reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'
-          }`}
+          className={`flex flex-col gap-12 items-center ${reverse ? 'lg:flex-row-reverse' : 'lg:flex-row'
+            }`}
         >
           {/* Content */}
           <div className="flex-1 max-w-xl">
@@ -279,11 +276,11 @@ const WIPInsightsLanding: React.FC = () => {
   const navigate = useNavigate();
 
   const handleGetStarted = () => {
-    navigate('/auth?mode=signup&source=wip');
+    navigate('/auth?mode=signup&source=wip&returnTo=/app/wip');
   };
 
   const handleLogin = () => {
-    navigate('/auth?mode=login&source=wip');
+    navigate('/auth?mode=login&source=wip&returnTo=/app/wip');
   };
 
   // Sample project data for the hero tiles
@@ -515,9 +512,9 @@ const WIPInsightsLanding: React.FC = () => {
           {/* Navigation */}
           <nav className="absolute top-6 left-6 right-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img 
-                src="/images/wip-insights-logo.png" 
-                alt="WIP-Insights" 
+              <img
+                src="/images/wip-insights-logo.png"
+                alt="WIP-Insights"
                 className="h-72 w-auto"
               />
             </div>
@@ -783,11 +780,10 @@ const WIPInsightsLanding: React.FC = () => {
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`relative flex flex-col rounded-2xl p-8 ${
-                  plan.popular
+                className={`relative flex flex-col rounded-2xl p-8 ${plan.popular
                     ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl scale-105 border-2 border-orange-500'
                     : 'bg-white border border-slate-200 shadow-lg'
-                }`}
+                  }`}
               >
                 {plan.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -836,9 +832,8 @@ const WIPInsightsLanding: React.FC = () => {
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <svg
-                        className={`w-5 h-5 flex-shrink-0 ${
-                          plan.popular ? 'text-orange-400' : 'text-emerald-500'
-                        }`}
+                        className={`w-5 h-5 flex-shrink-0 ${plan.popular ? 'text-orange-400' : 'text-emerald-500'
+                          }`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -857,11 +852,10 @@ const WIPInsightsLanding: React.FC = () => {
 
                 <button
                   onClick={plan.cta === 'Contact Sales' ? () => window.location.href = 'mailto:support@wip-insights.com?subject=Controller Tier Inquiry' : handleGetStarted}
-                  className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${
-                    plan.popular
+                  className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${plan.popular
                       ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg hover:shadow-orange-500/30'
                       : 'bg-slate-900 text-white hover:bg-slate-800'
-                  }`}
+                    }`}
                 >
                   {plan.cta}
                 </button>
@@ -921,9 +915,9 @@ const WIPInsightsLanding: React.FC = () => {
         <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <img 
-                src="/images/wip-insights-logo.png" 
-                alt="WIP-Insights" 
+              <img
+                src="/images/wip-insights-logo.png"
+                alt="WIP-Insights"
                 className="h-52 w-auto"
               />
               <a
