@@ -141,9 +141,55 @@ const VideoSection: React.FC<{
   description: string;
   videoPlaceholder: string;
   thumbnailImage?: string;
+  audioSrc?: string;
+  timeline?: { start: number; image: string }[];
   reverse?: boolean;
   bgColor?: string;
-}> = ({ number, title, subtitle, description, videoPlaceholder, thumbnailImage, reverse = false, bgColor = '' }) => {
+}> = ({ number, title, subtitle, description, videoPlaceholder, thumbnailImage, audioSrc, timeline, reverse = false, bgColor = '' }) => {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [currentImage, setCurrentImage] = React.useState(thumbnailImage);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+
+
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (audioSrc && audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => setIsPlaying(true))
+            .catch(error => {
+              console.error('Playback failed:', error);
+              setIsPlaying(false);
+            });
+        }
+      }
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current && timeline) {
+      const currentTime = audioRef.current.currentTime;
+      // Find the last timeline item that is less than or equal to current time
+      const activeItem = [...timeline].reverse().find(item => item.start <= currentTime);
+      if (activeItem) {
+        setCurrentImage(activeItem.image);
+      } else if (thumbnailImage) {
+        setCurrentImage(thumbnailImage);
+      }
+    }
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    if (thumbnailImage) setCurrentImage(thumbnailImage);
+  };
+
   return (
     <section className={`py-20 ${bgColor}`}>
       <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
@@ -167,34 +213,69 @@ const VideoSection: React.FC<{
 
           {/* Video Placeholder */}
           <div className="flex-1 w-full max-w-lg">
-            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700">
-              {/* Thumbnail Image */}
-              {thumbnailImage && (
-                <img
-                  src={thumbnailImage}
-                  alt={videoPlaceholder}
-                  className="absolute inset-0 w-full h-full object-contain bg-slate-900"
+            <div
+              className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 cursor-pointer group"
+              onClick={handlePlay}
+            >
+              {/* Audio Element */}
+              {audioSrc && (
+                <audio
+                  ref={audioRef}
+                  src={audioSrc}
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={handleEnded}
+                  onError={(e) => console.error('Audio element error:', e.currentTarget.error)}
+                  onCanPlay={() => console.log('Audio ready to play', audioSrc)}
+                  onPlay={() => console.log('Audio started playing')}
                 />
               )}
-              {/* Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/10 transition-colors cursor-pointer group">
-                <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                  <svg
-                    className="w-8 h-8 text-orange-500 ml-1"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+
+              {/* Thumbnail / Active Image */}
+              {currentImage && (
+                <img
+                  src={currentImage}
+                  alt={videoPlaceholder}
+                  className="absolute inset-0 w-full h-full object-contain bg-slate-900 transition-opacity duration-500"
+                />
+              )}
+
+              {/* Play Button Overlay - Hide when playing */}
+              {!isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/10 transition-colors">
+                  <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                    <svg
+                      className="w-8 h-8 text-orange-500 ml-1"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
                 </div>
-              </div>
-              {/* Placeholder Text */}
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="bg-black/60 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <p className="text-white text-sm font-medium">{videoPlaceholder}</p>
-                  <p className="text-slate-400 text-xs">Click to play</p>
+              )}
+
+              {/* Pause Overlay - Show on hover when playing */}
+              {isPlaying && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors opacity-0 hover:opacity-100">
+                  <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-6 bg-orange-500 rounded-sm"></div>
+                      <div className="w-2 h-6 bg-orange-500 rounded-sm"></div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Placeholder Text - Hide when playing */}
+              {!isPlaying && (
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-4 py-2">
+                    <p className="text-white text-sm font-medium">{videoPlaceholder}</p>
+                    <p className="text-slate-400 text-xs">Click to play narration</p>
+                  </div>
+                </div>
+              )}
+
               {/* Decorative Elements */}
               <div className="absolute top-4 right-4 flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500" />
@@ -662,6 +743,12 @@ const WIPInsightsLanding: React.FC = () => {
         description="Most contractors fly blind. Spreadsheets are outdated the moment they're created. By the time you spot a problem, it's already cost you money. A Work-in-Progress report gives you the truth about every job—before it's too late."
         videoPlaceholder="WHY a WIP — Understanding the problem"
         thumbnailImage="/images/why-wip-thumbnail.png"
+        audioSrc="/audio/why_wip.mp3"
+        timeline={[
+          { start: 0, image: "/images/storyboards/storyboard_why_problem_confusion_1764971292239.png" },
+          { start: 15, image: "/images/storyboards/storyboard_why_leaky_bucket_1764971303519.png" },
+          { start: 30, image: "/images/storyboards/storyboard_why_solution_ui_1764971315679.png" }
+        ]}
         bgColor="bg-slate-50"
       />
 
@@ -675,6 +762,12 @@ const WIPInsightsLanding: React.FC = () => {
         description="A WIP report compares what you've earned to what you've billed and spent. It shows you over-billings, under-billings, and projected profit on every job. It's the financial heartbeat of your construction business."
         videoPlaceholder="WHAT is a WIP — The fundamentals"
         thumbnailImage="/images/what-is-wip-thumbnail.png"
+        audioSrc="/audio/what_wip.mp3"
+        timeline={[
+          { start: 0, image: "/images/storyboards/storyboard_what_building_concept_1764971337148.png" },
+          { start: 20, image: "/images/storyboards/storyboard_what_chart_education_1764971350993.png" },
+          { start: 35, image: "/images/storyboards/storyboard_what_dashboard_benefit_1764971363539.png" }
+        ]}
         reverse
         bgColor="bg-white"
       />
@@ -689,6 +782,12 @@ const WIPInsightsLanding: React.FC = () => {
         description="Add your jobs, enter your numbers weekly, and watch the insights appear. Our dashboard highlights problems automatically—red flags for under-billing, green lights for healthy margins. No accounting degree required."
         videoPlaceholder="HOW to use WIP-Insights — Quick start guide"
         thumbnailImage="/images/how-to-use-wip-thumbnail.png"
+        audioSrc="/audio/how_wip.mp3"
+        timeline={[
+          { start: 0, image: "/images/storyboards/storyboard_how_speed_setup_1764971382086.png" },
+          { start: 20, image: "/images/storyboards/storyboard_how_magic_comparison_1764971397986.png" },
+          { start: 40, image: "/images/storyboards/storyboard_how_result_pov_1764971410333.png" }
+        ]}
         bgColor="bg-slate-50"
       />
 
