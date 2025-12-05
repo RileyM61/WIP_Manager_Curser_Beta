@@ -37,6 +37,13 @@ export interface CostBreakdown {
   other: number;
 }
 
+export type FinanceField = 'invoiced' | 'costs' | 'costToComplete';
+
+export type InlineFinanceUpdate =
+  | { type: 'total'; field: FinanceField; value: number }
+  | { type: 'component'; field: FinanceField; key: keyof CostBreakdown; value: number }
+  | { type: 'date'; value: string };
+
 export type JobType = 'fixed-price' | 'time-material';
 
 export type LaborBillingType = 'fixed-rate' | 'markup';
@@ -117,7 +124,7 @@ export interface JobsSnapshot {
 
 export type ViewMode = 'grid' | 'table' | 'gantt' | 'reports';
 
-export type SortKey = 'jobName' | 'startDate' | 'jobNo';
+export type SortKey = 'jobName' | 'jobNo' | 'client' | 'projectManager' | 'status' | 'startDate';
 
 export type SortDirection = 'asc' | 'desc';
 
