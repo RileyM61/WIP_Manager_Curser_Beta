@@ -34,20 +34,12 @@ import DashboardNavButton from './components/layout/DashboardNavButton';
 const DomainAwareLanding: React.FC = () => {
   const hostname = window.location.hostname.toLowerCase();
 
-  console.log('[DomainRouting] Debug Info:', {
-    hostname,
-    userAgent: window.navigator.userAgent,
-    isWip: hostname.includes('wip-insights.com'),
-    timestamp: new Date().toISOString()
-  });
 
   // Check for WIP Insights domain (including www subdomain)
   if (hostname.includes('wip-insights.com')) {
-    console.log('[DomainRouting] Matching WIP Insights');
     return <WIPInsightsLanding />;
   }
 
-  console.log('[DomainRouting] Defaulting to ChainLink CFO');
   // Default to ChainLink CFO for chainlinkcfo.com and all other domains (including localhost)
   return <ChainLinkCFOLanding />;
 };
