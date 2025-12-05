@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { WIPCard } from '../components/WIPCard';
 
 // ============================================================================
 // SAMPLE PROJECT TILE COMPONENT - Realistic mid-execution job card
@@ -172,7 +173,7 @@ const VideoSection: React.FC<{
                 <img
                   src={thumbnailImage}
                   alt={videoPlaceholder}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain bg-slate-900"
                 />
               )}
               {/* Play Button Overlay */}
@@ -285,18 +286,27 @@ const WIPInsightsLanding: React.FC = () => {
 
   // Sample project data for the hero tiles
   // Sample project data for the hero tiles
+  // Sample project data for the hero tiles (Lakeside Medical)
   const sampleProjects = [
     {
-      jobNumber: 'J-2024-047',
-      jobName: 'Downtown Medical Center',
-      client: 'Metro Health Systems',
-      pm: 'Sarah Chen',
-      status: 'active' as const,
-      percentComplete: 67,
-      contractValue: 2450000,
-      costToDate: 1420000,
-      billedToDate: 1680000,
-      projectedProfit: 392000,
+      jobNumber: '24-1055',
+      jobName: 'Lakeside Medical Center',
+      client: 'Apex Builders',
+      pm: 'Jordan',
+      startDate: '4/1/2026',
+      contractValue: 235000,
+      originalProfit: 117500,
+      forecastedProfit: 83000,
+      variance: -34500,
+      costToDate: 34500,
+      originalBudget: 117500,
+      forecastedBudget: 152000,
+      earned: 69000,
+      invoiced: 303,
+      underBilled: 68697,
+      laborProgress: 20,
+      materialProgress: 38,
+      otherProgress: 29
     }
   ];
 
@@ -617,10 +627,10 @@ const WIPInsightsLanding: React.FC = () => {
             </div>
 
             {/* Right: Project Tiles */}
-            <div className="flex-1 w-full max-w-lg lg:max-w-xl">
-              <div className="transform transition-all duration-500 hover:scale-[1.02]">
+            <div className="flex-1 w-full max-w-lg lg:max-w-lg relative z-0 lg:mt-16">
+              <div className="transform transition-all duration-500 hover:scale-[0.92] scale-[0.85] origin-top-right lg:origin-center">
                 {sampleProjects.map((project, index) => (
-                  <SampleProjectTile key={project.jobNumber} {...project} delay={500 + index * 150} />
+                  <WIPCard key={project.jobNumber} {...project} delay={500 + index * 150} />
                 ))}
               </div>
             </div>
@@ -664,6 +674,7 @@ const WIPInsightsLanding: React.FC = () => {
         title="WHAT is a WIP Report?"
         description="A WIP report compares what you've earned to what you've billed and spent. It shows you over-billings, under-billings, and projected profit on every job. It's the financial heartbeat of your construction business."
         videoPlaceholder="WHAT is a WIP — The fundamentals"
+        thumbnailImage="/images/what-is-wip-thumbnail.png"
         reverse
         bgColor="bg-white"
       />
@@ -677,6 +688,7 @@ const WIPInsightsLanding: React.FC = () => {
         title="HOW to Use WIP-Insights"
         description="Add your jobs, enter your numbers weekly, and watch the insights appear. Our dashboard highlights problems automatically—red flags for under-billing, green lights for healthy margins. No accounting degree required."
         videoPlaceholder="HOW to use WIP-Insights — Quick start guide"
+        thumbnailImage="/images/how-to-use-wip-thumbnail.png"
         bgColor="bg-slate-50"
       />
 
