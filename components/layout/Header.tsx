@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { PlusIcon, Cog6ToothIcon, SunIcon, MoonIcon } from '../shared/icons';
 import { UserRole } from '../../types';
 import DashboardNavButton from './DashboardNavButton';
+import { useSubscription } from '../../hooks/useSubscription';
+import { supabase } from '../../lib/supabase';
 
 interface HeaderProps {
   companyName: string;
@@ -48,6 +50,44 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [helpMenuOpen, setHelpMenuOpen] = useState(false);
+  const { isPro, isLoading: isSubscriptionLoading } = useSubscription();
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    try {
+      setIsUpgrading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        alert('You must be logged in to upgrade.');
+        return;
+      }
+
+      // TODO: Replace with your actual Stripe Price ID
+      const PRICE_ID = 'price_1QTSqaAs5QaQtz7m6Q5q';
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          price_id: PRICE_ID,
+          return_url: window.location.href
+        })
+      });
+
+      const { url, error } = await response.json();
+      if (error) throw new Error(error);
+      if (url) window.location.href = url;
+    } catch (err: any) {
+      console.error('Upgrade failed:', err);
+      alert('Failed to start upgrade: ' + err.message);
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
 
   // Reset image error when logo changes
   useEffect(() => {
@@ -61,21 +101,33 @@ const Header: React.FC<HeaderProps> = ({
           {/* Left: Logo & Dashboard Link */}
           <div className="flex items-center gap-4" data-tour="header-logo">
             <DashboardNavButton className="text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-300" />
+
+            {/* Upgrade Button (Visible if not Pro) */}
+            {!isSubscriptionLoading && !isPro && (
+              <button
+                onClick={handleUpgrade}
+                disabled={isUpgrading}
+                className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
+              >
+                {isUpgrading ? 'Loading...' : '💎 Upgrade to Pro'}
+              </button>
+            )}
+
             <span className="text-gray-300 dark:text-gray-600 text-xl font-light hidden sm:inline">|</span>
 
             {/* WIP Insights Logo */}
             <div className="flex items-center gap-3">
-              <img 
-                src="/images/wip-insights-logo.png" 
-                alt="WIP-Insights" 
+              <img
+                src="/images/wip-insights-logo.png"
+                alt="WIP-Insights"
                 className="h-24 w-auto"
               />
               {companyLogo && !imageError && (
                 <>
                   <span className="text-gray-300 dark:text-gray-600 text-2xl font-light">|</span>
-                  <img 
-                    src={companyLogo} 
-                    alt={`${companyName} logo`} 
+                  <img
+                    src={companyLogo}
+                    alt={`${companyName} logo`}
                     className="h-10 w-auto max-w-[150px] object-contain"
                     onError={() => setImageError(true)}
                   />
@@ -170,12 +222,12 @@ const Header: React.FC<HeaderProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
-                
+
                 {/* Help Dropdown Menu */}
                 {helpMenuOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-40" 
+                    <div
+                      className="fixed inset-0 z-40"
                       onClick={() => setHelpMenuOpen(false)}
                     />
                     <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">

@@ -4,6 +4,7 @@ import ProgressBar from '../../../components/ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../../../components/shared/icons';
 import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit, getAllScheduleWarnings } from '../lib/jobCalculations';
 import { analyzeJobRisk, RiskLevel } from '../lib/smartEngines';
+import { useSubscription } from '../../../hooks/useSubscription';
 
 interface JobCardGridProps {
   jobs: Job[];
@@ -28,7 +29,7 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
-const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator }) => {
+const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; isPro: boolean; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator, isPro }) => {
   // Estimators can only edit Future jobs where they are the assigned estimator
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
   const isTM = job.jobType === 'time-material';
@@ -118,35 +119,46 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
         )}
 
         {/* Smart Engine Alerts */}
-        <div className="flex flex-wrap gap-2 mt-2">
-          {showUnderbillingRisk && (
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${riskAnalysis.underbillingRisk === RiskLevel.High
+        {/* Smart Engine Alerts (Functionality Gating) */}
+        {!isPro ? (
+          (showUnderbillingRisk || showScheduleDrift || showMarginFade) && (
+            <div className="mt-2 p-2 bg-gray-100 dark:bg-gray-700/50 rounded text-center border border-dashed border-gray-300 dark:border-gray-600">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                🔒 Pro Insight Detected
+              </span>
+            </div>
+          )
+        ) : (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {showUnderbillingRisk && (
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${riskAnalysis.underbillingRisk === RiskLevel.High
                 ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
                 : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
-              }`}>
-              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              {riskAnalysis.underbillingRisk === RiskLevel.High ? 'High Risk' : 'Risk'}: Underbilling
-            </span>
-          )}
-          {showScheduleDrift && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300">
-              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Drift: {riskAnalysis.scheduleDriftWeeks} wks
-            </span>
-          )}
-          {showMarginFade && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300">
-              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-              </svg>
-              Fade: -{riskAnalysis.marginFadePercent.toFixed(1)}% pts
-            </span>
-          )}
-        </div>
+                }`}>
+                <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {riskAnalysis.underbillingRisk === RiskLevel.High ? 'High Risk' : 'Risk'}: Underbilling
+              </span>
+            )}
+            {showScheduleDrift && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300">
+                <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Drift: {riskAnalysis.scheduleDriftWeeks} wks
+              </span>
+            )}
+            {showMarginFade && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300">
+                <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                </svg>
+                Fade: -{riskAnalysis.marginFadePercent.toFixed(1)}% pts
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Schedule Warning Banner */}
         {hasScheduleWarning && (
@@ -352,6 +364,8 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
 }
 
 const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator }) => {
+  const { isPro } = useSubscription();
+
   if (jobs.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400">No jobs found for this category.</div>
   }
@@ -359,7 +373,7 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, on
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} onTakeSnapshot={onTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} />
+        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} onTakeSnapshot={onTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} isPro={isPro} />
       ))}
     </div>
   );
