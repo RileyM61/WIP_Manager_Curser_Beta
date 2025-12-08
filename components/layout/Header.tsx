@@ -89,6 +89,35 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      setIsUpgrading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) return;
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-portal-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          return_url: window.location.href
+        })
+      });
+
+      const { url, error } = await response.json();
+      if (error) throw new Error(error);
+      if (url) window.location.href = url;
+    } catch (err: any) {
+      console.error('Portal redirect failed:', err);
+      alert('Failed to redirect to portal: ' + err.message);
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
   // Reset image error when logo changes
   useEffect(() => {
     setImageError(false);
@@ -104,12 +133,40 @@ const Header: React.FC<HeaderProps> = ({
 
             {/* Upgrade Button (Visible if not Pro) */}
             {!isSubscriptionLoading && !isPro && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleUpgrade}
+                  disabled={isUpgrading}
+                  className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
+                >
+                  {isUpgrading ? 'Loading...' : '💎 Upgrade to Pro'}
+                </button>
+                {/* TEMP: Sync Button for Debugging */}
+                <button
+                  onClick={async () => {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+                    alert('Syncing...');
+                    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-subscription`, {
+                      headers: { Authorization: `Bearer ${session.access_token}` },
+                    });
+                    window.location.reload();
+                  }}
+                  className="text-xs text-gray-400 underline hover:text-gray-600"
+                >
+                  Sync State
+                </button>
+              </div>
+            )}
+
+            {/* Manage Subscription (Visible if Pro) */}
+            {!isSubscriptionLoading && isPro && (
               <button
-                onClick={handleUpgrade}
+                onClick={handleManageSubscription}
                 disabled={isUpgrading}
-                className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
+                className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full hover:border-purple-200 dark:hover:border-purple-900 transition-all disabled:opacity-50"
               >
-                {isUpgrading ? 'Loading...' : '💎 Upgrade to Pro'}
+                {isUpgrading ? 'Loading...' : 'Manage Subscription'}
               </button>
             )}
 
