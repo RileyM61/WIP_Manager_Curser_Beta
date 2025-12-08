@@ -9,6 +9,7 @@ import { useModuleAccess } from './hooks/useModuleAccess';
 import { useAuth } from './context/AuthContext';
 import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
 import { useCapacityForWIP } from './modules/labor-capacity';
+import { useJobFinancialSnapshots } from './hooks/useJobFinancialSnapshots';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
 import CompanySwitcher from './components/layout/CompanySwitcher';
@@ -437,6 +438,21 @@ function App() {
     setJobForHistory(null);
   };
 
+  // Use the job financial snapshots hook for quick snapshots
+  const { createSnapshotFromJob } = useJobFinancialSnapshots(companyId || '');
+
+  const handleTakeSnapshot = async (job: Job) => {
+    try {
+      const snapshot = await createSnapshotFromJob(job);
+      if (snapshot) {
+        alert(`Snapshot created for ${job.jobName}`);
+      }
+    } catch (err) {
+      console.error('Error creating snapshot:', err);
+      alert('Failed to create snapshot. Please try again.');
+    }
+  };
+
   const handleSaveSettings = async (newSettings: Settings) => {
     if (!settings || !companyId) return;
 
@@ -572,7 +588,7 @@ function App() {
       );
     }
     if (viewMode === 'grid') {
-      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} userRole={userRole} activeEstimator={activeEstimator} />;
+      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} />;
     }
     return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode} activeEstimator={activeEstimator} />;
   }

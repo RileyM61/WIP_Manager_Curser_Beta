@@ -9,6 +9,7 @@ interface JobCardGridProps {
   onEdit: (job: Job) => void;
   onOpenNotes: (job: Job) => void;
   onOpenHistory?: (job: Job) => void;
+  onTakeSnapshot?: (job: Job) => void;
   userRole: UserRole;
   activeEstimator?: string;
 }
@@ -26,7 +27,7 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
-const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, userRole, activeEstimator }) => {
+const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator }) => {
   // Estimators can only edit Future jobs where they are the assigned estimator
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
   const isTM = job.jobType === 'time-material';
@@ -88,15 +89,15 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
           </div>
           <div className="flex flex-col items-end gap-1">
             <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
-                job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                  job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-                    job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+              job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                  job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
               }`}>
               {job.status}
             </span>
             <span className={`px-2 py-0.5 text-xs font-medium rounded ${isTM
-                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+              ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+              : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
               }`}>
               {isTM ? 'T&M' : 'Fixed'}
             </span>
@@ -277,6 +278,19 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
               </span>
             )}
           </button>
+          {onTakeSnapshot && (
+            <button
+              onClick={() => onTakeSnapshot(job)}
+              className="inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition"
+              title="Take a snapshot of current job financials"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="ml-1 text-sm">Snapshot</span>
+            </button>
+          )}
           {onOpenHistory && (
             <button onClick={() => onOpenHistory(job)} className="inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition">
               <ClockIcon className="w-5 h-5" />
@@ -286,8 +300,8 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
           <button
             onClick={() => onEdit(job)}
             className={`inline-flex items-center transition ${isEstimatorWithRestrictedAccess
-                ? 'text-gray-400 dark:text-gray-500'
-                : 'text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400'
+              ? 'text-gray-400 dark:text-gray-500'
+              : 'text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400'
               }`}
           >
             <EditIcon />
@@ -299,7 +313,7 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   );
 }
 
-const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, userRole, activeEstimator }) => {
+const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator }) => {
   if (jobs.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400">No jobs found for this category.</div>
   }
@@ -307,7 +321,7 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, on
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} userRole={userRole} activeEstimator={activeEstimator} />
+        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} onTakeSnapshot={onTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} />
       ))}
     </div>
   );
