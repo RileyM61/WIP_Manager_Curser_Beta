@@ -63,8 +63,8 @@ const Header: React.FC<HeaderProps> = ({
         return;
       }
 
-      // TODO: Replace with your actual Stripe Price ID
-      const PRICE_ID = 'price_1QTSqaAs5QaQtz7m6Q5q';
+      // Pro Plan Price ID
+      const PRICE_ID = 'price_1ScBUuAs5QaQtz7mvEvDQAbb';
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
         method: 'POST',
