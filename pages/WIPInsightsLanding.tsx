@@ -1,6 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { WIPCard } from '../components/WIPCard';
+
+// ============================================================================
+// ROTATING TEXT COMPONENT
+// ============================================================================
+const RotatingText: React.FC = () => {
+  const statements = [
+    "Detect Underbilling Risk before cash flow suffers",
+    "Spot Schedule Drift before the deadline slips",
+    "Catch Margin Fade the moment it happens",
+    "Replace manual spreadsheets with automated intelligence",
+    "Turn WIP into your strategic financial compass",
+    "Forecast cash flow with execution-based accuracy"
+  ];
+
+  const [index, setIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % statements.length);
+        setFade(true);
+      }, 500); // Wait for fade out
+    }, 4000); // Rotation speed
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="h-20 sm:h-16 relative flex items-center justify-center lg:justify-start">
+      <p
+        className={`text-xl text-slate-300 transition-all duration-500 transform absolute w-full ${fade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}
+      >
+        {statements[index]}
+      </p>
+    </div>
+  );
+};
 
 // ============================================================================
 // SAMPLE PROJECT TILE COMPONENT - Realistic mid-execution job card
@@ -629,13 +669,12 @@ const WIPInsightsLanding: React.FC = () => {
                 for Construction Leaders
               </h1>
 
-              <p
-                className="text-xl text-slate-300 mb-8 max-w-xl mx-auto lg:mx-0"
+              <div
+                className="mb-8 max-w-xl mx-auto lg:mx-0"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out 200ms both' }}
               >
-                Real-time visibility into job profitability, earned revenue, and labor performance.
-                Stop managing by gut feel.
-              </p>
+                <RotatingText />
+              </div>
 
               <div
                 className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8"
