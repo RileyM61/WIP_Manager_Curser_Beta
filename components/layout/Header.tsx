@@ -133,30 +133,13 @@ const Header: React.FC<HeaderProps> = ({
 
             {/* Upgrade Button (Visible if not Pro) */}
             {!isSubscriptionLoading && !isPro && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleUpgrade}
-                  disabled={isUpgrading}
-                  className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
-                >
-                  {isUpgrading ? 'Loading...' : '💎 Upgrade to Pro'}
-                </button>
-                {/* TEMP: Sync Button for Debugging */}
-                <button
-                  onClick={async () => {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (!session) return;
-                    alert('Syncing...');
-                    await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-subscription`, {
-                      headers: { Authorization: `Bearer ${session.access_token}` },
-                    });
-                    window.location.reload();
-                  }}
-                  className="text-xs text-gray-400 underline hover:text-gray-600"
-                >
-                  Sync State
-                </button>
-              </div>
+              <button
+                onClick={handleUpgrade}
+                disabled={isUpgrading}
+                className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
+              >
+                {isUpgrading ? 'Loading...' : '💎 Upgrade to Pro'}
+              </button>
             )}
 
             {/* Manage Subscription (Visible if Pro) */}
