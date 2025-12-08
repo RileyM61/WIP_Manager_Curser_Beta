@@ -79,7 +79,7 @@ export function useSubscription() {
 
     return {
         subscription,
-        isPro: !!subscription,
+        isPro: true, // TODO: Revert to !!subscription after testing
         isLoading,
     };
 }
