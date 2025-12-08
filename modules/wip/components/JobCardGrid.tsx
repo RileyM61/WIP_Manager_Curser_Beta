@@ -3,6 +3,7 @@ import { Job, JobStatus, UserRole } from '../../../types';
 import ProgressBar from '../../../components/ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../../../components/shared/icons';
 import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit, getAllScheduleWarnings } from '../lib/jobCalculations';
+import { analyzeJobRisk, RiskLevel } from '../lib/smartEngines';
 
 interface JobCardGridProps {
   jobs: Job[];
@@ -62,6 +63,12 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   const targetEndDateDisplay = job.targetEndDate ? (job.targetEndDate === 'TBD' ? 'TBD' : new Date(job.targetEndDate).toLocaleDateString()) : '—';
   const isBehindTargetSchedule = job.targetEndDate && job.targetEndDate !== 'TBD' && job.endDate !== 'TBD' && new Date(job.endDate).getTime() > new Date(job.targetEndDate).getTime();
 
+  // Smart Engine Analysis
+  const riskAnalysis = analyzeJobRisk(job);
+  const showUnderbillingRisk = riskAnalysis.underbillingRisk !== RiskLevel.None && riskAnalysis.underbillingRisk !== RiskLevel.Low;
+  const showScheduleDrift = riskAnalysis.scheduleDriftWeeks > 2;
+  const showMarginFade = riskAnalysis.isMarginFading;
+
   // Get all schedule warnings (mobilization + target date)
   const scheduleWarnings = getAllScheduleWarnings(job);
   const hasScheduleWarning = scheduleWarnings.length > 0;
@@ -109,6 +116,37 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
             On Hold for {daysOnHold} day{daysOnHold !== 1 ? 's' : ''}
           </div>
         )}
+
+        {/* Smart Engine Alerts */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {showUnderbillingRisk && (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${riskAnalysis.underbillingRisk === RiskLevel.High
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
+                : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+              }`}>
+              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              {riskAnalysis.underbillingRisk === RiskLevel.High ? 'High Risk' : 'Risk'}: Underbilling
+            </span>
+          )}
+          {showScheduleDrift && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300">
+              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Drift: {riskAnalysis.scheduleDriftWeeks} wks
+            </span>
+          )}
+          {showMarginFade && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300">
+              <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+              </svg>
+              Fade: -{riskAnalysis.marginFadePercent.toFixed(1)}% pts
+            </span>
+          )}
+        </div>
 
         {/* Schedule Warning Banner */}
         {hasScheduleWarning && (
