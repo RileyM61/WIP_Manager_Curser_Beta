@@ -99,7 +99,7 @@ export interface Job {
   tmSettings?: TMSettings;
   mobilizations?: MobilizationPhase[];  // Up to 4 mobilization/demobilization phases
   laborCostPerHour?: number;  // $/hr rate for converting labor costs to hours
-  
+
   // Job Classification (for AI Post-Mortem Analysis)
   jobCategory?: JobCategory;    // Commercial, Government, Residential
   productType?: ProductType;    // Chain Link, Ornamental, Field Fencing, Vinyl, Wood, Other
@@ -109,6 +109,43 @@ export interface Job {
 export interface JobsSnapshot {
   timestamp: string;
   jobs: Job[];
+}
+
+// ============================================================================
+// Job Financial Snapshots (Historical Tracking)
+// ============================================================================
+
+export type BillingPositionLabel = 'over-billed' | 'under-billed' | 'on-track';
+
+export interface JobFinancialSnapshot {
+  id: string;
+  companyId: string;
+  jobId: string;
+  snapshotDate: string;
+  createdAt: string;
+  // Contract/Budget
+  contractAmount: number;
+  originalBudgetTotal: number;
+  originalProfitTarget: number;
+  originalMarginTarget: number;
+  // Actuals
+  earnedToDate: number;
+  invoicedToDate: number;
+  costLaborToDate: number;
+  costMaterialToDate: number;
+  costOtherToDate: number;
+  totalCostToDate: number;
+  // Forecasts (EAC)
+  forecastedCostFinal: number | null;
+  forecastedRevenueFinal: number | null;
+  forecastedProfitFinal: number | null;
+  forecastedMarginFinal: number | null;
+  // Billing/WIP
+  billingPositionNumeric: number | null;
+  billingPositionLabel: BillingPositionLabel | null;
+  // Health Flags
+  atRiskMargin: boolean;
+  behindSchedule: boolean;
 }
 
 // ============================================================================
@@ -197,23 +234,23 @@ export interface Settings {
   capacityEnabled: boolean;
   capacityPlan?: CapacityPlan | null;
   companyId?: string;
-  
+
   // Onboarding Information
   industry?: IndustryType;
   annualRevenueRange?: RevenueRange;
   employeeCountRange?: EmployeeRange;
   interestedModules?: ModuleId[];
   servicePreference?: ServicePreference;
-  
+
   // Company Classification
   companyType: CompanyType;              // 'managed' = CFO client, 'direct' = self-service subscriber
-  
+
   // For Managed Companies (CFO Clients)
   managedByCfoUserId?: string;           // The CFO's user ID who manages this company
   managedByCfoCompanyId?: string;        // The CFO's company ID
   managedByPracticeName?: string;        // Display name (e.g., "Junction Peak")
   grantedModules?: ModuleId[];           // Modules the CFO has granted to this client
-  
+
   // For Direct Companies (Self-Service Subscribers)
   subscriptionTier?: SubscriptionTier;
   enabledModules?: ModuleId[];

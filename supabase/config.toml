@@ -9,3 +9,12 @@ entrypoint = "./functions/send-invitation-email/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/send-invitation-email/*.html" ]
+
+[functions.create-weekly-snapshots]
+enabled = true
+verify_jwt = false  # Allow cron/service calls without JWT
+entrypoint = "./functions/create-weekly-snapshots/index.ts"
+# This function can be called by:
+# 1. Supabase cron job (pg_cron)
+# 2. External scheduler
+# 3. Manual invocation from admin UI
