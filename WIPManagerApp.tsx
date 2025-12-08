@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan, ModuleId, InlineFinanceUpdate } from './types';
+import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan, ModuleId, InlineFinanceUpdate, JobFinancialSnapshot } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSupabaseJobs } from './hooks/useSupabaseJobs';
 import { useSupabaseSettings, DEFAULT_CAPACITY_PLAN } from './hooks/useSupabaseSettings';
@@ -9,6 +9,7 @@ import { useModuleAccess } from './hooks/useModuleAccess';
 import { useAuth } from './context/AuthContext';
 import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
 import { useCapacityForWIP } from './modules/labor-capacity';
+import { useJobFinancialSnapshots } from './hooks/useJobFinancialSnapshots';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
 import CompanySwitcher from './components/layout/CompanySwitcher';
@@ -20,8 +21,10 @@ import CompanyView from './components/views/CompanyView';
 import ForecastView from './components/views/ForecastView';
 import NotesModal from './components/modals/NotesModal';
 import SettingsPage from './components/settings/SettingsPage';
+import JobHistoryPanel from './components/JobHistoryPanel';
 import CapacityModal from './components/modals/CapacityModal';
 import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
+import SnapshotComparisonModal from './components/modals/SnapshotComparisonModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
@@ -63,33 +66,33 @@ function App() {
   const { jobs, loading: jobsLoading, addJob, updateJob, deleteJob, refreshJobs } = useSupabaseJobs(companyId);
   const { settings, loading: settingsLoading, error: settingsError, updateSettings, refreshSettings } = useSupabaseSettings(companyId);
   const { loadNotes, addNote: addNoteToSupabase } = useSupabaseNotes(companyId);
-  
+
   // CFO Practice - managed companies
-  const { 
-    managedCompanies, 
-    loading: managedCompaniesLoading, 
+  const {
+    managedCompanies,
+    loading: managedCompaniesLoading,
     createManagedCompany,
     updateGrantedModules,
   } = useManagedCompanies(user?.id || null, companyId);
-  
+
   // Module access check
   const { hasAccess } = useModuleAccess(settings);
   const hasLaborCapacityAccess = hasAccess('labor-capacity');
-  
+
   // Labor Capacity integration - fetch data if user has access
   const { capacity: laborCapacity, loading: laborCapacityLoading } = useCapacityForWIP(
     hasLaborCapacityAccess ? companyId : null
   );
-  
+
   // Local storage for UI preferences (not stored in Supabase)
   const [snapshot, setSnapshot] = useLocalStorage<JobsSnapshot | null>('wip-jobs-snapshot', null);
   const [userRole, setUserRole] = useLocalStorage<UserRole>('wip-user-role', 'owner');
   const [activeProjectManager, setActiveProjectManager] = useLocalStorage<string>('wip-active-pm', '');
   const [activeEstimator, setActiveEstimator] = useLocalStorage<string>('wip-active-estimator', '');
   const [filter, setFilter] = useLocalStorage<FilterType>('wip-filter', JobStatus.Active);
-  const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('wip-theme', 
+  const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('wip-theme',
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  
+
   // UI state
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [inlineSaving, setInlineSaving] = useState<Record<string, boolean>>({});
@@ -106,11 +109,21 @@ function App() {
   const [focusMode, setFocusMode] = useState<FocusMode>('default');
   const [isCapacityModalOpen, setIsCapacityModalOpen] = useState(false);
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
-  
+
   // Help & Learning state
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showWorkflows, setShowWorkflows] = useState(false);
+
+  // Job History panel state
+  const [jobForHistory, setJobForHistory] = useState<Job | null>(null);
+
+  // Snapshot comparison modal state
+  const [snapshotComparison, setSnapshotComparison] = useState<{
+    jobName: string;
+    previousSnapshot: JobFinancialSnapshot | null;
+    currentSnapshot: JobFinancialSnapshot;
+  } | null>(null);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -153,7 +166,7 @@ function App() {
 
   useEffect(() => {
     if (!settings) return;
-    
+
     setFocusMode('default');
     if (userRole === 'owner') {
       setFilter('company');
@@ -177,7 +190,7 @@ function App() {
 
   useEffect(() => {
     if (!settings || jobs.length === 0) return;
-    
+
     const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const weekEndDayIndex = weekDays.indexOf(settings.weekEndDay);
     if (weekEndDayIndex === -1) return;
@@ -202,7 +215,7 @@ function App() {
 
     const startOfCurrentWeek = getStartOfWeek(new Date());
     const startOfSnapshotWeek = getStartOfWeek(new Date(snapshot.timestamp));
-    
+
     // If the last snapshot was taken in a previous week, it's time to take a new one.
     if (startOfSnapshotWeek.getTime() < startOfCurrentWeek.getTime()) {
       setSnapshot({ timestamp: new Date().toISOString(), jobs });
@@ -330,7 +343,7 @@ function App() {
 
   const handleSaveCapacityPlan = useCallback(async (plan: CapacityPlan) => {
     if (!settings) return;
-    
+
     try {
       await updateSettings({
         ...settings,
@@ -367,7 +380,7 @@ function App() {
 
       // Check if this job already exists (update vs add)
       const existingJob = jobs.find(j => j.id === updatedJob.id);
-      
+
       if (existingJob) {
         // It's an update - handle onHoldDate logic
         if (updatedJob.status === JobStatus.OnHold && existingJob.status !== JobStatus.OnHold) {
@@ -487,13 +500,41 @@ function App() {
     }
   };
 
+  const handleOpenHistory = (job: Job) => {
+    setJobForHistory(job);
+  };
+
+  const handleCloseHistory = () => {
+    setJobForHistory(null);
+  };
+
+  // Use the job financial snapshots hook for quick snapshots
+  const { createSnapshotFromJob } = useJobFinancialSnapshots(companyId || '');
+
+  const handleTakeSnapshot = async (job: Job) => {
+    try {
+      const result = await createSnapshotFromJob(job);
+      if (result) {
+        // Show comparison modal instead of alert
+        setSnapshotComparison({
+          jobName: job.jobName,
+          previousSnapshot: result.previousSnapshot,
+          currentSnapshot: result.newSnapshot,
+        });
+      }
+    } catch (err) {
+      console.error('Error creating snapshot:', err);
+      alert('Failed to create snapshot. Please try again.');
+    }
+  };
+
   const handleSaveSettings = async (newSettings: Settings) => {
     if (!settings || !companyId) return;
-    
+
     try {
       console.log('handleSaveSettings called with logo:', newSettings.companyLogo ? 'Logo present' : 'No logo');
       await updateSettings({ ...newSettings, companyId });
-      
+
       if (userRole === settings.defaultRole && userRole !== newSettings.defaultRole) {
         setUserRole(newSettings.defaultRole);
       }
@@ -511,7 +552,7 @@ function App() {
     if (filter === 'company' || filter === 'forecast') {
       return [];
     }
-    
+
     let filteredJobs = jobs.filter(job => job.status === filter);
 
     // Estimators can only see jobs where they are the assigned estimator
@@ -563,7 +604,7 @@ function App() {
         }
         return dateA - dateB;
       }
-      
+
       const valA = a[sortKey];
       const valB = b[sortKey];
 
@@ -573,14 +614,14 @@ function App() {
       } else if (valA < valB) {
         comparison = -1;
       }
-      
+
       return sortDirection === 'desc' ? comparison * -1 : comparison;
     });
   }, [jobs, filter, sortKey, sortDirection, searchQuery, pmFilter, focusMode, userRole, activeEstimator]);
 
   const renderContent = () => {
     if (!settings) return null;
-    
+
     if (filter === 'company') {
       return (
         <CompanyView
@@ -597,22 +638,22 @@ function App() {
       );
     }
     if (filter === 'forecast') {
-        return <ForecastView jobs={jobs} />;
+      return <ForecastView jobs={jobs} />;
     }
     if (filter === 'reports') {
-        return (
-          <ReportsView 
-            jobs={jobs} 
-            companyId={companyId!} 
-            companyName={settings?.companyName}
-          />
-        );
+      return (
+        <ReportsView
+          jobs={jobs}
+          companyId={companyId!}
+          companyName={settings?.companyName}
+        />
+      );
     }
     if (viewMode === 'gantt') {
       return (
-        <GanttView 
-          jobs={sortedAndFilteredJobs} 
-          onUpdateJob={handleSaveJob} 
+        <GanttView
+          jobs={sortedAndFilteredJobs}
+          onUpdateJob={handleSaveJob}
           onEditJob={handleEditJobClick}
           capacityPlan={settings?.capacityPlan}
           capacityEnabled={settings?.capacityEnabled}
@@ -622,7 +663,7 @@ function App() {
       );
     }
     if (viewMode === 'grid') {
-      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} activeEstimator={activeEstimator}/>;
+      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} />;
     }
     return (
       <JobTable
@@ -690,10 +731,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-gray-900 text-brand-dark-gray dark:text-gray-300 bg-graph-paper">
-      <Header 
-        companyName={settings.companyName} 
+      <Header
+        companyName={settings.companyName}
         companyLogo={settings.companyLogo}
-        onAddJob={handleAddJobClick} 
+        onAddJob={handleAddJobClick}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onSignOut={signOut}
         theme={theme}
@@ -741,7 +782,7 @@ function App() {
           </div>
         </div>
       </main>
-      <JobFormModal 
+      <JobFormModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveJob}
@@ -776,9 +817,20 @@ function App() {
           onUpdateClientModules={async (clientCompanyId, modules) => {
             await updateGrantedModules(clientCompanyId, modules);
           }}
+          jobs={jobs}
         />
       )}
-      
+
+      {/* Job History Panel */}
+      {companyId && jobForHistory && (
+        <JobHistoryPanel
+          job={jobForHistory}
+          companyId={companyId}
+          isOpen={!!jobForHistory}
+          onClose={handleCloseHistory}
+        />
+      )}
+
       {/* Add Client Company Modal */}
       <AddClientCompanyModal
         isOpen={isAddClientModalOpen}
@@ -800,6 +852,17 @@ function App() {
         capacityPlan={settings.capacityPlan || DEFAULT_CAPACITY_PLAN}
         onSave={handleSaveCapacityPlan}
       />
+
+      {/* Snapshot Comparison Modal */}
+      {snapshotComparison && (
+        <SnapshotComparisonModal
+          isOpen={true}
+          onClose={() => setSnapshotComparison(null)}
+          jobName={snapshotComparison.jobName}
+          previousSnapshot={snapshotComparison.previousSnapshot}
+          currentSnapshot={snapshotComparison.currentSnapshot}
+        />
+      )}
 
       {/* Guided Tour */}
       <GuidedTour

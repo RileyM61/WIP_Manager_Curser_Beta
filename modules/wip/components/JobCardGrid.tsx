@@ -8,6 +8,8 @@ interface JobCardGridProps {
   jobs: Job[];
   onEdit: (job: Job) => void;
   onOpenNotes: (job: Job) => void;
+  onOpenHistory?: (job: Job) => void;
+  onTakeSnapshot?: (job: Job) => void;
   userRole: UserRole;
   activeEstimator?: string;
 }
@@ -25,11 +27,11 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
-const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; userRole: UserRole; activeEstimator?: string; }> = ({ job, onEdit, onOpenNotes, userRole, activeEstimator }) => {
+const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator }) => {
   // Estimators can only edit Future jobs where they are the assigned estimator
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
   const isTM = job.jobType === 'time-material';
-  
+
   const totalCost = sumBreakdown(job.costs);
   const totalOriginalBudget = sumBreakdown(job.budget);
   const totalContract = sumBreakdown(job.contract);
@@ -45,12 +47,12 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   const totalForecastedBudget = totalCost + totalCostToComplete;
   const originalProfit = totalContract - totalOriginalBudget;
   const originalProfitMargin = totalContract > 0 ? (originalProfit / totalContract) * 100 : 0;
-  
+
   // For T&M, profit margin is based on earned revenue
-  const forecastedProfitMargin = isTM 
+  const forecastedProfitMargin = isTM
     ? (earnedRevenue.total > 0 ? (forecastedProfit / earnedRevenue.total) * 100 : 0)
     : (totalContract > 0 ? (forecastedProfit / totalContract) * 100 : 0);
-  
+
   const profitVariance = isTM ? forecastedProfit : (forecastedProfit - originalProfit);
   const budgetVariance = totalForecastedBudget - totalOriginalBudget;
   const budgetVarianceColor = budgetVariance > 0 ? 'text-red-600 dark:text-red-500' : budgetVariance < 0 ? 'text-green-600 dark:text-green-500' : 'text-gray-800 dark:text-gray-200';
@@ -59,7 +61,7 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   const targetMarginDisplay = job.targetMargin !== undefined ? `${job.targetMargin.toFixed(1)}%` : '—';
   const targetEndDateDisplay = job.targetEndDate ? (job.targetEndDate === 'TBD' ? 'TBD' : new Date(job.targetEndDate).toLocaleDateString()) : '—';
   const isBehindTargetSchedule = job.targetEndDate && job.targetEndDate !== 'TBD' && job.endDate !== 'TBD' && new Date(job.endDate).getTime() > new Date(job.targetEndDate).getTime();
-  
+
   // Get all schedule warnings (mobilization + target date)
   const scheduleWarnings = getAllScheduleWarnings(job);
   const hasScheduleWarning = scheduleWarnings.length > 0;
@@ -86,30 +88,28 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
             <p className="text-sm text-gray-500 dark:text-gray-400">#{job.jobNo}</p>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-              job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
-              job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' : 
-              job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-              job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-            }`}>
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+              job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                  job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+              }`}>
               {job.status}
             </span>
-            <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-              isTM 
-                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' 
-                : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
-            }`}>
+            <span className={`px-2 py-0.5 text-xs font-medium rounded ${isTM
+              ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+              : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+              }`}>
               {isTM ? 'T&M' : 'Fixed'}
             </span>
           </div>
         </div>
-        
+
         {daysOnHold !== null && (
           <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/50 border-l-4 border-yellow-400 dark:border-yellow-500 text-yellow-700 dark:text-yellow-300 text-sm font-semibold rounded-r-md">
             On Hold for {daysOnHold} day{daysOnHold !== 1 ? 's' : ''}
           </div>
         )}
-        
+
         {/* Schedule Warning Banner */}
         {hasScheduleWarning && (
           <div className={`mt-2 p-2 ${hasCriticalWarning ? 'bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500' : 'bg-amber-50 dark:bg-amber-900/50 border-l-4 border-amber-500'} rounded-r-md`}>
@@ -161,7 +161,7 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
               <div className="flex justify-between"><span>Original Profit:</span> <span className={`${originalProfit >= 0 ? 'text-gray-700 dark:text-gray-200' : 'text-red-700 dark:text-red-400'}`}>{currencyFormatter.format(originalProfit)} ({originalProfitMargin.toFixed(1)}%)</span></div>
             )}
             <div className="flex justify-between">
-              <span>{isTM ? 'Current Profit:' : 'Forecasted Profit:'}</span> 
+              <span>{isTM ? 'Current Profit:' : 'Forecasted Profit:'}</span>
               <span className={`font-bold ${forecastedProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {currencyFormatter.format(forecastedProfit)} ({forecastedProfitMargin.toFixed(1)}%)
               </span>
@@ -269,33 +269,51 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
           </div>
         )}
         <div className="flex items-center space-x-4 ml-auto">
-            <button onClick={() => onOpenNotes(job)} className="relative inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-brand-blue dark:hover:text-white transition">
-              <ChatBubbleLeftTextIcon />
-              <span className="ml-1 text-sm">Notes</span>
-              {job.notes && job.notes.length > 0 && (
-                <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-                    {job.notes.length}
-                </span>
-              )}
-            </button>
-            <button 
-              onClick={() => onEdit(job)} 
-              className={`inline-flex items-center transition ${
-                isEstimatorWithRestrictedAccess 
-                  ? 'text-gray-400 dark:text-gray-500' 
-                  : 'text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400'
-              }`}
+          <button onClick={() => onOpenNotes(job)} className="relative inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-brand-blue dark:hover:text-white transition">
+            <ChatBubbleLeftTextIcon />
+            <span className="ml-1 text-sm">Notes</span>
+            {job.notes && job.notes.length > 0 && (
+              <span className="absolute -top-1 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                {job.notes.length}
+              </span>
+            )}
+          </button>
+          {onTakeSnapshot && (
+            <button
+              onClick={() => onTakeSnapshot(job)}
+              className="inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition"
+              title="Take a snapshot of current job financials"
             >
-              <EditIcon />
-              <span className="ml-1 text-sm">{isEstimatorWithRestrictedAccess ? 'View' : 'Edit'}</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="ml-1 text-sm">Snapshot</span>
             </button>
+          )}
+          {onOpenHistory && (
+            <button onClick={() => onOpenHistory(job)} className="inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition">
+              <ClockIcon className="w-5 h-5" />
+              <span className="ml-1 text-sm">History</span>
+            </button>
+          )}
+          <button
+            onClick={() => onEdit(job)}
+            className={`inline-flex items-center transition ${isEstimatorWithRestrictedAccess
+              ? 'text-gray-400 dark:text-gray-500'
+              : 'text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400'
+              }`}
+          >
+            <EditIcon />
+            <span className="ml-1 text-sm">{isEstimatorWithRestrictedAccess ? 'View' : 'Edit'}</span>
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, userRole, activeEstimator }) => {
+const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator }) => {
   if (jobs.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400">No jobs found for this category.</div>
   }
@@ -303,7 +321,7 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, us
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} userRole={userRole} activeEstimator={activeEstimator} />
+        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} onTakeSnapshot={onTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} />
       ))}
     </div>
   );

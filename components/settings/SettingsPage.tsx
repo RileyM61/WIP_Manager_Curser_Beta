@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, UserRole, ManagedCompany, ModuleId } from '../../types';
+import { Settings, UserRole, ManagedCompany, ModuleId, Job } from '../../types';
 import { XIcon } from '../shared/icons';
 import CompanySettings from './CompanySettings';
 import UsersSettings from './UsersSettings';
@@ -8,17 +8,19 @@ import AppearanceSettings from './AppearanceSettings';
 import LegalSettings from './LegalSettings';
 import ComingSoonSection from './ComingSoonSection';
 import PracticeSettings from './PracticeSettings';
+import DataAdminSettings from './DataAdminSettings';
 
-type SettingsSection = 
-  | 'company' 
+type SettingsSection =
+  | 'company'
   | 'practice'
-  | 'users' 
-  | 'defaults' 
-  | 'appearance' 
-  | 'notifications' 
-  | 'integrations' 
-  | 'reports' 
-  | 'billing' 
+  | 'users'
+  | 'defaults'
+  | 'appearance'
+  | 'notifications'
+  | 'integrations'
+  | 'reports'
+  | 'data'
+  | 'billing'
   | 'legal';
 
 interface SettingsPageProps {
@@ -36,6 +38,8 @@ interface SettingsPageProps {
   managedCompaniesLoading?: boolean;
   onAddClient?: () => void;
   onUpdateClientModules?: (companyId: string, modules: ModuleId[]) => Promise<void>;
+  // Data Admin props
+  jobs?: Job[];
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -52,6 +56,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   managedCompaniesLoading = false,
   onAddClient,
   onUpdateClientModules,
+  jobs = [],
 }) => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('company');
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
@@ -66,6 +71,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     { id: 'practice', label: 'CFO Practice', icon: '🏠', ownerOnly: true, show: isCfo || isManaged },
     { id: 'users', label: 'Users & Team', icon: '👥', ownerOnly: true },
     { id: 'defaults', label: 'Job Defaults', icon: '⚙️', ownerOnly: true },
+    { id: 'data', label: 'Data Admin', icon: '🗃️', ownerOnly: true },
     { id: 'appearance', label: 'Appearance', icon: '🎨', ownerOnly: false },
     { id: 'notifications', label: 'Notifications', icon: '🔔', ownerOnly: false },
     { id: 'integrations', label: 'Integrations', icon: '🔗', ownerOnly: true },
@@ -126,8 +132,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             settings={currentSettings}
             managedCompanies={managedCompanies}
             managedCompaniesLoading={managedCompaniesLoading}
-            onAddClient={onAddClient || (() => {})}
-            onUpdateClientModules={onUpdateClientModules || (async () => {})}
+            onAddClient={onAddClient || (() => { })}
+            onUpdateClientModules={onUpdateClientModules || (async () => { })}
           />
         );
       case 'users':
@@ -143,6 +149,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             settings={currentSettings}
             onChange={handleSettingsChange}
             onSave={handleSave}
+          />
+        );
+      case 'data':
+        return (
+          <DataAdminSettings
+            companyId={companyId}
+            jobs={jobs}
           />
         );
       case 'appearance':
@@ -233,11 +246,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                  activeSection === item.id
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${activeSection === item.id
+                  ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
               >
                 <span className="text-lg">{item.icon}</span>
                 <span>{item.label}</span>
