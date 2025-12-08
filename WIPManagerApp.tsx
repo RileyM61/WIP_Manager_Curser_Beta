@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan, ModuleId } from './types';
+import { Job, JobStatus, ViewMode, SortKey, SortDirection, FilterType, Note, Settings, JobsSnapshot, UserRole, CostBreakdown, CapacityPlan, ModuleId, JobFinancialSnapshot } from './types';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSupabaseJobs } from './hooks/useSupabaseJobs';
 import { useSupabaseSettings, DEFAULT_CAPACITY_PLAN } from './hooks/useSupabaseSettings';
@@ -24,6 +24,7 @@ import SettingsPage from './components/settings/SettingsPage';
 import JobHistoryPanel from './components/JobHistoryPanel';
 import CapacityModal from './components/modals/CapacityModal';
 import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
+import SnapshotComparisonModal from './components/modals/SnapshotComparisonModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
@@ -115,6 +116,13 @@ function App() {
 
   // Job History panel state
   const [jobForHistory, setJobForHistory] = useState<Job | null>(null);
+
+  // Snapshot comparison modal state
+  const [snapshotComparison, setSnapshotComparison] = useState<{
+    jobName: string;
+    previousSnapshot: JobFinancialSnapshot | null;
+    currentSnapshot: JobFinancialSnapshot;
+  } | null>(null);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -443,9 +451,14 @@ function App() {
 
   const handleTakeSnapshot = async (job: Job) => {
     try {
-      const snapshot = await createSnapshotFromJob(job);
-      if (snapshot) {
-        alert(`Snapshot created for ${job.jobName}`);
+      const result = await createSnapshotFromJob(job);
+      if (result) {
+        // Show comparison modal instead of alert
+        setSnapshotComparison({
+          jobName: job.jobName,
+          previousSnapshot: result.previousSnapshot,
+          currentSnapshot: result.newSnapshot,
+        });
       }
     } catch (err) {
       console.error('Error creating snapshot:', err);
@@ -763,6 +776,17 @@ function App() {
         capacityPlan={settings.capacityPlan || DEFAULT_CAPACITY_PLAN}
         onSave={handleSaveCapacityPlan}
       />
+
+      {/* Snapshot Comparison Modal */}
+      {snapshotComparison && (
+        <SnapshotComparisonModal
+          isOpen={true}
+          onClose={() => setSnapshotComparison(null)}
+          jobName={snapshotComparison.jobName}
+          previousSnapshot={snapshotComparison.previousSnapshot}
+          currentSnapshot={snapshotComparison.currentSnapshot}
+        />
+      )}
 
       {/* Guided Tour */}
       <GuidedTour

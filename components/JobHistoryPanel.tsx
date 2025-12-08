@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Job, JobFinancialSnapshot } from '../types';
 import { useJobFinancialSnapshots } from '../hooks/useJobFinancialSnapshots';
+import SnapshotComparisonModal from './modals/SnapshotComparisonModal';
 
 interface JobHistoryPanelProps {
     job: Job;
@@ -17,6 +18,10 @@ const JobHistoryPanel: React.FC<JobHistoryPanelProps> = ({ job, companyId, isOpe
     const { getSnapshotHistory, createSnapshotFromJob, loading, error } = useJobFinancialSnapshots(companyId);
     const [snapshots, setSnapshots] = useState<JobFinancialSnapshot[]>([]);
     const [loaded, setLoaded] = useState(false);
+    const [showComparison, setShowComparison] = useState<{
+        previousSnapshot: JobFinancialSnapshot | null;
+        currentSnapshot: JobFinancialSnapshot;
+    } | null>(null);
 
     // Load history when panel opens
     React.useEffect(() => {
@@ -32,9 +37,14 @@ const JobHistoryPanel: React.FC<JobHistoryPanelProps> = ({ job, companyId, isOpe
     };
 
     const handleCreateSnapshot = async () => {
-        const snapshot = await createSnapshotFromJob(job);
-        if (snapshot) {
-            setSnapshots([snapshot, ...snapshots]);
+        const result = await createSnapshotFromJob(job);
+        if (result) {
+            setSnapshots([result.newSnapshot, ...snapshots]);
+            // Show comparison modal
+            setShowComparison({
+                previousSnapshot: result.previousSnapshot,
+                currentSnapshot: result.newSnapshot,
+            });
         }
     };
 
@@ -222,6 +232,17 @@ const JobHistoryPanel: React.FC<JobHistoryPanelProps> = ({ job, companyId, isOpe
                     )}
                 </div>
             </div>
+
+            {/* Snapshot Comparison Modal */}
+            {showComparison && (
+                <SnapshotComparisonModal
+                    isOpen={true}
+                    onClose={() => setShowComparison(null)}
+                    jobName={job.jobName}
+                    previousSnapshot={showComparison.previousSnapshot}
+                    currentSnapshot={showComparison.currentSnapshot}
+                />
+            )}
         </div>
     );
 };

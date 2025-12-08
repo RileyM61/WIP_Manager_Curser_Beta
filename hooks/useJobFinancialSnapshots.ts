@@ -3,6 +3,14 @@ import { Job, JobFinancialSnapshot, BillingPositionLabel } from '../types';
 import { supabase, isSupabaseConfigured, dbSnapshotToAppSnapshot, appSnapshotToDbSnapshot } from '../lib/supabase';
 
 /**
+ * Result of creating a snapshot, includes the new snapshot and optionally the previous one for comparison.
+ */
+export interface CreateSnapshotResult {
+    newSnapshot: JobFinancialSnapshot;
+    previousSnapshot: JobFinancialSnapshot | null;
+}
+
+/**
  * Hook for managing job financial snapshots.
  * Provides functions to read history and create new snapshots.
  */
@@ -80,15 +88,21 @@ export function useJobFinancialSnapshots(companyId?: string | null) {
         }
     }, [companyId]);
 
+
+
     /**
-     * Create a financial snapshot from current job data
+     * Create a financial snapshot from current job data.
+     * Returns both the new snapshot and the previous snapshot (if any) for comparison.
      */
-    const createSnapshotFromJob = useCallback(async (job: Job): Promise<JobFinancialSnapshot | null> => {
+    const createSnapshotFromJob = useCallback(async (job: Job): Promise<CreateSnapshotResult | null> => {
         if (!isSupabaseConfigured() || !companyId) return null;
 
         try {
             setLoading(true);
             setError(null);
+
+            // First, fetch the previous snapshot for comparison
+            const previousSnapshot = await getLatestSnapshot(job.id);
 
             // Calculate financial metrics from job data
             const contractTotal = job.contract.labor + job.contract.material + job.contract.other;
@@ -160,7 +174,8 @@ export function useJobFinancialSnapshots(companyId?: string | null) {
 
             if (insertError) throw insertError;
 
-            return dbSnapshotToAppSnapshot(data);
+            const newSnapshot = dbSnapshotToAppSnapshot(data);
+            return { newSnapshot, previousSnapshot };
         } catch (err: any) {
             console.error('Error creating snapshot:', err);
             setError(err.message || 'Failed to create snapshot');
@@ -168,7 +183,7 @@ export function useJobFinancialSnapshots(companyId?: string | null) {
         } finally {
             setLoading(false);
         }
-    }, [companyId]);
+    }, [companyId, getLatestSnapshot]);
 
     /**
      * Create snapshots for all active jobs in the company
