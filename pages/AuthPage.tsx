@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { isEmailAllowed } from '../constants';
@@ -34,6 +34,7 @@ const AuthPage: React.FC = () => {
   const [inviteLoading, setInviteLoading] = useState(!!inviteToken);
   const [acceptingInvite, setAcceptingInvite] = useState(false);
   const [inviteAttempted, setInviteAttempted] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const headerCopy = useMemo(() => {
     if (inviteInfo?.valid) {
@@ -350,7 +351,10 @@ const AuthPage: React.FC = () => {
           </button>
         </form>
         <p className="mt-8 text-center text-xs text-white/60">
-          By continuing you agree to the WIP-Insights terms of service.
+          By continuing you agree to our{' '}
+          <Link to="/legal/terms" className="text-orange-400 hover:underline">Terms of Service</Link>
+          {' '}and{' '}
+          <Link to="/legal/privacy" className="text-orange-400 hover:underline">Privacy Policy</Link>.
         </p>
       </div>
     </div>

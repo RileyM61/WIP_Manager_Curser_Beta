@@ -18,6 +18,12 @@ import { ValueBuilderPage } from './modules/value-builder';
 import { ForecastVsActualsPage } from './modules/budget';
 import DashboardNavButton from './components/layout/DashboardNavButton';
 
+// Legal Pages
+import TermsOfService from './pages/legal/TermsOfService';
+import PrivacyPolicy from './pages/legal/PrivacyPolicy';
+import AcceptableUsePolicy from './pages/legal/AcceptableUsePolicy';
+import CookiePolicy from './pages/legal/CookiePolicy';
+
 /**
  * Main App Router
  * 
@@ -71,6 +77,12 @@ function App() {
 
             {/* Authentication */}
             <Route path="/auth" element={<AuthPage />} />
+
+            {/* Legal Pages */}
+            <Route path="/legal/terms" element={<TermsOfService />} />
+            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+            <Route path="/legal/acceptable-use" element={<AcceptableUsePolicy />} />
+            <Route path="/legal/cookies" element={<CookiePolicy />} />
 
             {/* ============================================ */}
             {/* PROTECTED ROUTES - App Shell */}

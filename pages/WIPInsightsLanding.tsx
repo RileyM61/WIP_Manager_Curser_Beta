@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { WIPCard } from '../components/WIPCard';
 
 // ============================================================================
@@ -1069,12 +1069,12 @@ const WIPInsightsLanding: React.FC = () => {
               <a href="/" className="hover:text-white transition-colors">
                 CFO Suite
               </a>
-              <a href="#" className="hover:text-white transition-colors">
+              <Link to="/legal/privacy" className="hover:text-white transition-colors">
                 Privacy
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </Link>
+              <Link to="/legal/terms" className="hover:text-white transition-colors">
                 Terms
-              </a>
+              </Link>
             </div>
 
             <p className="text-sm">
