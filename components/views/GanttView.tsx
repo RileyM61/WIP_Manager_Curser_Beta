@@ -27,20 +27,20 @@ type ZoomLevel = 'week' | 'month' | 'quarter';
 const getActiveMobilizations = (job: Job): MobilizationPhase[] => {
   // First, try to get enabled mobilization phases with valid dates
   if (job.mobilizations && job.mobilizations.length > 0) {
-    const validPhases = job.mobilizations.filter(m => 
-      m.enabled && 
-      m.mobilizeDate && 
-      m.mobilizeDate !== 'TBD' && 
-      m.demobilizeDate && 
+    const validPhases = job.mobilizations.filter(m =>
+      m.enabled &&
+      m.mobilizeDate &&
+      m.mobilizeDate !== 'TBD' &&
+      m.demobilizeDate &&
       m.demobilizeDate !== 'TBD'
     );
-    
+
     // If we have valid phases, return them
     if (validPhases.length > 0) {
       return validPhases;
     }
   }
-  
+
   // Fallback: if no valid mobilizations, create one from start/end dates
   if (job.startDate && job.startDate !== 'TBD' && job.endDate && job.endDate !== 'TBD') {
     return [{
@@ -51,7 +51,7 @@ const getActiveMobilizations = (job: Job): MobilizationPhase[] => {
       description: '',
     }];
   }
-  
+
   return [];
 };
 
@@ -59,15 +59,15 @@ const getActiveMobilizations = (job: Job): MobilizationPhase[] => {
 const getPhaseHours = (job: Job, phase: MobilizationPhase): number => {
   // Skip if no labor cost per hour is set
   if (!job.laborCostPerHour || job.laborCostPerHour <= 0) return 0;
-  
+
   // Calculate total labor hours for the job
   const totalLaborHours = job.costToComplete.labor / job.laborCostPerHour;
   if (totalLaborHours <= 0) return 0;
-  
+
   // Get all active phases
   const activeMobs = getActiveMobilizations(job);
   if (activeMobs.length === 0) return 0;
-  
+
   // Calculate total days across all phases
   let totalDaysInPhases = 0;
   activeMobs.forEach(mob => {
@@ -78,16 +78,16 @@ const getPhaseHours = (job: Job, phase: MobilizationPhase): number => {
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     totalDaysInPhases += days;
   });
-  
+
   if (totalDaysInPhases === 0) return 0;
-  
+
   // Calculate days in this specific phase
   const [startYear, startMonth, startDay] = phase.mobilizeDate.split('-').map(Number);
   const [endYear, endMonth, endDay] = phase.demobilizeDate.split('-').map(Number);
   const phaseStart = new Date(startYear, startMonth - 1, startDay);
   const phaseEnd = new Date(endYear, endMonth - 1, endDay);
   const phaseDays = Math.ceil((phaseEnd.getTime() - phaseStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  
+
   // Return proportional hours for this phase
   return totalLaborHours * (phaseDays / totalDaysInPhases);
 };
@@ -100,24 +100,24 @@ const phaseColors = [
   { bg: 'bg-amber-500 hover:bg-amber-600', light: 'bg-amber-400' },
 ];
 
-const GanttView: React.FC<GanttViewProps> = ({ 
-  jobs, 
-  onUpdateJob, 
-  onEditJob, 
-  capacityPlan, 
+const GanttView: React.FC<GanttViewProps> = ({
+  jobs,
+  onUpdateJob,
+  onEditJob,
+  capacityPlan,
   capacityEnabled,
   laborCapacityHours,
   laborCapacityEnabled,
 }) => {
   const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('month');
-  
+
   // Calculate total weekly capacity - prefer Labor Capacity module data when available
   const weeklyCapacity = useMemo(() => {
     // Priority 1: Labor Capacity module data (if enabled and has data)
     if (laborCapacityEnabled && laborCapacityHours && laborCapacityHours > 0) {
       return laborCapacityHours;
     }
-    
+
     // Priority 2: Simple capacity plan (fallback)
     if (!capacityEnabled || !capacityPlan || !capacityPlan.rows || capacityPlan.rows.length === 0) {
       return null; // No capacity configured
@@ -148,9 +148,10 @@ const GanttView: React.FC<GanttViewProps> = ({
 
   // Filter jobs: only show Future, Active, On Hold (not Completed/Archived)
   // Jobs must have at least one enabled mobilization phase with valid dates
-  const activeJobs = useMemo(() => 
+  const activeJobs = useMemo(() =>
     jobs.filter(j => {
-      if (j.status === JobStatus.Completed || j.status === JobStatus.Archived) {
+      // Exclude Draft, Completed, and Archived jobs
+      if (j.status === JobStatus.Draft || j.status === JobStatus.Completed || j.status === JobStatus.Archived) {
         return false;
       }
       const activeMobs = getActiveMobilizations(j);
@@ -171,10 +172,10 @@ const GanttView: React.FC<GanttViewProps> = ({
       const now = new Date();
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const end = new Date(now.getFullYear(), now.getMonth() + 6, 0);
-      return { 
-        timelineStart: start, 
-        timelineEnd: end, 
-        totalDays: Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) 
+      return {
+        timelineStart: start,
+        timelineEnd: end,
+        totalDays: Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
       };
     }
 
@@ -186,18 +187,18 @@ const GanttView: React.FC<GanttViewProps> = ({
         dates.push(new Date(mob.demobilizeDate));
       });
     });
-    
+
     const minDate = new Date(Math.min(...dates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...dates.map(d => d.getTime())));
-    
+
     // Align start to first of month for consistent header alignment across all zoom levels
     const start = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
     // Go back one more month for padding
     start.setMonth(start.getMonth() - 1);
-    
+
     // End at the last day of the month after maxDate (with padding)
     const end = new Date(maxDate.getFullYear(), maxDate.getMonth() + 2, 0);
-    
+
     const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     return { timelineStart: start, timelineEnd: end, totalDays: days };
   }, [activeJobs]);
@@ -206,7 +207,7 @@ const GanttView: React.FC<GanttViewProps> = ({
   const timelineHeaders = useMemo(() => {
     const headers: { label: string; width: number; date: Date }[] = [];
     const current = new Date(timelineStart);
-    
+
     while (current <= timelineEnd) {
       if (zoomLevel === 'week') {
         const weekStart = new Date(current);
@@ -256,12 +257,12 @@ const GanttView: React.FC<GanttViewProps> = ({
     const isBeingDragged = dragPreview?.jobId === job.id && dragPreview?.phaseId === phase.id;
     const startDate = isBeingDragged ? dragPreview.startDate : phase.mobilizeDate;
     const endDate = isBeingDragged ? dragPreview.endDate : phase.demobilizeDate;
-    
+
     const start = new Date(startDate);
     const end = new Date(endDate);
     const startOffset = Math.max(0, (start.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24));
     const duration = Math.max(1, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     return {
       left: startOffset * pxPerDay,
       width: Math.max(duration * pxPerDay, 30), // Minimum 30px width
@@ -292,7 +293,7 @@ const GanttView: React.FC<GanttViewProps> = ({
   // Calculate new dates based on drag delta
   const calculateDragDates = (deltaDays: number) => {
     if (!dragState) return null;
-    
+
     let newStart = new Date(dragState.originalStart);
     let newEnd = new Date(dragState.originalEnd);
 
@@ -326,7 +327,7 @@ const GanttView: React.FC<GanttViewProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       const deltaX = e.clientX - dragState.startX;
       const deltaDays = Math.round(deltaX / pxPerDay);
-      
+
       const newDates = calculateDragDates(deltaDays);
       if (newDates) {
         setDragPreview({
@@ -342,27 +343,27 @@ const GanttView: React.FC<GanttViewProps> = ({
       const deltaX = e.clientX - dragState.startX;
       const deltaDays = Math.round(deltaX / pxPerDay);
       const newDates = calculateDragDates(deltaDays);
-      
+
       if (newDates && deltaDays !== 0) {
         const job = jobs.find(j => j.id === dragState.jobId);
         if (job) {
           // Update the mobilization phase dates
-          const updatedMobilizations = (job.mobilizations || []).map(mob => 
+          const updatedMobilizations = (job.mobilizations || []).map(mob =>
             mob.id === dragState.phaseId
               ? { ...mob, mobilizeDate: newDates.startDate, demobilizeDate: newDates.endDate }
               : mob
           );
-          
+
           const updatedJob: Job = {
             ...job,
             mobilizations: updatedMobilizations,
           };
-          
+
           // Also update the job's startDate/endDate to match the earliest/latest mobilization
           const allDates = updatedMobilizations
             .filter(m => m.enabled && m.mobilizeDate !== 'TBD' && m.demobilizeDate !== 'TBD')
             .flatMap(m => [new Date(m.mobilizeDate), new Date(m.demobilizeDate)]);
-          
+
           if (allDates.length > 0) {
             const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
             const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
@@ -370,11 +371,11 @@ const GanttView: React.FC<GanttViewProps> = ({
             updatedJob.endDate = maxDate.toISOString().split('T')[0];
             updatedJob.targetEndDate = maxDate.toISOString().split('T')[0];
           }
-          
+
           onUpdateJob(updatedJob);
         }
       }
-      
+
       setDragState(null);
       setDragPreview(null);
     };
@@ -392,19 +393,19 @@ const GanttView: React.FC<GanttViewProps> = ({
   const laborHoursData = useMemo(() => {
     const hours: Map<string, number> = new Map();
     const jobBreakdown: Map<string, JobHoursEntry[]> = new Map();
-    
+
     activeJobs.forEach(job => {
       // Skip jobs without labor cost per hour set
       if (!job.laborCostPerHour || job.laborCostPerHour <= 0) return;
-      
+
       // Calculate total labor hours remaining
       const totalLaborHours = job.costToComplete.labor / job.laborCostPerHour;
       if (totalLaborHours <= 0) return;
-      
+
       // Get all active mobilization phases
       const activeMobs = getActiveMobilizations(job);
       if (activeMobs.length === 0) return;
-      
+
       // Count total days across all phases
       let totalDaysInPhases = 0;
       activeMobs.forEach(mob => {
@@ -413,12 +414,12 @@ const GanttView: React.FC<GanttViewProps> = ({
         const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
         totalDaysInPhases += days;
       });
-      
+
       if (totalDaysInPhases === 0) return;
-      
+
       // Calculate hours per day (spread evenly)
       const hoursPerDay = totalLaborHours / totalDaysInPhases;
-      
+
       // Add hours to each day in mobilization phases
       activeMobs.forEach(mob => {
         // Parse dates as local dates
@@ -427,17 +428,17 @@ const GanttView: React.FC<GanttViewProps> = ({
         const start = new Date(startYear, startMonth - 1, startDay);
         const end = new Date(endYear, endMonth - 1, endDay);
         const current = new Date(start);
-        
+
         while (current <= end) {
           // Use local date format for key
           const year = current.getFullYear();
           const month = String(current.getMonth() + 1).padStart(2, '0');
           const day = String(current.getDate()).padStart(2, '0');
           const key = `${year}-${month}-${day}`;
-          
+
           // Add to total hours
           hours.set(key, (hours.get(key) || 0) + hoursPerDay);
-          
+
           // Add to job breakdown
           const entries = jobBreakdown.get(key) || [];
           const existingEntry = entries.find(e => e.jobId === job.id);
@@ -452,15 +453,15 @@ const GanttView: React.FC<GanttViewProps> = ({
             });
           }
           jobBreakdown.set(key, entries);
-          
+
           current.setDate(current.getDate() + 1);
         }
       });
     });
-    
+
     return { hours, jobBreakdown };
   }, [activeJobs]);
-  
+
   const laborHoursByDay = laborHoursData.hours;
   const laborJobBreakdown = laborHoursData.jobBreakdown;
 
@@ -488,16 +489,16 @@ const GanttView: React.FC<GanttViewProps> = ({
   // Aggregate labor hours by zoom level (week, month, quarter) with job breakdown
   const aggregatedHours = useMemo(() => {
     const aggregated: Map<string, { hours: number; startDate: Date; endDate: Date; jobs: JobHoursEntry[] }> = new Map();
-    
+
     laborHoursByDay.forEach((hours, dateKey) => {
       // Parse the date key as local date (YYYY-MM-DD)
       const [year, month, day] = dateKey.split('-').map(Number);
       const date = new Date(year, month - 1, day);
-      
+
       let periodKey: string;
       let periodStart: Date;
       let periodEnd: Date;
-      
+
       if (zoomLevel === 'week') {
         // Get start of week (Sunday) to match header dates
         const dayOfWeek = date.getDay();
@@ -517,10 +518,10 @@ const GanttView: React.FC<GanttViewProps> = ({
         periodEnd = new Date(date.getFullYear(), quarter * 3 + 3, 0);
         periodKey = `${date.getFullYear()}-Q${quarter + 1}`;
       }
-      
+
       // Get job breakdown for this day
       const dayJobs = laborJobBreakdown.get(dateKey) || [];
-      
+
       const existing = aggregated.get(periodKey);
       if (existing) {
         existing.hours += hours;
@@ -534,28 +535,28 @@ const GanttView: React.FC<GanttViewProps> = ({
           }
         });
       } else {
-        aggregated.set(periodKey, { 
-          hours, 
-          startDate: periodStart, 
+        aggregated.set(periodKey, {
+          hours,
+          startDate: periodStart,
           endDate: periodEnd,
           jobs: dayJobs.map(j => ({ ...j }))
         });
       }
     });
-    
+
     return aggregated;
   }, [laborHoursByDay, zoomLevel]);
 
-  const maxHours = useMemo(() => 
+  const maxHours = useMemo(() =>
     Math.max(...Array.from(aggregatedHours.values()).map((v: { hours: number }) => v.hours), 1),
     [aggregatedHours]
   );
 
   // Format date for display
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -591,18 +592,17 @@ const GanttView: React.FC<GanttViewProps> = ({
             {activeJobs.length} active job{activeJobs.length !== 1 ? 's' : ''}
           </span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">Zoom:</span>
           {(['week', 'month', 'quarter'] as ZoomLevel[]).map((level) => (
             <button
               key={level}
               onClick={() => setZoomLevel(level)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${
-                zoomLevel === level
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${zoomLevel === level
                   ? 'bg-orange-500 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
               {level.charAt(0).toUpperCase() + level.slice(1)}
             </button>
@@ -638,7 +638,7 @@ const GanttView: React.FC<GanttViewProps> = ({
       <div className="flex overflow-hidden" style={{ height: `${headerHeight + activeJobs.length * rowHeight + 60}px` }}>
         {/* Job Labels (Fixed Left Column) */}
         <div className="flex-shrink-0 w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <div 
+          <div
             className="flex items-center px-4 font-semibold text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide border-b border-gray-200 dark:border-gray-700"
             style={{ height: headerHeight }}
           >
@@ -680,13 +680,13 @@ const GanttView: React.FC<GanttViewProps> = ({
         </div>
 
         {/* Timeline Area (Scrollable) */}
-        <div 
+        <div
           ref={containerRef}
           className="flex-1 overflow-x-auto overflow-y-hidden"
         >
           <div style={{ width: timelineWidth, minWidth: '100%' }}>
             {/* Timeline Header */}
-            <div 
+            <div
               className="flex border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
               style={{ height: headerHeight }}
             >
@@ -704,7 +704,7 @@ const GanttView: React.FC<GanttViewProps> = ({
             {/* Job Bars */}
             {activeJobs.map((job) => {
               const activeMobs = getActiveMobilizations(job);
-              
+
               return (
                 <div
                   key={job.id}
@@ -725,7 +725,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                     }
                     return null;
                   })()}
-                  
+
                   {/* Contract End Date Marker */}
                   {job.endDate && job.endDate !== 'TBD' && (() => {
                     const contractEnd = new Date(job.endDate);
@@ -743,26 +743,25 @@ const GanttView: React.FC<GanttViewProps> = ({
                     }
                     return null;
                   })()}
-                  
+
                   {/* Phase Bars */}
                   {activeMobs.map((phase) => {
                     const barStyle = getPhaseBarStyle(job, phase);
                     const isDragging = dragState?.jobId === job.id && dragState?.phaseId === phase.id;
                     const colorIdx = phase.id - 1; // 0-indexed
-                    
+
                     // Check if this phase has a warning (extends past contract end)
                     const warnings = getMobilizationWarnings(job);
                     const phaseWarning = warnings.find(w => w.phaseId === phase.id);
                     const hasWarning = !!phaseWarning;
-                    
+
                     return (
                       <div
                         key={`${job.id}-phase-${phase.id}`}
-                        className={`absolute top-2 bottom-2 rounded-lg shadow-md flex items-center transition-shadow ${
-                          hasWarning 
-                            ? 'bg-red-500 hover:bg-red-600 ring-2 ring-red-300 dark:ring-red-700' 
+                        className={`absolute top-2 bottom-2 rounded-lg shadow-md flex items-center transition-shadow ${hasWarning
+                            ? 'bg-red-500 hover:bg-red-600 ring-2 ring-red-300 dark:ring-red-700'
                             : (phaseColors[colorIdx]?.bg || phaseColors[0].bg)
-                        } ${isDragging ? 'shadow-xl ring-2 ring-orange-400 z-20' : 'z-10'}`}
+                          } ${isDragging ? 'shadow-xl ring-2 ring-orange-400 z-20' : 'z-10'}`}
                         style={{
                           left: barStyle.left,
                           width: barStyle.width,
@@ -778,13 +777,13 @@ const GanttView: React.FC<GanttViewProps> = ({
                             !
                           </div>
                         )}
-                        
+
                         {/* Left resize handle */}
                         <div
                           className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-black/20 rounded-l-lg"
                           onMouseDown={(e) => handleDragStart(e, job, phase, 'resize-start')}
                         />
-                        
+
                         {/* Bar content */}
                         <div className="flex-1 px-3 truncate text-white text-xs font-medium">
                           {barStyle.width > 60 && (
@@ -801,8 +800,8 @@ const GanttView: React.FC<GanttViewProps> = ({
                                 // Invalid dates, just show total hours
                                 return (
                                   <span className="ml-1 opacity-90 font-semibold">
-                                    {phaseHours >= 1000 
-                                      ? `${(phaseHours / 1000).toFixed(1)}k` 
+                                    {phaseHours >= 1000
+                                      ? `${(phaseHours / 1000).toFixed(1)}k`
                                       : Math.round(phaseHours)} hrs
                                   </span>
                                 );
@@ -810,11 +809,11 @@ const GanttView: React.FC<GanttViewProps> = ({
                               const phaseDays = Math.ceil((endTime - startTime) / (1000 * 60 * 60 * 24)) + 1;
                               const phaseWeeks = phaseDays / 7;
                               const hoursPerWeek = phaseWeeks > 0 ? phaseHours / phaseWeeks : 0;
-                              
+
                               return (
                                 <span className="ml-1 opacity-90 font-semibold">
-                                  {phaseHours >= 1000 
-                                    ? `${(phaseHours / 1000).toFixed(1)}k` 
+                                  {phaseHours >= 1000
+                                    ? `${(phaseHours / 1000).toFixed(1)}k`
                                     : Math.round(phaseHours)} hrs
                                   {barStyle.width > 140 && hoursPerWeek > 0 && (
                                     <span className="ml-1 opacity-75 font-normal">
@@ -835,7 +834,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                             </span>
                           )}
                         </div>
-                        
+
                         {/* Right resize handle */}
                         <div
                           className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-black/20 rounded-r-lg"
@@ -849,7 +848,7 @@ const GanttView: React.FC<GanttViewProps> = ({
             })}
 
             {/* Labor Hours Heatmap */}
-            <div 
+            <div
               className="relative border-t-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700/30"
               style={{ height: 60 }}
             >
@@ -863,15 +862,15 @@ const GanttView: React.FC<GanttViewProps> = ({
                 {timelineHeaders.map((header, idx) => {
                   // Find hours for this period using the same key format
                   const periodKey = getPeriodKey(header.date);
-                  
+
                   const periodData = aggregatedHours.get(periodKey);
                   const hours = periodData?.hours || 0;
                   const jobsList = periodData?.jobs || [];
-                  
+
                   // Calculate capacity utilization or relative intensity
                   let capacityPercent: number | null = null;
                   let intensity: number;
-                  
+
                   if (weeklyCapacity && weeklyCapacity > 0) {
                     // Calculate period capacity based on zoom level
                     let periodCapacity = weeklyCapacity;
@@ -886,7 +885,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                     // Fall back to relative intensity if no capacity configured
                     intensity = maxHours > 0 ? hours / maxHours : 0;
                   }
-                  
+
                   // Color based on capacity % (if available) or relative intensity
                   let bgColor = 'bg-gray-200 dark:bg-gray-600';
                   if (hours > 0) {
@@ -906,7 +905,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                       else bgColor = 'bg-blue-300';
                     }
                   }
-                  
+
                   // Build tooltip with job breakdown
                   const tooltipLines = [
                     `${header.label}: ${Math.round(hours).toLocaleString()} hrs`,
@@ -918,7 +917,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                       .map(j => `${j.jobNo}: ${Math.round(j.hours)} hrs`),
                     jobsList.length > 8 ? `+${jobsList.length - 8} more jobs` : ''
                   ].filter(Boolean).join('\n');
-                  
+
                   return (
                     <div
                       key={idx}
@@ -926,9 +925,9 @@ const GanttView: React.FC<GanttViewProps> = ({
                       style={{ width: header.width * pxPerDay }}
                     >
                       {hours > 0 && (
-                        <div 
+                        <div
                           className={`relative w-[90%] ${bgColor} rounded-t-sm transition-all flex items-end justify-center pb-1 cursor-pointer`}
-                          style={{ 
+                          style={{
                             height: `${Math.max(25, Math.min(intensity, 1) * 100)}%`,
                             minHeight: '25px',
                           }}
@@ -972,7 +971,7 @@ const GanttView: React.FC<GanttViewProps> = ({
             <span className="w-2 h-2 rounded-full bg-red-500 inline-block" /> Today
           </span>
         </div>
-        
+
         {/* Capacity Legend */}
         <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
@@ -984,7 +983,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                 </span>
               )}
             </span>
-            
+
             {/* Color Legend */}
             <div className="flex items-center gap-3">
               {weeklyCapacity ? (

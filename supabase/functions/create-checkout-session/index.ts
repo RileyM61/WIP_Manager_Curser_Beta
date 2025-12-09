@@ -77,6 +77,7 @@ serve(async (req) => {
                 },
             ],
             mode: 'subscription',
+            allow_promotion_codes: true,
             success_url: `${return_url}?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${return_url}`,
             client_reference_id: user.id,

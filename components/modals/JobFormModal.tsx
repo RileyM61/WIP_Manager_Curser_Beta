@@ -34,11 +34,11 @@ interface JobFormModalProps {
 }
 
 const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '' }) => {
-  // Estimators can only edit Future jobs
-  const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future;
+  // Estimators can only edit Future or Draft jobs
+  const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future && jobToEdit.status !== JobStatus.Draft;
   // Estimators cannot delete jobs
   const canDelete = userRole !== 'estimator';
-  
+
   // Tab state
   const [activeTab, setActiveTab] = useState<FormTab>('details');
 
@@ -87,8 +87,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       if (jobWithFormattedDates.mobilizations) {
         jobWithFormattedDates.mobilizations = jobWithFormattedDates.mobilizations.map(mob => ({
           ...mob,
-          mobilizeDate: mob.mobilizeDate && mob.mobilizeDate !== 'TBD' 
-            ? new Date(mob.mobilizeDate).toISOString().split('T')[0] 
+          mobilizeDate: mob.mobilizeDate && mob.mobilizeDate !== 'TBD'
+            ? new Date(mob.mobilizeDate).toISOString().split('T')[0]
             : mob.mobilizeDate,
           demobilizeDate: mob.demobilizeDate && mob.demobilizeDate !== 'TBD'
             ? new Date(mob.demobilizeDate).toISOString().split('T')[0]
@@ -152,7 +152,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       return () => clearTimeout(timeoutId);
     }
   }, [job, isOpen, jobToEdit]);
-  
+
   const handleDateTBDChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'startDate' | 'endDate') => {
     const isChecked = e.target.checked;
     if (isChecked) {
@@ -227,13 +227,13 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       ),
     }));
   };
-  
+
   const handleCurrencyChange = (name: string, value: number) => {
     if (name.includes('.')) {
       const [group, key] = name.split('.') as [keyof Job, keyof CostBreakdown];
-      setJob(prev => ({ 
-          ...prev, 
-          [group]: { ...(prev[group] as CostBreakdown), [key]: value } 
+      setJob(prev => ({
+        ...prev,
+        [group]: { ...(prev[group] as CostBreakdown), [key]: value }
       }));
       return;
     }
@@ -251,21 +251,47 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       setActiveTab('details'); // Switch to details tab to show required fields
       return;
     }
-    
+
     const isNewJob = !jobToEdit;
     const finalCostToComplete = isNewJob ? job.budget : job.costToComplete;
 
     const jobToSave: Job = {
-        ...job,
-        id: jobToEdit ? jobToEdit.id : new Date().getTime().toString(),
-        status: job.status,
-        costToComplete: finalCostToComplete,
-        // Auto-calculated profit targets
-        targetProfit: calculatedTargets.targetProfit,
-        targetMargin: calculatedTargets.targetMargin,
+      ...job,
+      id: jobToEdit ? jobToEdit.id : new Date().getTime().toString(),
+      status: job.status,
+      costToComplete: finalCostToComplete,
+      // Auto-calculated profit targets
+      targetProfit: calculatedTargets.targetProfit,
+      targetMargin: calculatedTargets.targetMargin,
     };
-    
+
     // Clear draft after successful save
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    onSave(jobToSave);
+  };
+
+  // Save as Draft - minimal validation, saves with Draft status
+  const handleSaveAsDraft = () => {
+    // Require at least a job name for identification
+    if (!job.jobName) {
+      alert("Please enter at least a Job Name to save as draft.");
+      setActiveTab('details');
+      return;
+    }
+
+    const isNewJob = !jobToEdit;
+    const finalCostToComplete = isNewJob ? job.budget : job.costToComplete;
+
+    const jobToSave: Job = {
+      ...job,
+      id: jobToEdit ? jobToEdit.id : new Date().getTime().toString(),
+      status: JobStatus.Draft,
+      costToComplete: finalCostToComplete,
+      targetProfit: calculatedTargets.targetProfit,
+      targetMargin: calculatedTargets.targetMargin,
+    };
+
+    // Clear localStorage draft after successful save
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     onSave(jobToSave);
   };
@@ -302,7 +328,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       }
     }
   };
-  
+
   if (!isOpen) return null;
 
   const isStartDateTBD = job.startDate === 'TBD';
@@ -344,42 +370,39 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               )}
             </div>
             <button onClick={handleCancel} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
-                <XIcon />
+              <XIcon />
             </button>
           </div>
-          
+
           {/* Tabs */}
           <div className="flex mt-4 gap-2">
             <button
               type="button"
               onClick={() => setActiveTab('details')}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === 'details'
+              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'details'
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
               Job Details
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('scheduling')}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === 'scheduling'
+              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'scheduling'
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
               Scheduling
             </button>
             <button
               type="button"
               onClick={() => setActiveTab('financials')}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${
-                activeTab === 'financials'
+              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'financials'
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
+                }`}
             >
               Financials
             </button>
@@ -400,11 +423,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       type="button"
                       onClick={() => handleJobTypeChange('fixed-price')}
                       disabled={isEstimatorWithRestrictedAccess}
-                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
-                        job.jobType === 'fixed-price'
+                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${job.jobType === 'fixed-price'
                           ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
                           : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       <div className="font-semibold">Fixed Price</div>
                       <div className="text-xs mt-1 opacity-75">Lump sum contract</div>
@@ -413,11 +435,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       type="button"
                       onClick={() => handleJobTypeChange('time-material')}
                       disabled={isEstimatorWithRestrictedAccess}
-                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${
-                        job.jobType === 'time-material'
+                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${job.jobType === 'time-material'
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                           : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       <div className="font-semibold">Time & Material</div>
                       <div className="text-xs mt-1 opacity-75">Cost plus markup</div>
@@ -569,21 +590,19 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Profit</label>
-                        <div className={`px-3 py-2 rounded-lg border ${
-                          calculatedTargets.targetProfit >= 0 
+                        <div className={`px-3 py-2 rounded-lg border ${calculatedTargets.targetProfit >= 0
                             ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
                             : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
-                        } font-semibold`}>
+                          } font-semibold`}>
                           ${calculatedTargets.targetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Margin</label>
-                        <div className={`px-3 py-2 rounded-lg border ${
-                          calculatedTargets.targetMargin >= 0 
+                        <div className={`px-3 py-2 rounded-lg border ${calculatedTargets.targetMargin >= 0
                             ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
                             : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
-                        } font-semibold`}>
+                          } font-semibold`}>
                           {calculatedTargets.targetMargin.toFixed(1)}%
                         </div>
                       </div>
@@ -601,7 +620,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 {isTM && (
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-3">T&M Billing Settings</h3>
-                    
+
                     {/* Labor Billing Type */}
                     <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2">
@@ -618,11 +637,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                           type="button"
                           onClick={() => handleTMSettingChange('laborBillingType', 'fixed-rate')}
                           disabled={isEstimatorWithRestrictedAccess}
-                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
-                            tmSettings.laborBillingType === 'fixed-rate'
+                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${tmSettings.laborBillingType === 'fixed-rate'
                               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                               : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
-                          } disabled:opacity-50`}
+                            } disabled:opacity-50`}
                         >
                           Fixed Rate ($/hr)
                         </button>
@@ -630,11 +648,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                           type="button"
                           onClick={() => handleTMSettingChange('laborBillingType', 'markup')}
                           disabled={isEstimatorWithRestrictedAccess}
-                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${
-                            tmSettings.laborBillingType === 'markup'
+                          className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${tmSettings.laborBillingType === 'markup'
                               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                               : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
-                          } disabled:opacity-50`}
+                            } disabled:opacity-50`}
                         >
                           Markup (%)
                         </button>
@@ -767,7 +784,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       <div className="flex items-center justify-between">
                         <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
                         <div className="flex items-center">
-                          <input id="startDateTBD" type="checkbox" checked={isStartDateTBD} onChange={(e) => handleDateTBDChange(e, 'startDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
+                          <input id="startDateTBD" type="checkbox" checked={isStartDateTBD} onChange={(e) => handleDateTBDChange(e, 'startDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
                           <label htmlFor="startDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
                         </div>
                       </div>
@@ -778,7 +795,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       <div className="flex items-center justify-between">
                         <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
                         <div className="flex items-center">
-                          <input id="endDateTBD" type="checkbox" checked={isEndDateTBD} onChange={(e) => handleDateTBDChange(e, 'endDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"/>
+                          <input id="endDateTBD" type="checkbox" checked={isEndDateTBD} onChange={(e) => handleDateTBDChange(e, 'endDate')} className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded" />
                           <label htmlFor="endDateTBD" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">TBD</label>
                         </div>
                       </div>
@@ -797,7 +814,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                   <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                     Define when your crew mobilizes and demobilizes on site. Enable additional phases for projects with multiple work periods.
                   </p>
-                  
+
                   <div className="space-y-4">
                     {(job.mobilizations || getDefaultMobilizations()).map((mob, idx) => {
                       const isMobDateTBD = mob.mobilizeDate === 'TBD';
@@ -814,15 +831,14 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                         'text-purple-700 dark:text-purple-300',
                         'text-amber-700 dark:text-amber-300',
                       ];
-                      
+
                       return (
-                        <div 
+                        <div
                           key={mob.id}
-                          className={`rounded-lg border-2 p-4 transition-all ${
-                            mob.enabled 
-                              ? phaseColors[idx] 
+                          className={`rounded-lg border-2 p-4 transition-all ${mob.enabled
+                              ? phaseColors[idx]
                               : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 opacity-60'
-                          }`}
+                            }`}
                         >
                           {/* Phase Header with Enable Checkbox */}
                           <div className="flex items-center justify-between mb-3">
@@ -835,8 +851,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                                 disabled={isEstimatorWithRestrictedAccess || (mob.id === 1)} // Phase 1 always enabled
                                 className="h-5 w-5 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"
                               />
-                              <label 
-                                htmlFor={`mob-enabled-${mob.id}`} 
+                              <label
+                                htmlFor={`mob-enabled-${mob.id}`}
                                 className={`font-semibold ${mob.enabled ? phaseAccentColors[idx] : 'text-gray-500 dark:text-gray-400'}`}
                               >
                                 Phase {mob.id}
@@ -856,7 +872,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                               />
                             )}
                           </div>
-                          
+
                           {/* Date Fields (only shown when enabled) */}
                           {mob.enabled && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -866,9 +882,9 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                                     Mobilize Date
                                   </label>
                                   <div className="flex items-center">
-                                    <input 
-                                      type="checkbox" 
-                                      checked={isMobDateTBD} 
+                                    <input
+                                      type="checkbox"
+                                      checked={isMobDateTBD}
                                       onChange={(e) => handleMobDateTBDChange(mob.id, 'mobilizeDate', e.target.checked)}
                                       className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"
                                     />
@@ -889,9 +905,9 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                                     Demobilize Date
                                   </label>
                                   <div className="flex items-center">
-                                    <input 
-                                      type="checkbox" 
-                                      checked={isDemobDateTBD} 
+                                    <input
+                                      type="checkbox"
+                                      checked={isDemobDateTBD}
                                       onChange={(e) => handleMobDateTBDChange(mob.id, 'demobilizeDate', e.target.checked)}
                                       className="h-4 w-4 text-brand-blue focus:ring-brand-blue border-gray-300 dark:border-gray-600 rounded"
                                     />
@@ -968,11 +984,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                         {!isTargetEndDateTBD && job.targetEndDate !== 'TBD' && (
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">Target vs Contract</span>
-                            <p className={`font-semibold ${
-                              new Date(job.targetEndDate) <= new Date(job.endDate) 
-                                ? 'text-green-600 dark:text-green-400' 
+                            <p className={`font-semibold ${new Date(job.targetEndDate) <= new Date(job.endDate)
+                                ? 'text-green-600 dark:text-green-400'
                                 : 'text-amber-600 dark:text-amber-400'
-                            }`}>
+                              }`}>
                               {(() => {
                                 const target = new Date(job.targetEndDate);
                                 const end = new Date(job.endDate);
@@ -1203,8 +1218,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                     <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">Time & Material Billing</h4>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
-                      For T&M jobs, earned revenue is calculated from your costs plus markup. 
-                      Contract and budget fields are not used. Over/under billed is determined by 
+                      For T&M jobs, earned revenue is calculated from your costs plus markup.
+                      Contract and budget fields are not used. Over/under billed is determined by
                       comparing invoiced amounts to earned revenue.
                     </p>
                   </div>
@@ -1240,9 +1255,21 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 {isEstimatorWithRestrictedAccess ? 'Close' : 'Cancel'}
               </button>
               {!isEstimatorWithRestrictedAccess && (
-                <button type="submit" className="bg-gradient-to-r from-orange-500 to-amber-500 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-                  Save Job
-                </button>
+                <>
+                  {/* Save as Draft Button - only show for new jobs or existing drafts */}
+                  {(!jobToEdit || job.status === JobStatus.Draft) && (
+                    <button
+                      type="button"
+                      onClick={handleSaveAsDraft}
+                      className="py-2 px-4 border border-slate-400 border-dashed rounded-md shadow-sm text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"
+                    >
+                      Save as Draft
+                    </button>
+                  )}
+                  <button type="submit" className="bg-gradient-to-r from-orange-500 to-amber-500 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                    Save Job
+                  </button>
+                </>
               )}
             </div>
           </div>

@@ -10,6 +10,8 @@ interface StatusChangerProps {
 
 const getStatusButtonColorClasses = (status: JobStatus) => {
   switch (status) {
+    case JobStatus.Draft:
+      return 'bg-slate-100 text-slate-700 hover:bg-slate-200 border-slate-300 border-dashed';
     case JobStatus.Future:
       return 'bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200';
     case JobStatus.Active:
@@ -71,11 +73,10 @@ const StatusChanger: React.FC<StatusChangerProps> = ({ jobId, currentStatus, onU
                 key={status}
                 onClick={() => handleStatusChange(status)}
                 disabled={status === currentStatus}
-                className={`block w-full text-left px-4 py-2 text-sm ${
-                  status === currentStatus
+                className={`block w-full text-left px-4 py-2 text-sm ${status === currentStatus
                     ? 'text-gray-400 cursor-not-allowed bg-gray-100'
                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                }`}
+                  }`}
                 role="menuitem"
               >
                 {status === currentStatus ? `${status} (Current)` : `Move to ${status}`}
