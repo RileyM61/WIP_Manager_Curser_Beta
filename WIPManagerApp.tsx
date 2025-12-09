@@ -391,9 +391,10 @@ function App() {
         await addJob(updatedJob);
       }
       handleCloseModal();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving job:', err);
-      alert('Failed to save job. Please try again.');
+      const errorMessage = err?.message || err?.error?.message || 'Unknown error';
+      alert(`Failed to save job: ${errorMessage}`);
     }
   };
 
