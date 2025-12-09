@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { MODULES, TIER_NAMES, ModuleId } from '../types/modules';
 
 // ============================================================================
@@ -10,7 +10,7 @@ const ModuleShowcaseCard: React.FC<{
   delay: number;
 }> = ({ moduleId, delay }) => {
   const module = MODULES[moduleId];
-  
+
   return (
     <div
       className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-orange-500/30 transition-all duration-300 hover:-translate-y-1"
@@ -44,7 +44,7 @@ const StatCard: React.FC<{
   label: string;
   delay: number;
 }> = ({ value, label, delay }) => (
-  <div 
+  <div
     className="text-center"
     style={{ animation: `fadeSlideUp 0.6s ease-out ${delay}ms both` }}
   >
@@ -68,11 +68,10 @@ const PricingCard: React.FC<{
   onCtaClick: () => void;
 }> = ({ name, price, description, features, popular, cta, onCtaClick }) => (
   <div
-    className={`relative flex flex-col rounded-2xl p-8 ${
-      popular
+    className={`relative flex flex-col rounded-2xl p-8 ${popular
         ? 'bg-gradient-to-br from-slate-800 to-slate-900 border-2 border-orange-500 shadow-2xl shadow-orange-500/20 scale-105'
         : 'bg-white/5 border border-white/10'
-    }`}
+      }`}
   >
     {popular && (
       <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -112,11 +111,10 @@ const PricingCard: React.FC<{
 
     <button
       onClick={onCtaClick}
-      className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${
-        popular
+      className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${popular
           ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg hover:shadow-orange-500/30'
           : 'bg-white/10 text-white hover:bg-white/20'
-      }`}
+        }`}
     >
       {cta}
     </button>
@@ -238,7 +236,7 @@ const ChainLinkCFOLanding: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" />
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_30%,_rgba(249,115,22,0.2),_transparent_50%)]" />
         <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_80%_70%,_rgba(59,130,246,0.2),_transparent_50%)]" />
-        
+
         {/* Animated grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -252,9 +250,9 @@ const ChainLinkCFOLanding: React.FC = () => {
           {/* Navigation */}
           <nav className="absolute top-6 left-6 right-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img 
-                src="/images/chainlink-cfo-logo.png" 
-                alt="ChainLink CFO" 
+              <img
+                src="/images/chainlink-cfo-logo.png"
+                alt="ChainLink CFO"
                 className="h-48 w-auto"
               />
             </div>
@@ -303,8 +301,8 @@ const ChainLinkCFOLanding: React.FC = () => {
               className="text-xl sm:text-2xl text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed"
               style={{ animation: 'fadeSlideUp 0.6s ease-out 200ms both' }}
             >
-              11 integrated financial tools built specifically for construction. 
-              From WIP tracking to cash flow forecasting to bid analysis—everything 
+              11 integrated financial tools built specifically for construction.
+              From WIP tracking to cash flow forecasting to bid analysis—everything
               you need to run your business with confidence.
             </p>
 
@@ -364,7 +362,7 @@ const ChainLinkCFOLanding: React.FC = () => {
               Construction Finance is Broken
             </h2>
             <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
-              Spreadsheets everywhere. Data silos. Month-end surprises. You're flying blind while 
+              Spreadsheets everywhere. Data silos. Month-end surprises. You're flying blind while
               your competitors get clarity.
             </p>
           </div>
@@ -413,7 +411,7 @@ const ChainLinkCFOLanding: React.FC = () => {
               11 Tools. One Platform. Complete Clarity.
             </h2>
             <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
-              Every financial tool a construction CFO needs, integrated and working together. 
+              Every financial tool a construction CFO needs, integrated and working together.
               Start with what you need, unlock more as you grow.
             </p>
           </div>
@@ -508,7 +506,7 @@ const ChainLinkCFOLanding: React.FC = () => {
               <PricingCard
                 key={tier.name}
                 {...tier}
-                onCtaClick={tier.cta === 'Contact Sales' 
+                onCtaClick={tier.cta === 'Contact Sales'
                   ? () => window.location.href = 'mailto:sales@chainlinkcfo.com?subject=Enterprise Inquiry'
                   : handleGetStarted
                 }
@@ -537,8 +535,8 @@ const ChainLinkCFOLanding: React.FC = () => {
                 </span>
               </h2>
               <p className="text-lg text-slate-300 mb-6 max-w-xl">
-                Think like an investor. Use our free Value Builder calculator to 
-                see your business value using the same Adjusted EBITDA × Multiple 
+                Think like an investor. Use our free Value Builder calculator to
+                see your business value using the same Adjusted EBITDA × Multiple
                 formula that private equity uses.
               </p>
               <a
@@ -551,7 +549,7 @@ const ChainLinkCFOLanding: React.FC = () => {
                 </svg>
               </a>
             </div>
-            
+
             {/* Right: Visual */}
             <div className="flex-shrink-0">
               <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-6 w-72">
@@ -577,7 +575,7 @@ const ChainLinkCFOLanding: React.FC = () => {
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900" />
         <div className="absolute inset-0 opacity-40 bg-[radial-gradient(ellipse_at_center,_rgba(249,115,22,0.15),_transparent_70%)]" />
-        
+
         <div className="relative mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-sm border-2 border-orange-500/50 rounded-3xl p-8 md:p-12 shadow-2xl shadow-orange-500/10">
             <div className="grid lg:grid-cols-2 gap-10 items-center">
@@ -587,19 +585,19 @@ const ChainLinkCFOLanding: React.FC = () => {
                   <span className="text-xl">👔</span>
                   <span className="text-sm text-orange-300 font-semibold uppercase tracking-wide">Premium Service</span>
                 </div>
-                
+
                 <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
                   ChainLink CFO{' '}
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
                     Pro
                   </span>
                 </h2>
-                
+
                 <p className="text-lg text-slate-300 mb-6 leading-relaxed">
-                  Don't want to set it up yourself? Our CFO experts will interview your team, 
+                  Don't want to set it up yourself? Our CFO experts will interview your team,
                   configure every tool, train your people, and partner with you for ongoing success.
                 </p>
-                
+
                 <ul className="space-y-3 mb-8">
                   {[
                     'Personal CFO discovery interview',
@@ -618,7 +616,7 @@ const ChainLinkCFOLanding: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                
+
                 <a
                   href="/cfo-pro"
                   className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-lg rounded-xl shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
@@ -629,7 +627,7 @@ const ChainLinkCFOLanding: React.FC = () => {
                   </svg>
                 </a>
               </div>
-              
+
               {/* Right: Pricing */}
               <div className="text-center lg:text-right">
                 <div className="inline-block bg-slate-950/50 border border-white/10 rounded-2xl p-8">
@@ -663,7 +661,7 @@ const ChainLinkCFOLanding: React.FC = () => {
             <h2 className="text-2xl font-bold text-white">Looking for Just WIP Tracking?</h2>
           </div>
           <p className="text-slate-300 mb-6 max-w-2xl mx-auto">
-            WIP Insights is our standalone WIP Manager tool. Perfect for contractors who want 
+            WIP Insights is our standalone WIP Manager tool. Perfect for contractors who want
             to start with the fundamentals before growing into the full CFO Suite.
           </p>
           <a
@@ -683,13 +681,13 @@ const ChainLinkCFOLanding: React.FC = () => {
       {/* ================================================================== */}
       <section className="py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_center,_rgba(249,115,22,0.3),_transparent_60%)]" />
-        
+
         <div className="relative mx-auto max-w-4xl px-6 sm:px-8 md:px-10 text-center">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
             Ready to Run Your Business<br />Like a Fortune 500?
           </h2>
           <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            Join contractors who've replaced guesswork with data-driven decisions. 
+            Join contractors who've replaced guesswork with data-driven decisions.
             Start your free trial today.
           </p>
 
@@ -731,7 +729,8 @@ const ChainLinkCFOLanding: React.FC = () => {
               <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
               <a href="/value-builder" className="text-emerald-400 hover:text-emerald-300 transition-colors">Free Calculator</a>
               <a href="/wip" className="hover:text-white transition-colors">WIP Insights</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
+              <Link to="/legal/privacy" className="hover:text-white transition-colors">Privacy</Link>
+              <Link to="/legal/terms" className="hover:text-white transition-colors">Terms</Link>
             </div>
 
             <p className="text-sm text-slate-500">

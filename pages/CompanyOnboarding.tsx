@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { IndustryType, RevenueRange, EmployeeRange, ServicePreference } from '../types';
@@ -66,13 +67,13 @@ interface SelectionCardProps {
   disabled?: boolean;
 }
 
-const SelectionCard: React.FC<SelectionCardProps> = ({ 
-  selected, 
-  onClick, 
-  icon, 
-  title, 
+const SelectionCard: React.FC<SelectionCardProps> = ({
+  selected,
+  onClick,
+  icon,
+  title,
   subtitle,
-  disabled 
+  disabled
 }) => (
   <button
     type="button"
@@ -80,8 +81,8 @@ const SelectionCard: React.FC<SelectionCardProps> = ({
     disabled={disabled}
     className={`
       w-full p-4 rounded-xl border-2 text-left transition-all
-      ${selected 
-        ? 'border-orange-500 bg-orange-500/10' 
+      ${selected
+        ? 'border-orange-500 bg-orange-500/10'
         : 'border-white/10 bg-white/5 hover:border-white/30'
       }
       ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
@@ -113,7 +114,7 @@ const CompanyOnboarding: React.FC = () => {
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [data, setData] = useState<OnboardingData>({
     companyName: '',
     industry: '',
@@ -226,9 +227,9 @@ const CompanyOnboarding: React.FC = () => {
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <img 
-            src="/images/chainlink-cfo-logo.png" 
-            alt="ChainLink CFO" 
+          <img
+            src="/images/chainlink-cfo-logo.png"
+            alt="ChainLink CFO"
             className="h-80 w-auto mx-auto mb-6"
           />
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/20 mb-4">
@@ -252,9 +253,8 @@ const CompanyOnboarding: React.FC = () => {
           {[1, 2, 3].map(s => (
             <div
               key={s}
-              className={`flex-1 h-1.5 rounded-full transition-all ${
-                s <= step ? 'bg-orange-500' : 'bg-white/10'
-              }`}
+              className={`flex-1 h-1.5 rounded-full transition-all ${s <= step ? 'bg-orange-500' : 'bg-white/10'
+                }`}
             />
           ))}
         </div>
@@ -449,7 +449,10 @@ const CompanyOnboarding: React.FC = () => {
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-white/40">
-          By continuing you agree to the ChainLink CFO terms of service.
+          By continuing you agree to our{' '}
+          <Link to="/legal/terms" className="text-orange-400 hover:underline">Terms of Service</Link>
+          {' '}and{' '}
+          <Link to="/legal/privacy" className="text-orange-400 hover:underline">Privacy Policy</Link>.
         </p>
       </div>
     </div>
