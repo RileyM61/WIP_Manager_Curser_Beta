@@ -13,6 +13,7 @@ export * from './modules';
 // ============================================================================
 
 export enum JobStatus {
+  Draft = 'Draft',
   Future = 'Future',
   Active = 'Active',
   OnHold = 'On Hold',

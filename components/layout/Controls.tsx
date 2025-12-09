@@ -106,27 +106,19 @@ const Controls: React.FC<ControlsProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  const statusOptions: JobStatus[] = [JobStatus.Future, JobStatus.Active, JobStatus.OnHold, JobStatus.Completed, JobStatus.Archived];
+  const statusOptions: JobStatus[] = [JobStatus.Draft, JobStatus.Future, JobStatus.Active, JobStatus.OnHold, JobStatus.Completed, JobStatus.Archived];
   const activePmForFilter = activeProjectManager || 'all';
   const pmRoster = projectManagers.filter(pm => pm !== 'all');
-  const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
-  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
-  const sortLabels: Record<SortKey, string> = {
-    jobNo: 'Job #',
-    jobName: 'Job Name',
-    client: 'Client',
-    projectManager: 'Project Manager',
-    status: 'Status',
-    startDate: 'Start Date',
-  };
-  const showSortDropdown = showJobControls && viewMode !== 'table';
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const [key, direction] = e.target.value.split('-') as [SortKey, SortDirection];
     setSortKey(key);
     setSortDirection(direction);
   };
-  
+
+  const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
+  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
+
   const ownerBacklogActive = userRole === 'owner' && filter === 'forecast' && focusMode === 'default';
   const ownerCapacityActive = userRole === 'owner' && filter === 'company' && focusMode === 'default';
 
@@ -147,41 +139,37 @@ const Controls: React.FC<ControlsProps> = ({
             <div className="flex items-center bg-white dark:bg-gray-700 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-gray-600">
               <button
                 onClick={() => setFilter(JobStatus.Active)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  isJobsView
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${isJobsView
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  }`}
               >
                 Jobs
               </button>
               <button
                 onClick={() => setFilter('company')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  filter === 'company'
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'company'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  }`}
               >
                 Company
               </button>
               <button
                 onClick={() => setFilter('forecast')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  filter === 'forecast'
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'forecast'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  }`}
               >
                 Forecast
               </button>
               <button
                 onClick={() => setFilter('reports')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                  filter === 'reports'
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                }`}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'reports'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  }`}
               >
                 Reports
               </button>
@@ -209,33 +197,30 @@ const Controls: React.FC<ControlsProps> = ({
                 <div className="flex items-center bg-gray-100 dark:bg-gray-700 p-1 rounded-lg" data-tour="view-toggle">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-md transition-all ${
-                      viewMode === 'grid' 
-                        ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm' 
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                    }`}
+                    className={`p-2 rounded-md transition-all ${viewMode === 'grid'
+                      ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      }`}
                     aria-label="Grid view"
                   >
                     <GridIcon />
                   </button>
                   <button
                     onClick={() => setViewMode('table')}
-                    className={`p-2 rounded-md transition-all ${
-                      viewMode === 'table' 
-                        ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm' 
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                    }`}
+                    className={`p-2 rounded-md transition-all ${viewMode === 'table'
+                      ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      }`}
                     aria-label="Table view"
                   >
                     <TableIcon />
                   </button>
                   <button
                     onClick={() => setViewMode('gantt')}
-                    className={`p-2 rounded-md transition-all ${
-                      viewMode === 'gantt' 
-                        ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm' 
-                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                    }`}
+                    className={`p-2 rounded-md transition-all ${viewMode === 'gantt'
+                      ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      }`}
                     aria-label="Gantt chart view"
                     title="Gantt Chart"
                   >
@@ -315,15 +300,15 @@ const Controls: React.FC<ControlsProps> = ({
                 <button
                   key={status}
                   onClick={() => setFilter(status)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${
-                    filter === status
-                      ? status === JobStatus.Future ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 ring-2 ring-purple-400' :
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${filter === status
+                    ? status === JobStatus.Draft ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 ring-2 ring-slate-400 border-dashed' :
+                      status === JobStatus.Future ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 ring-2 ring-purple-400' :
                         status === JobStatus.Active ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 ring-2 ring-blue-400' :
-                        status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 ring-2 ring-yellow-400' :
-                        status === JobStatus.Completed ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 ring-2 ring-green-400' :
-                        'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300 ring-2 ring-gray-400'
-                      : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
+                          status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 ring-2 ring-yellow-400' :
+                            status === JobStatus.Completed ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 ring-2 ring-green-400' :
+                              'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300 ring-2 ring-gray-400'
+                    : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
                 >
                   {status}
                 </button>
@@ -348,31 +333,22 @@ const Controls: React.FC<ControlsProps> = ({
               </div>
 
               {/* Sort */}
-              {showSortDropdown ? (
-                <div className="hidden sm:flex items-center gap-2">
-                  <label htmlFor="sort" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sort:</label>
-                  <select
-                    id="sort"
-                    value={`${sortKey}-${sortDirection}`}
-                    onChange={handleSortChange}
-                    className="text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
-                  >
-                    <option value="jobNo-asc">Job # (Asc)</option>
-                    <option value="jobNo-desc">Job # (Desc)</option>
-                    <option value="jobName-asc">Name (A-Z)</option>
-                    <option value="jobName-desc">Name (Z-A)</option>
-                    <option value="startDate-desc">Newest</option>
-                    <option value="startDate-asc">Oldest</option>
-                  </select>
-                </div>
-              ) : (
-                <div className="hidden sm:flex flex-col text-xs text-gray-500 dark:text-gray-400">
-                  <span className="font-semibold text-gray-600 dark:text-gray-300">
-                    Sorted by {sortLabels[sortKey]} ({sortDirection === 'asc' ? 'Asc' : 'Desc'})
-                  </span>
-                  <span>Click a column header to change</span>
-                </div>
-              )}
+              <div className="hidden sm:flex items-center gap-2">
+                <label htmlFor="sort" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sort:</label>
+                <select
+                  id="sort"
+                  value={`${sortKey}-${sortDirection}`}
+                  onChange={handleSortChange}
+                  className="text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
+                >
+                  <option value="jobNo-asc">Job # (Asc)</option>
+                  <option value="jobNo-desc">Job # (Desc)</option>
+                  <option value="jobName-asc">Name (A-Z)</option>
+                  <option value="jobName-desc">Name (Z-A)</option>
+                  <option value="startDate-desc">Newest</option>
+                  <option value="startDate-asc">Oldest</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -385,16 +361,15 @@ const Controls: React.FC<ControlsProps> = ({
         <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Quick Actions:</span>
-            
+
             {userRole === 'owner' && (
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => onQuickFilterSelect('owner-backlog')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                    ownerBacklogActive 
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md' 
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${ownerBacklogActive
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
+                    }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -403,11 +378,10 @@ const Controls: React.FC<ControlsProps> = ({
                 </button>
                 <button
                   onClick={() => onQuickFilterSelect('owner-capacity')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                    ownerCapacityActive 
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md' 
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${ownerCapacityActive
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md'
+                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400'
+                    }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -439,32 +413,29 @@ const Controls: React.FC<ControlsProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={() => onQuickFilterSelect('pm-my-jobs')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                      pmMyJobsActive 
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md' 
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${pmMyJobsActive
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600'
+                      }`}
                   >
                     My Jobs
                   </button>
                   <button
                     onClick={() => onQuickFilterSelect('pm-at-risk')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      pmAtRiskActive 
-                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md' 
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmAtRiskActive
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600'
+                      }`}
                   >
                     <span className="w-2 h-2 rounded-full bg-red-500"></span>
                     At-Risk Margin
                   </button>
                   <button
                     onClick={() => onQuickFilterSelect('pm-late')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      pmLateActive 
-                        ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md' 
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-yellow-400 hover:text-yellow-600'
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmLateActive
+                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-yellow-400 hover:text-yellow-600'
+                      }`}
                   >
                     <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
                     Behind Schedule

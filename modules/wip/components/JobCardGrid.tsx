@@ -30,8 +30,8 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
 };
 
 const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; isPro: boolean; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator, isPro }) => {
-  // Estimators can only edit Future jobs where they are the assigned estimator
-  const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future;
+  // Estimators can only edit Future or Draft jobs where they are the assigned estimator
+  const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future && job.status !== JobStatus.Draft;
   const isTM = job.jobType === 'time-material';
 
   const totalCost = sumBreakdown(job.costs);
@@ -96,10 +96,11 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
             <p className="text-sm text-gray-500 dark:text-gray-400">#{job.jobNo}</p>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
-              job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-                job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
-                  job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === JobStatus.Draft ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-dashed border-slate-400' :
+              job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+                job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                  job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                    job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
               }`}>
               {job.status}
             </span>

@@ -10,6 +10,8 @@ import { useAuth } from './context/AuthContext';
 import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
 import { useCapacityForWIP } from './modules/labor-capacity';
 import { useJobFinancialSnapshots } from './hooks/useJobFinancialSnapshots';
+import { useSubscription } from './hooks/useSubscription';
+import { supabase } from './lib/supabase';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
 import CompanySwitcher from './components/layout/CompanySwitcher';
@@ -25,6 +27,7 @@ import JobHistoryPanel from './components/JobHistoryPanel';
 import CapacityModal from './components/modals/CapacityModal';
 import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
 import SnapshotComparisonModal from './components/modals/SnapshotComparisonModal';
+import JobLimitModal from './components/modals/JobLimitModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
@@ -40,6 +43,9 @@ type QuickFilterKey =
   | 'pm-my-jobs'
   | 'pm-at-risk'
   | 'pm-late';
+
+// Free tier job limit (excluding Archived and Completed jobs)
+const FREE_TIER_JOB_LIMIT = 10;
 
 const sumBreakdown = (breakdown: CostBreakdown): number =>
   breakdown.labor + breakdown.material + breakdown.other;
@@ -84,6 +90,9 @@ function App() {
     hasLaborCapacityAccess ? companyId : null
   );
 
+  // Subscription status for job limits
+  const { isPro } = useSubscription();
+
   // Local storage for UI preferences (not stored in Supabase)
   const [snapshot, setSnapshot] = useLocalStorage<JobsSnapshot | null>('wip-jobs-snapshot', null);
   const [userRole, setUserRole] = useLocalStorage<UserRole>('wip-user-role', 'owner');
@@ -124,6 +133,17 @@ function App() {
     previousSnapshot: JobFinancialSnapshot | null;
     currentSnapshot: JobFinancialSnapshot;
   } | null>(null);
+
+  // Job limit modal state
+  const [isJobLimitModalOpen, setIsJobLimitModalOpen] = useState(false);
+
+  // Count active jobs (excluding Archived and Completed which don't count toward limit)
+  const activeJobCount = useMemo(() => {
+    return jobs.filter(job =>
+      job.status !== JobStatus.Archived &&
+      job.status !== JobStatus.Completed
+    ).length;
+  }, [jobs]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -390,7 +410,18 @@ function App() {
         }
         await updateJob(updatedJob);
       } else {
-        // It's a new job, set onHoldDate if status is On Hold
+        // It's a new job - check job limit for free users
+        const newJobCountsTowardLimit =
+          updatedJob.status !== JobStatus.Archived &&
+          updatedJob.status !== JobStatus.Completed;
+
+        if (!isPro && newJobCountsTowardLimit && activeJobCount >= FREE_TIER_JOB_LIMIT) {
+          // Free user has reached job limit
+          setIsJobLimitModalOpen(true);
+          return;
+        }
+
+        // Set onHoldDate if status is On Hold
         if (updatedJob.status === JobStatus.OnHold) {
           updatedJob.onHoldDate = new Date().toISOString();
         }
@@ -401,9 +432,10 @@ function App() {
         await addJob(updatedJob);
       }
       handleCloseModal();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving job:', err);
-      alert('Failed to save job. Please try again.');
+      const errorMessage = err?.message || err?.error?.message || 'Unknown error';
+      alert(`Failed to save job: ${errorMessage}`);
     }
   };
 
@@ -888,6 +920,42 @@ function App() {
           <WorkflowsPage onBack={() => setShowWorkflows(false)} />
         </div>
       )}
+
+      {/* Job Limit Modal for Free Users */}
+      <JobLimitModal
+        isOpen={isJobLimitModalOpen}
+        onClose={() => setIsJobLimitModalOpen(false)}
+        currentJobCount={activeJobCount}
+        jobLimit={FREE_TIER_JOB_LIMIT}
+        onUpgrade={async () => {
+          setIsJobLimitModalOpen(false);
+          // Trigger Stripe checkout
+          try {
+            const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${(await supabase?.auth.getSession())?.data.session?.access_token}`,
+              },
+              body: JSON.stringify({
+                priceId: import.meta.env.VITE_STRIPE_PRICE_ID,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Failed to create checkout session');
+            }
+
+            const { url } = await response.json();
+            if (url) {
+              window.location.href = url;
+            }
+          } catch (err) {
+            console.error('Error creating checkout session:', err);
+            alert('Failed to start upgrade process. Please try again.');
+          }
+        }}
+      />
     </div>
   );
 }
