@@ -13,6 +13,9 @@ export const OnboardingWizardModal: React.FC = () => {
     const [quizStep, setQuizStep] = useState(0);
     const [quizScore, setQuizScore] = useState(0); // High score = Ninja
 
+    // Safety check for critical state
+    if (!state) return null;
+
     // If already completed or no company yet, don't show
     if (!companyId || state.is_onboarding_completed || state.user_level !== 'undecided') return null;
 

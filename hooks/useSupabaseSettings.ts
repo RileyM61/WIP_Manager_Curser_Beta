@@ -95,6 +95,13 @@ export function useSupabaseSettings(companyId?: string | null) {
         companyLogo: data.company_logo || undefined,
         companyId,
         companyType: data.company_type || 'direct',
+        subscriptionTier: data.subscription_tier || undefined,
+        interestedModules: data.interested_modules || [],
+        enabledModules: data.enabled_modules || [],
+        industry: data.industry || undefined,
+        annualRevenueRange: data.annual_revenue_range || undefined,
+        employeeCountRange: data.employee_count_range || undefined,
+        servicePreference: data.service_preference || undefined,
       };
 
       setSettings(appSettings);

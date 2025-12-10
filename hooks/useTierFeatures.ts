@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useModuleAccess } from './useModuleAccess';
 import { useSupabaseSettings } from './useSupabaseSettings';
 import { useAuth } from '../context/AuthContext';
+import { SubscriptionTier } from '../types';
 
 export const FREE_TIER_LIMITS = {
     maxActiveJobs: 5,
@@ -11,6 +12,12 @@ export interface TierFeatures {
     canUseTimeAndMaterial: boolean;
     canUseMobilization: boolean;
     canUseAIInsights: boolean;
+    canUseTableView: boolean;
+    canUseGanttView: boolean;
+    canUseReportsView: boolean;
+    getUpgradeMessage: (feature: string) => string;
+    isPro: boolean;
+    canAddMoreJobs: (currentCount: number) => boolean;
 }
 
 export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
@@ -19,10 +26,29 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
     const { tier, isBetaTester } = useModuleAccess(settings);
 
     const features = useMemo(() => {
-        // defaults
+        // Feature flags
         let canUseTimeAndMaterial = false;
         let canUseMobilization = false;
         let canUseAIInsights = false;
+        let canUseTableView = true; // Available to all tiers
+        let canUseGanttView = true; // Available to all tiers
+        let canUseReportsView = false; // Professional+
+
+        // Helper to generate upgrade messages
+        const getUpgradeMessage = (feature: string): string => {
+            switch (feature) {
+                case 'canUseReportsView':
+                    return 'Upgrade to Professional to access advanced reports';
+                case 'canUseAIInsights':
+                    return 'Upgrade to Enterprise to uncover AI insights';
+                case 'canUseTimeAndMaterial':
+                    return 'Upgrade to Professional to unlock T&M billing';
+                case 'canUseMobilization':
+                    return 'Upgrade to Professional to track mobilization phases';
+                default:
+                    return 'Upgrade to unlock this feature';
+            }
+        };
 
         // Beta testers get everything
         if (isBetaTester) {
@@ -30,26 +56,37 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
                 canUseTimeAndMaterial: true,
                 canUseMobilization: true,
                 canUseAIInsights: true,
+                canUseTableView: true,
+                canUseGanttView: true,
+                canUseReportsView: true,
+                getUpgradeMessage,
+                isPro: true,
+                canAddMoreJobs: () => true,
             };
         }
 
         // Logic based on tier
         switch (tier) {
             case 'cfo-suite':
+            case 'enterprise':
                 canUseTimeAndMaterial = true;
                 canUseMobilization = true;
                 canUseAIInsights = true;
+                canUseReportsView = true;
                 break;
-            case 'growth':
+            case 'professional':
                 canUseTimeAndMaterial = true;
                 canUseMobilization = true;
                 canUseAIInsights = false;
+                canUseReportsView = true;
                 break;
             case 'starter':
+            case 'trial':
             default:
                 canUseTimeAndMaterial = false;
                 canUseMobilization = false;
                 canUseAIInsights = false;
+                canUseReportsView = false;
                 break;
         }
 
@@ -57,6 +94,15 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
             canUseTimeAndMaterial,
             canUseMobilization,
             canUseAIInsights,
+            canUseTableView,
+            canUseGanttView,
+            canUseReportsView,
+            getUpgradeMessage,
+            isPro: tier !== 'starter' && tier !== 'trial',
+            canAddMoreJobs: (currentCount: number) => {
+                if (tier !== 'starter' && tier !== 'trial') return true;
+                return currentCount < FREE_TIER_LIMITS.maxActiveJobs;
+            },
         };
     }, [tier, isBetaTester]);
 

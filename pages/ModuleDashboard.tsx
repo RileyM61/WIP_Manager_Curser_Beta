@@ -23,6 +23,9 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
   onClick,
 }) => {
   const module = MODULES[moduleId];
+
+  if (!module) return null;
+
   const isClickable = hasAccess && !isComingSoon;
 
   return (
