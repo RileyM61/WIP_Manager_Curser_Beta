@@ -634,7 +634,7 @@ function App() {
     if (viewMode === 'grid') {
       return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} />;
     }
-    return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode} activeEstimator={activeEstimator} />;
+    return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onSave={handleSaveJob} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode} activeEstimator={activeEstimator} />;
   }
 
   // Show loading state while data is being fetched
