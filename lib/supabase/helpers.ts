@@ -194,6 +194,11 @@ export function dbSettingsToAppSettings(dbSettings: any): Settings {
     subscriptionTier: dbSettings.subscription_tier || undefined,
     enabledModules: dbSettings.enabled_modules || undefined,
     subscriptionExpiresAt: dbSettings.subscription_expires_at || undefined,
+
+    // Default T&M Markup Settings
+    defaultLaborBillRate: dbSettings.default_labor_bill_rate ? Number(dbSettings.default_labor_bill_rate) : undefined,
+    defaultMaterialMarkup: dbSettings.default_material_markup ? Number(dbSettings.default_material_markup) : undefined,
+    defaultOtherMarkup: dbSettings.default_other_markup ? Number(dbSettings.default_other_markup) : undefined,
   };
 }
 
@@ -231,6 +236,11 @@ export function appSettingsToDbSettings(settings: Partial<Settings>): any {
   if (settings.subscriptionTier !== undefined) dbSettings.subscription_tier = settings.subscriptionTier;
   if (settings.enabledModules !== undefined) dbSettings.enabled_modules = settings.enabledModules;
   if (settings.subscriptionExpiresAt !== undefined) dbSettings.subscription_expires_at = settings.subscriptionExpiresAt;
+
+  // Default T&M Markup Settings
+  if (settings.defaultLaborBillRate !== undefined) dbSettings.default_labor_bill_rate = settings.defaultLaborBillRate;
+  if (settings.defaultMaterialMarkup !== undefined) dbSettings.default_material_markup = settings.defaultMaterialMarkup;
+  if (settings.defaultOtherMarkup !== undefined) dbSettings.default_other_markup = settings.defaultOtherMarkup;
 
   return dbSettings;
 }
