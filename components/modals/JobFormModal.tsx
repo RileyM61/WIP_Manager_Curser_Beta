@@ -5,6 +5,8 @@ import { CurrencyInput } from '../shared/CurrencyInput';
 import { getDefaultTMSettings, sumBreakdown } from '../../modules/wip/lib/jobCalculations';
 import InfoTooltip from '../help/InfoTooltip';
 import { helpContent } from '../../lib/helpContent';
+import { useTierFeatures, TierFeatures } from '../../hooks/useTierFeatures';
+import { useOnboarding } from '../../hooks/useOnboarding';
 
 // Default mobilization phases
 const getDefaultMobilizations = (): MobilizationPhase[] => [
@@ -32,9 +34,10 @@ interface JobFormModalProps {
   userRole?: UserRole;
   activeEstimator?: string;
   companySettings?: Settings | null;  // Company settings for default T&M markups
+  onUpgradeRequest?: (feature: keyof TierFeatures) => void;
 }
 
-const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '', companySettings }) => {
+const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '', companySettings, onUpgradeRequest }) => {
   // Estimators can only edit Future or Draft jobs
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future && jobToEdit.status !== JobStatus.Draft;
   // Estimators cannot delete jobs
@@ -42,6 +45,10 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
   // Tab state
   const [activeTab, setActiveTab] = useState<FormTab>('details');
+
+  // Tier features for subscription-based feature gating
+  const tierFeatures = useTierFeatures();
+  const { incrementStreak } = useOnboarding();
 
   const getInitialState = (): Job => {
     const defaults: Job = {
@@ -283,6 +290,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
     // Clear draft after successful save
     localStorage.removeItem(DRAFT_STORAGE_KEY);
+    incrementStreak(); // Delight Engine: Track consistency
     onSave(jobToSave);
   };
 
@@ -449,14 +457,25 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleJobTypeChange('time-material')}
-                      disabled={isEstimatorWithRestrictedAccess}
-                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${job.jobType === 'time-material'
+                      onClick={() => {
+                        if (tierFeatures.canUseTimeAndMaterial) {
+                          handleJobTypeChange('time-material');
+                        } else if (onUpgradeRequest) {
+                          onUpgradeRequest('canUseTimeAndMaterial');
+                        }
+                      }}
+                      disabled={isEstimatorWithRestrictedAccess || !tierFeatures.canUseTimeAndMaterial}
+                      className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium relative ${job.jobType === 'time-material'
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
-                      <div className="font-semibold">Time & Material</div>
+                      <div className="font-semibold">
+                        Time & Material
+                        {!tierFeatures.canUseTimeAndMaterial && (
+                          <span className="ml-2 text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full">Pro</span>
+                        )}
+                      </div>
                       <div className="text-xs mt-1 opacity-75">Cost plus markup</div>
                     </button>
                   </div>

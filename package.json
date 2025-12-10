@@ -10,6 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
     "@sentry/react": "^10.29.0",
     "@supabase/supabase-js": "^2.84.0",
     "html2canvas": "^1.4.1",

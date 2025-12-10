@@ -324,6 +324,23 @@ export interface Profile {
   userId: string;
   companyId: string | null;
   role: UserRole;
+  onboarding_state?: OnboardingState;
+}
+
+export type UserLevel = 'newbie' | 'ninja' | 'undecided';
+
+export interface OnboardingState {
+  user_level?: UserLevel;
+  is_onboarding_completed: boolean;
+  checklist_dismissed: boolean;
+  checklist_progress?: {
+    [key: string]: boolean;
+  };
+  gamification?: {
+    last_wip_date?: string;
+    wip_streak_weeks: number;
+    badges_earned: string[];
+  };
 }
 
 export interface Invitation {
