@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Job, JobStatus, UserRole } from '../../../types';
 import ProgressBar from '../../../components/ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../../../components/shared/icons';
 import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit, getAllScheduleWarnings } from '../lib/jobCalculations';
 import { analyzeJobRisk, RiskLevel } from '../lib/smartEngines';
 import { useSubscription } from '../../../hooks/useSubscription';
+import { useChangeOrderCounts, COCountByJob } from '../../../hooks/useSupabaseChangeOrders';
 
 interface JobCardGridProps {
   jobs: Job[];
@@ -12,9 +13,12 @@ interface JobCardGridProps {
   onOpenNotes: (job: Job) => void;
   onOpenHistory?: (job: Job) => void;
   onTakeSnapshot?: (job: Job) => void;
+  onOpenChangeOrders?: (job: Job) => void;
   userRole: UserRole;
   activeEstimator?: string;
+  companyId?: string;
 }
+
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -29,7 +33,7 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
-const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; isPro: boolean; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator, isPro }) => {
+const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; onOpenChangeOrders?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; isPro: boolean; coCount?: COCountByJob; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, onOpenChangeOrders, userRole, activeEstimator, isPro, coCount }) => {
   // Estimators can only edit Future or Draft jobs where they are the assigned estimator
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future && job.status !== JobStatus.Draft;
   const isTM = job.jobType === 'time-material';
@@ -314,12 +318,12 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
       </div>
       <div className="bg-gray-50 dark:bg-gray-700/50 px-5 py-3 flex items-center">
         {job.lastUpdated && (
-          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
             <ClockIcon className="w-4 h-4 mr-1" />
             <span>Updated: {new Date(job.lastUpdated).toLocaleDateString()}</span>
           </div>
         )}
-        <div className="flex items-center space-x-4 ml-auto">
+        <div className="flex flex-wrap items-center gap-2">
           <button onClick={() => onOpenNotes(job)} className="relative inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-brand-blue dark:hover:text-white transition">
             <ChatBubbleLeftTextIcon />
             <span className="ml-1 text-sm">Notes</span>
@@ -339,18 +343,30 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="ml-1 text-sm">Snapshot</span>
             </button>
           )}
           {onOpenHistory && (
-            <button onClick={() => onOpenHistory(job)} className="inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition">
+            <button onClick={() => onOpenHistory(job)} className="inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition" title="View history">
               <ClockIcon className="w-5 h-5" />
-              <span className="ml-1 text-sm">History</span>
+            </button>
+          )}
+          {onOpenChangeOrders && (
+            <button onClick={() => onOpenChangeOrders(job)} className="relative inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition" title="Manage Change Orders">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="ml-1 text-sm">COs</span>
+              {coCount && coCount.total > 0 && (
+                <span className={`absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full text-xs font-bold text-white ${coCount.pending > 0 ? 'bg-amber-500' : 'bg-green-500'
+                  }`}>
+                  {coCount.total}
+                </span>
+              )}
             </button>
           )}
           <button
             onClick={() => onEdit(job)}
-            className={`inline-flex items-center transition ${isEstimatorWithRestrictedAccess
+            className={`inline-flex items-center transition ml-auto ${isEstimatorWithRestrictedAccess
               ? 'text-gray-400 dark:text-gray-500'
               : 'text-brand-light-blue hover:text-brand-blue dark:hover:text-blue-400'
               }`}
@@ -364,8 +380,16 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
   );
 }
 
-const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, userRole, activeEstimator }) => {
+const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, onOpenChangeOrders, userRole, activeEstimator, companyId }) => {
   const { isPro } = useSubscription();
+  const { coCounts, loadCOCounts, getCountForJob } = useChangeOrderCounts(companyId);
+
+  // Load CO counts on mount and when jobs change
+  useEffect(() => {
+    if (companyId && onOpenChangeOrders) {
+      loadCOCounts();
+    }
+  }, [companyId, loadCOCounts, onOpenChangeOrders]);
 
   if (jobs.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400">No jobs found for this category.</div>
@@ -374,7 +398,7 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, on
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} onTakeSnapshot={onTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} isPro={isPro} />
+        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} onTakeSnapshot={onTakeSnapshot} onOpenChangeOrders={onOpenChangeOrders} userRole={userRole} activeEstimator={activeEstimator} isPro={isPro} coCount={getCountForJob(job.id)} />
       ))}
     </div>
   );
