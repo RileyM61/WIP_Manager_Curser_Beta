@@ -46,9 +46,49 @@ export function useSupabaseNotes(companyId?: string | null) {
     }
   }, [companyId]);
 
+  const updateNote = useCallback(async (noteId: string, noteText: string): Promise<Note> => {
+    if (!isSupabaseConfigured() || !companyId) throw new Error('Supabase not configured');
+
+    try {
+      const { data, error } = await supabase!
+        .from('job_notes')
+        .update({ body: noteText })
+        .eq('id', noteId)
+        .eq('company_id', companyId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return dbNoteToAppNote(data);
+    } catch (err: any) {
+      console.error('Error updating note:', err);
+      throw err;
+    }
+  }, [companyId]);
+
+  const deleteNote = useCallback(async (noteId: string): Promise<void> => {
+    if (!isSupabaseConfigured() || !companyId) throw new Error('Supabase not configured');
+
+    try {
+      const { error } = await supabase!
+        .from('job_notes')
+        .delete()
+        .eq('id', noteId)
+        .eq('company_id', companyId);
+
+      if (error) throw error;
+    } catch (err: any) {
+      console.error('Error deleting note:', err);
+      throw err;
+    }
+  }, [companyId]);
+
   return {
     loadNotes,
     addNote,
+    updateNote,
+    deleteNote,
   };
 }
 
