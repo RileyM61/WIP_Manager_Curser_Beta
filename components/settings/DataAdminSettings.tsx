@@ -101,23 +101,17 @@ const DataAdminSettings: React.FC<DataAdminSettingsProps> = ({ companyId, jobs }
                 </div>
             </div>
 
-            {/* Automation Info */}
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6">
+            {/* Best Practice Tip */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-4">
                 <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <div>
-                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Automatic Snapshots
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            A Supabase Edge Function is available to automatically create weekly snapshots.
-                            Contact your administrator to set up scheduled snapshot creation.
-                        </p>
-                    </div>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                        <strong>Best Practice:</strong> Create snapshots after all jobs have been updated for the period — typically at month-end or after your team finishes weekly updates. This ensures accurate historical data.
+                    </p>
                 </div>
             </div>
         </div>
