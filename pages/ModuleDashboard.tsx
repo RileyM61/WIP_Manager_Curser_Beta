@@ -30,7 +30,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
       disabled={!isClickable}
       className={`
         relative flex flex-col items-start p-6 rounded-2xl border-2 transition-all duration-300 text-left
-        ${isClickable 
+        ${isClickable
           ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-orange-500 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 cursor-pointer'
           : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 cursor-not-allowed opacity-60'
         }
@@ -58,8 +58,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
       {/* Icon */}
       <div className={`
         w-14 h-14 rounded-xl flex items-center justify-center text-3xl mb-4
-        ${isClickable 
-          ? 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/20' 
+        ${isClickable
+          ? 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/20'
           : 'bg-gray-200 dark:bg-gray-700'
         }
       `}>
@@ -94,11 +94,16 @@ const ModuleDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { companyId, signOut, user } = useAuth();
   const { settings, loading: settingsLoading } = useSupabaseSettings(companyId);
-  const { hasAccess, getAccessibleModules, isComingSoon, companyType, managedByPracticeName } = useModuleAccess(settings);
+  const { hasAccess, getAccessibleModules, isComingSoon, companyType, managedByPracticeName, isBetaTester } = useModuleAccess(settings);
 
   // Get accessible modules
   const accessibleModules = getAccessibleModules();
   const accessibleActiveModules = accessibleModules.filter(id => !isComingSoon(id));
+
+  // For non-beta users, only show WIP module (temporary until ChainLink CFO launches)
+  const visibleModules: ModuleId[] = isBetaTester
+    ? ALL_MODULE_IDS
+    : ['wip'];
 
   const handleModuleClick = (moduleId: ModuleId) => {
     navigate(`/app/${moduleId}`);
@@ -109,9 +114,9 @@ const ModuleDashboard: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <img 
-            src="/images/chainlink-cfo-logo.png" 
-            alt="ChainLink CFO" 
+          <img
+            src="/images/chainlink-cfo-logo.png"
+            alt="ChainLink CFO"
             className="h-64 w-auto mx-auto mb-4 animate-pulse"
           />
           <p className="text-gray-600 dark:text-gray-400">Loading your modules...</p>
@@ -121,7 +126,7 @@ const ModuleDashboard: React.FC = () => {
   }
 
   // Order modules: accessible first, then coming soon, then locked
-  const sortedModules = [...ALL_MODULE_IDS].sort((a, b) => {
+  const sortedModules = [...visibleModules].sort((a, b) => {
     const aAccessible = hasAccess(a) && !isComingSoon(a);
     const bAccessible = hasAccess(b) && !isComingSoon(b);
     const aComingSoon = isComingSoon(a);
@@ -140,9 +145,9 @@ const ModuleDashboard: React.FC = () => {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img 
-              src="/images/chainlink-cfo-logo.png" 
-              alt="ChainLink CFO" 
+            <img
+              src="/images/chainlink-cfo-logo.png"
+              alt="ChainLink CFO"
               className="h-48 w-auto"
             />
             {settings?.companyName && (
@@ -176,7 +181,7 @@ const ModuleDashboard: React.FC = () => {
             Welcome back{user?.email ? `, ${user.email.split('@')[0]}` : ''}
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {companyType === 'managed' 
+            {companyType === 'managed'
               ? `Your CFO has granted you access to ${accessibleModules.length} module${accessibleModules.length !== 1 ? 's' : ''}.`
               : `You have access to ${accessibleActiveModules.length} active module${accessibleActiveModules.length !== 1 ? 's' : ''}.`
             }
