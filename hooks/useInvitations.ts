@@ -149,10 +149,10 @@ export function useInvitations(): UseInvitationsReturn {
 
       // Send invitation email via Edge Function
       const inviteLink = `${window.location.origin}/auth?invite=${data.token}`;
-      
+
       try {
         const { data: { session } } = await supabase!.auth.getSession();
-        
+
         const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-invitation-email`, {
           method: 'POST',
           headers: {
@@ -169,12 +169,10 @@ export function useInvitations(): UseInvitationsReturn {
         });
 
         const emailResult = await emailResponse.json();
-        
+
         if (!emailResponse.ok) {
           console.warn('[useInvitations] Email sending failed, but invitation was created:', emailResult);
           // Don't fail the whole operation - invitation was created, email just didn't send
-        } else {
-          console.log('[useInvitations] Invitation email sent successfully');
         }
       } catch (emailErr) {
         console.warn('[useInvitations] Error sending email (invitation still created):', emailErr);
@@ -236,11 +234,11 @@ export function useInvitations(): UseInvitationsReturn {
 
       // Resend the invitation email
       const inviteLink = `${window.location.origin}/auth?invite=${invitation.token}`;
-      
+
       try {
         const { data: { session } } = await supabase!.auth.getSession();
         const { data: { user } } = await supabase!.auth.getUser();
-        
+
         const emailResponse = await fetch(`${SUPABASE_URL}/functions/v1/send-invitation-email`, {
           method: 'POST',
           headers: {
@@ -259,16 +257,14 @@ export function useInvitations(): UseInvitationsReturn {
         if (!emailResponse.ok) {
           const emailResult = await emailResponse.json();
           console.warn('[useInvitations] Email resend failed:', emailResult);
-        } else {
-          console.log('[useInvitations] Invitation email resent successfully');
         }
       } catch (emailErr) {
         console.warn('[useInvitations] Error resending email:', emailErr);
       }
 
       // Update local state
-      setInvitations(prev => prev.map(inv => 
-        inv.id === invitationId 
+      setInvitations(prev => prev.map(inv =>
+        inv.id === invitationId
           ? { ...inv, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() }
           : inv
       ));
@@ -316,9 +312,9 @@ export function useInvitations(): UseInvitationsReturn {
 export async function acceptInvitation(token: string): Promise<{ success: boolean; error?: string; companyId?: string; role?: string }> {
   try {
     const { data, error } = await supabase!.rpc('accept_invitation', { invitation_token: token });
-    
+
     if (error) throw error;
-    
+
     if (data?.success) {
       return { success: true, companyId: data.company_id, role: data.role };
     } else {
@@ -341,9 +337,9 @@ export async function getInvitationByToken(token: string): Promise<{
 }> {
   try {
     const { data, error } = await supabase!.rpc('get_invitation_by_token', { invitation_token: token });
-    
+
     if (error) throw error;
-    
+
     if (data?.valid) {
       return {
         valid: true,

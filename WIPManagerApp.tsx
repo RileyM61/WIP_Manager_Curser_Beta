@@ -83,7 +83,7 @@ function App() {
 
   // Module access check
   const { hasAccess } = useModuleAccess(settings);
-  const hasLaborCapacityAccess = hasAccess('labor-capacity');
+  const hasLaborCapacityAccess = hasAccess('capacity');
 
   // Labor Capacity integration - fetch data if user has access
   const { capacity: laborCapacity, loading: laborCapacityLoading } = useCapacityForWIP(
@@ -502,7 +502,6 @@ function App() {
     if (!settings || !companyId) return;
 
     try {
-      console.log('handleSaveSettings called with logo:', newSettings.companyLogo ? 'Logo present' : 'No logo');
       await updateSettings({ ...newSettings, companyId });
 
       if (userRole === settings.defaultRole && userRole !== newSettings.defaultRole) {

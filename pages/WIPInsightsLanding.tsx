@@ -265,8 +265,6 @@ const VideoSection: React.FC<{
                   onTimeUpdate={handleTimeUpdate}
                   onEnded={handleEnded}
                   onError={(e) => console.error('Audio element error:', e.currentTarget.error)}
-                  onCanPlay={() => console.log('Audio ready to play', audioSrc)}
-                  onPlay={() => console.log('Audio started playing')}
                 />
               )}
 

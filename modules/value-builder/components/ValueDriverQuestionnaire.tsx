@@ -37,9 +37,7 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
   previousAnswers,
 }) => {
   const hasPreviousAnswers = previousAnswers && Object.keys(previousAnswers).length > 0;
-  
-  console.log('ValueDriverQuestionnaire rendering', { annualRevenue, currentMultiple, hasPreviousAnswers });
-  
+
   const [answers, setAnswers] = useState<QuestionnaireAnswers>(previousAnswers || {});
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
@@ -49,7 +47,6 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
   let categories: ValueDriverCategory[];
   try {
     categories = getAllCategories();
-    console.log('Categories loaded:', categories.length, categories);
   } catch (error) {
     console.error('Error getting categories:', error);
     return (
@@ -61,7 +58,7 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
       </div>
     );
   }
-  
+
   // Safety check: ensure we have categories
   if (!categories || categories.length === 0) {
     return (
@@ -75,14 +72,13 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
 
   let currentCategory: ValueDriverCategory;
   let categoryQuestions: Question[];
-  
+
   try {
     currentCategory = categories[currentCategoryIndex];
     if (!currentCategory) {
       throw new Error(`Invalid category index: ${currentCategoryIndex}`);
     }
     categoryQuestions = getQuestionsByCategory(currentCategory);
-    console.log('Category questions loaded:', currentCategory, categoryQuestions.length, 'questions');
   } catch (error) {
     console.error('Error loading category/questions:', error);
     return (
@@ -94,7 +90,7 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
       </div>
     );
   }
-  
+
   // Safety check: ensure we have questions for this category
   if (!categoryQuestions || categoryQuestions.length === 0) {
     return (
@@ -105,7 +101,7 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
       </div>
     );
   }
-  
+
   const allQuestionsAnswered = useMemo(() => {
     return categoryQuestions.every(q => answers[q.id] !== undefined);
   }, [categoryQuestions, answers]);
@@ -196,29 +192,27 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
 
   if (showResults) {
     return (
-      <div 
+      <div
         ref={scrollContainerRef}
         className="bg-slate-900 rounded-2xl p-8 max-w-5xl mx-auto max-h-[90vh] overflow-y-auto"
       >
         <h2 className="text-2xl font-bold text-white mb-6">Value Driver Analysis Results</h2>
-        
+
         {/* Overall Score */}
         <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/10 border border-emerald-500/30 rounded-xl p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-emerald-400">Overall Value Driver Score</h3>
-            <span className={`text-3xl font-bold ${
-              overallScore > 0.5 ? 'text-emerald-400' :
-              overallScore > -0.5 ? 'text-yellow-400' :
-              'text-red-400'
-            }`}>
+            <span className={`text-3xl font-bold ${overallScore > 0.5 ? 'text-emerald-400' :
+                overallScore > -0.5 ? 'text-yellow-400' :
+                  'text-red-400'
+              }`}>
               {overallScore > 0 ? '+' : ''}{overallScore.toFixed(2)}
             </span>
           </div>
           <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all ${
-                overallScore > 0 ? 'bg-emerald-500' : 'bg-red-500'
-              }`}
+              className={`h-full transition-all ${overallScore > 0 ? 'bg-emerald-500' : 'bg-red-500'
+                }`}
               style={{ width: `${((overallScore + 2) / 4) * 100}%` }}
             />
           </div>
@@ -284,19 +278,17 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
             <div key={score.category} className="bg-slate-800/50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-slate-300 font-medium">{getCategoryName(score.category)}</span>
-                <span className={`font-semibold ${
-                  score.impact > 0.1 ? 'text-emerald-400' :
-                  score.impact < -0.1 ? 'text-red-400' :
-                  'text-slate-400'
-                }`}>
+                <span className={`font-semibold ${score.impact > 0.1 ? 'text-emerald-400' :
+                    score.impact < -0.1 ? 'text-red-400' :
+                      'text-slate-400'
+                  }`}>
                   {score.impact > 0 ? '+' : ''}{score.impact.toFixed(2)}x
                 </span>
               </div>
               <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div
-                  className={`h-full transition-all ${
-                    score.score > 0 ? 'bg-emerald-500' : 'bg-red-500'
-                  }`}
+                  className={`h-full transition-all ${score.score > 0 ? 'bg-emerald-500' : 'bg-red-500'
+                    }`}
                   style={{ width: `${Math.abs(score.score) * 25}%` }}
                 />
               </div>
@@ -317,11 +309,10 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
               <div key={idx} className="bg-slate-700/50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-white font-medium">{getCategoryName(rec.category)}</span>
-                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                    rec.priority === 'high' ? 'bg-red-500/20 text-red-400' :
-                    rec.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-green-500/20 text-green-400'
-                  }`}>
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${rec.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                      rec.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-green-500/20 text-green-400'
+                    }`}>
                     {rec.priority.toUpperCase()} PRIORITY
                   </span>
                 </div>
@@ -385,7 +376,7 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
   }
 
   return (
-    <div 
+    <div
       ref={scrollContainerRef}
       className="bg-slate-900 rounded-2xl p-8 max-w-4xl mx-auto max-h-[90vh] overflow-y-auto"
     >
@@ -445,11 +436,10 @@ const ValueDriverQuestionnaire: React.FC<ValueDriverQuestionnaireProps> = ({
                 {question.options.map(option => (
                   <label
                     key={option.value}
-                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                      selectedValue === option.value
+                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${selectedValue === option.value
                         ? 'bg-emerald-500/20 border-2 border-emerald-500'
                         : 'bg-slate-700/50 border-2 border-transparent hover:border-slate-600'
-                    }`}
+                      }`}
                   >
                     <input
                       type="radio"
