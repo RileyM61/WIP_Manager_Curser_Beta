@@ -114,6 +114,7 @@ const CompanyOnboarding: React.FC = () => {
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [data, setData] = useState<OnboardingData>({
     companyName: '',
@@ -144,7 +145,7 @@ const CompanyOnboarding: React.FC = () => {
       case 2:
         return data.annualRevenueRange !== '' && data.employeeCountRange !== '';
       case 3:
-        return data.servicePreference !== '';
+        return data.servicePreference !== '' && acceptedTerms;
       default:
         return false;
     }
@@ -360,26 +361,7 @@ const CompanyOnboarding: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold uppercase tracking-wide text-slate-300 mb-3">
-                  Which tools interest you most? <span className="text-white/40 font-normal">(optional)</span>
-                </label>
-                <div className="grid grid-cols-1 gap-3">
-                  {AVAILABLE_MODULES.map(moduleId => {
-                    const module = MODULES[moduleId];
-                    return (
-                      <SelectionCard
-                        key={moduleId}
-                        selected={data.interestedModules.includes(moduleId)}
-                        onClick={() => toggleModule(moduleId)}
-                        icon={module.icon}
-                        title={module.name}
-                        subtitle={module.description}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
+
             </div>
           )}
 
@@ -448,12 +430,34 @@ const CompanyOnboarding: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs text-white/40">
-          By continuing you agree to our{' '}
-          <Link to="/legal/terms" className="text-orange-400 hover:underline">Terms of Service</Link>
-          {' '}and{' '}
-          <Link to="/legal/privacy" className="text-orange-400 hover:underline">Privacy Policy</Link>.
-        </p>
+        <div className="mt-6 flex flex-col items-center gap-4">
+          <label className="flex items-start gap-3 cursor-pointer group text-left">
+            <div className="relative flex items-center pt-0.5">
+              <input
+                type="checkbox"
+                required
+                className="peer sr-only"
+                checked={acceptedTerms === true}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+              />
+              <div className="h-5 w-5 rounded border-2 border-slate-400 bg-transparent transition-all peer-checked:border-orange-500 peer-checked:bg-orange-500 hover:border-orange-400">
+                <svg className="h-full w-full stroke-white p-0.5 opacity-0 peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              </div>
+            </div>
+            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
+              I agree to the{' '}
+              <Link to="/legal/terms" target="_blank" className="font-semibold text-orange-400 hover:text-orange-300 hover:underline">
+                Terms of Service
+              </Link>
+              {' '}and{' '}
+              <Link to="/legal/privacy" target="_blank" className="font-semibold text-orange-400 hover:text-orange-300 hover:underline">
+                Privacy Policy
+              </Link>
+            </span>
+          </label>
+        </div>
       </div>
     </div>
   );
