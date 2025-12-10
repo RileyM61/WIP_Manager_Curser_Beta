@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType, MobilizationPhase, JobCategory, ProductType, JobComplexity } from '../../types';
+import { Job, JobStatus, CostBreakdown, UserRole, JobType, TMSettings, LaborBillingType, MobilizationPhase, JobCategory, ProductType, JobComplexity, Settings } from '../../types';
 import { XIcon } from '../shared/icons';
 import { CurrencyInput } from '../shared/CurrencyInput';
 import { getDefaultTMSettings, sumBreakdown } from '../../modules/wip/lib/jobCalculations';
@@ -31,9 +31,10 @@ interface JobFormModalProps {
   defaultStatus: JobStatus;
   userRole?: UserRole;
   activeEstimator?: string;
+  companySettings?: Settings | null;  // Company settings for default T&M markups
 }
 
-const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '' }) => {
+const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '', companySettings }) => {
   // Estimators can only edit Future or Draft jobs
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future && jobToEdit.status !== JobStatus.Draft;
   // Estimators cannot delete jobs
@@ -176,14 +177,29 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
     setJob({ ...job, [name]: value });
   };
 
+  // Get T&M defaults from company settings if available, otherwise use hardcoded defaults
+  const getCompanyTMDefaults = (): TMSettings => {
+    const baseDefaults = getDefaultTMSettings();
+    if (companySettings?.defaultLaborBillRate || companySettings?.defaultMaterialMarkup || companySettings?.defaultOtherMarkup) {
+      return {
+        laborBillingType: companySettings.defaultLaborBillRate ? 'fixed-rate' : 'markup',
+        laborBillRate: companySettings.defaultLaborBillRate,
+        laborMarkup: baseDefaults.laborMarkup,
+        materialMarkup: companySettings.defaultMaterialMarkup || baseDefaults.materialMarkup,
+        otherMarkup: companySettings.defaultOtherMarkup || baseDefaults.otherMarkup,
+      };
+    }
+    return baseDefaults;
+  };
+
   const handleJobTypeChange = (newType: JobType) => {
     setJob(prev => {
       if (newType === 'time-material' && !prev.tmSettings) {
-        // Initialize T&M settings with defaults
+        // Initialize T&M settings with company defaults
         return {
           ...prev,
           jobType: newType,
-          tmSettings: getDefaultTMSettings(),
+          tmSettings: getCompanyTMDefaults(),
         };
       }
       return { ...prev, jobType: newType };
@@ -380,8 +396,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               type="button"
               onClick={() => setActiveTab('details')}
               className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'details'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
               Job Details
@@ -390,8 +406,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               type="button"
               onClick={() => setActiveTab('scheduling')}
               className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'scheduling'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
               Scheduling
@@ -400,8 +416,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               type="button"
               onClick={() => setActiveTab('financials')}
               className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'financials'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
               Financials
@@ -424,8 +440,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       onClick={() => handleJobTypeChange('fixed-price')}
                       disabled={isEstimatorWithRestrictedAccess}
                       className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${job.jobType === 'fixed-price'
-                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
-                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
+                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       <div className="font-semibold">Fixed Price</div>
@@ -436,8 +452,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       onClick={() => handleJobTypeChange('time-material')}
                       disabled={isEstimatorWithRestrictedAccess}
                       className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${job.jobType === 'time-material'
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       <div className="font-semibold">Time & Material</div>
@@ -591,8 +607,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Profit</label>
                         <div className={`px-3 py-2 rounded-lg border ${calculatedTargets.targetProfit >= 0
-                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                          : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
                           } font-semibold`}>
                           ${calculatedTargets.targetProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
@@ -600,8 +616,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Target Margin</label>
                         <div className={`px-3 py-2 rounded-lg border ${calculatedTargets.targetMargin >= 0
-                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
-                            : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+                          : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
                           } font-semibold`}>
                           {calculatedTargets.targetMargin.toFixed(1)}%
                         </div>
@@ -638,8 +654,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                           onClick={() => handleTMSettingChange('laborBillingType', 'fixed-rate')}
                           disabled={isEstimatorWithRestrictedAccess}
                           className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${tmSettings.laborBillingType === 'fixed-rate'
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                              : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                            : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
                             } disabled:opacity-50`}
                         >
                           Fixed Rate ($/hr)
@@ -649,8 +665,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                           onClick={() => handleTMSettingChange('laborBillingType', 'markup')}
                           disabled={isEstimatorWithRestrictedAccess}
                           className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all ${tmSettings.laborBillingType === 'markup'
-                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
-                              : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                            : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400'
                             } disabled:opacity-50`}
                         >
                           Markup (%)
@@ -836,8 +852,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                         <div
                           key={mob.id}
                           className={`rounded-lg border-2 p-4 transition-all ${mob.enabled
-                              ? phaseColors[idx]
-                              : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 opacity-60'
+                            ? phaseColors[idx]
+                            : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 opacity-60'
                             }`}
                         >
                           {/* Phase Header with Enable Checkbox */}
@@ -985,8 +1001,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                           <div>
                             <span className="text-gray-500 dark:text-gray-400">Target vs Contract</span>
                             <p className={`font-semibold ${new Date(job.targetEndDate) <= new Date(job.endDate)
-                                ? 'text-green-600 dark:text-green-400'
-                                : 'text-amber-600 dark:text-amber-400'
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-amber-600 dark:text-amber-400'
                               }`}>
                               {(() => {
                                 const target = new Date(job.targetEndDate);

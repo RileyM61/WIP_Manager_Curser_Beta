@@ -15,7 +15,7 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'defaultRole') {
       onChange({ defaultRole: value as UserRole });
     } else if (name === 'weekEndDay') {
@@ -55,7 +55,7 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
       {/* Default Status & Role */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">New Job Defaults</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="defaultStatus" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -102,7 +102,7 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
       {/* WIP Reporting */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">WIP Reporting</h3>
-        
+
         <div>
           <label htmlFor="weekEndDay" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             WIP Week End Day
@@ -136,14 +136,12 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
           <button
             type="button"
             onClick={handleToggleCapacity}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-              settings.capacityEnabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${settings.capacityEnabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
           >
             <span
-              className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition ${
-                settings.capacityEnabled ? 'translate-x-5' : 'translate-x-1'
-              }`}
+              className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition ${settings.capacityEnabled ? 'translate-x-5' : 'translate-x-1'
+                }`}
             />
           </button>
         </div>
@@ -154,12 +152,101 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
         )}
       </div>
 
-      {/* Future: Default Markups */}
-      <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-6">
-        <h3 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">Default Markup Rates</h3>
-        <p className="text-sm text-gray-400 dark:text-gray-500">
-          Coming soon: Set default markup percentages for labor, materials, and other costs that will be applied to new jobs.
+      {/* Default T&M Markup Rates */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">Default T&M Markup Rates</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Set default markups for new Time & Material jobs. These will be pre-filled when creating T&M jobs.
         </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Labor Bill Rate */}
+          <div>
+            <label htmlFor="defaultLaborBillRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Labor Bill Rate
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
+              <input
+                type="number"
+                name="defaultLaborBillRate"
+                id="defaultLaborBillRate"
+                value={settings.defaultLaborBillRate || ''}
+                onChange={(e) => {
+                  const value = e.target.value ? parseFloat(e.target.value) : undefined;
+                  onChange({ defaultLaborBillRate: value });
+                  setHasChanges(true);
+                }}
+                placeholder="85.00"
+                step="0.01"
+                min="0"
+                className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 pl-7 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">/hr</span>
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Default hourly rate for labor billing
+            </p>
+          </div>
+
+          {/* Materials Markup */}
+          <div>
+            <label htmlFor="defaultMaterialMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Materials Markup
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                name="defaultMaterialMarkup"
+                id="defaultMaterialMarkup"
+                value={settings.defaultMaterialMarkup ? Math.round((settings.defaultMaterialMarkup - 1) * 100) : ''}
+                onChange={(e) => {
+                  const percent = e.target.value ? parseFloat(e.target.value) : undefined;
+                  const multiplier = percent !== undefined ? 1 + (percent / 100) : undefined;
+                  onChange({ defaultMaterialMarkup: multiplier });
+                  setHasChanges(true);
+                }}
+                placeholder="15"
+                step="1"
+                min="0"
+                className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">%</span>
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Markup percentage on material costs
+            </p>
+          </div>
+
+          {/* Other Markup */}
+          <div>
+            <label htmlFor="defaultOtherMarkup" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Other Markup
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                name="defaultOtherMarkup"
+                id="defaultOtherMarkup"
+                value={settings.defaultOtherMarkup ? Math.round((settings.defaultOtherMarkup - 1) * 100) : ''}
+                onChange={(e) => {
+                  const percent = e.target.value ? parseFloat(e.target.value) : undefined;
+                  const multiplier = percent !== undefined ? 1 + (percent / 100) : undefined;
+                  onChange({ defaultOtherMarkup: multiplier });
+                  setHasChanges(true);
+                }}
+                placeholder="10"
+                step="1"
+                min="0"
+                className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">%</span>
+            </div>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Markup percentage on other costs
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Save Button */}

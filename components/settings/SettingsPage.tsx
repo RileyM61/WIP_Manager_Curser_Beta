@@ -63,7 +63,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
   const isOwner = userRole === 'owner';
   const isManaged = settings.companyType === 'managed';
-  const isCfo = managedCompanies.length > 0 || (!isManaged && isOwner);
+  // Only show CFO Practice settings to users who actually have managed companies
+  // (i.e., they are a real CFO on the ChainLinkCFO platform), not to all owners
+  const isCfo = managedCompanies.length > 0;
 
   // Navigation items with access control
   const navItems: { id: SettingsSection; label: string; icon: string; ownerOnly: boolean; show?: boolean }[] = [

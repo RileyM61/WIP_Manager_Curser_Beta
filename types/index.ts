@@ -263,6 +263,11 @@ export interface Settings {
   subscriptionTier?: SubscriptionTier;
   enabledModules?: ModuleId[];
   subscriptionExpiresAt?: string;
+
+  // Default T&M Markup Settings (for new Time & Material jobs)
+  defaultLaborBillRate?: number;     // $/hr for labor billing
+  defaultMaterialMarkup?: number;    // Multiplier, e.g., 1.15 = 15% markup
+  defaultOtherMarkup?: number;       // Multiplier, e.g., 1.10 = 10% markup
 }
 
 export interface Company {

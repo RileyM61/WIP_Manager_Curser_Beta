@@ -748,6 +748,7 @@ function App() {
         onDelete={handleDeleteJob}
         userRole={userRole}
         activeEstimator={activeEstimator}
+        companySettings={settings}
       />
       <NotesModal
         isOpen={isNotesModalOpen}
