@@ -63,8 +63,8 @@ const Header: React.FC<HeaderProps> = ({
         return;
       }
 
-      // Pro Plan Price ID
-      const PRICE_ID = 'price_1ScBUuAs5QaQtz7mvEvDQAbb';
+      // Pro Plan Price ID ($99/month)
+      const PRICE_ID = 'price_1ScpqaAs5QaQtz7mJbECPkB5';
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
         method: 'POST',
@@ -131,26 +131,41 @@ const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-4" data-tour="header-logo">
             <DashboardNavButton className="text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-300" />
 
-            {/* Upgrade Button (Visible if not Pro) */}
-            {!isSubscriptionLoading && !isPro && (
-              <button
-                onClick={handleUpgrade}
-                disabled={isUpgrading}
-                className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
-              >
-                {isUpgrading ? 'Loading...' : '💎 Upgrade to Pro'}
-              </button>
-            )}
-
-            {/* Manage Subscription (Visible if Pro) */}
-            {!isSubscriptionLoading && isPro && (
-              <button
-                onClick={handleManageSubscription}
-                disabled={isUpgrading}
-                className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full hover:border-purple-200 dark:hover:border-purple-900 transition-all disabled:opacity-50"
-              >
-                {isUpgrading ? 'Loading...' : 'Manage Subscription'}
-              </button>
+            {/* Tier Badge & Upgrade Button */}
+            {!isSubscriptionLoading && (
+              <div className="hidden sm:flex items-center gap-2">
+                {isPro ? (
+                  <>
+                    {/* Pro Badge */}
+                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-sm">
+                      💎 Pro
+                    </span>
+                    {/* Manage Subscription Link */}
+                    <button
+                      onClick={handleManageSubscription}
+                      disabled={isUpgrading}
+                      className="text-xs text-gray-400 hover:text-purple-500 transition-colors disabled:opacity-50"
+                    >
+                      {isUpgrading ? '...' : 'Manage'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Free Badge */}
+                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-full">
+                      Free Plan
+                    </span>
+                    {/* Upgrade Button */}
+                    <button
+                      onClick={handleUpgrade}
+                      disabled={isUpgrading}
+                      className="inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
+                    >
+                      {isUpgrading ? 'Loading...' : 'Upgrade →'}
+                    </button>
+                  </>
+                )}
+              </div>
             )}
 
             <span className="text-gray-300 dark:text-gray-600 text-xl font-light hidden sm:inline">|</span>

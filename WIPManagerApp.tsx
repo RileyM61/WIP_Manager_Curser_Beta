@@ -10,7 +10,7 @@ import { useAuth } from './context/AuthContext';
 import { exportJobsToCSV, exportJobsToPDF } from './lib/exportUtils';
 import { useCapacityForWIP } from './modules/labor-capacity';
 import { useJobFinancialSnapshots } from './hooks/useJobFinancialSnapshots';
-import { useSubscription } from './hooks/useSubscription';
+import { useTierFeatures, FREE_TIER_LIMITS, TierFeatures } from './hooks/useTierFeatures';
 import { supabase } from './lib/supabase';
 import Header from './components/layout/Header';
 import Controls from './components/layout/Controls';
@@ -29,6 +29,7 @@ import CapacityModal from './components/modals/CapacityModal';
 import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
 import SnapshotComparisonModal from './components/modals/SnapshotComparisonModal';
 import JobLimitModal from './components/modals/JobLimitModal';
+import UpgradeModal from './components/modals/UpgradeModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
@@ -45,8 +46,8 @@ type QuickFilterKey =
   | 'pm-at-risk'
   | 'pm-late';
 
-// Free tier job limit (excluding Archived and Completed jobs)
-const FREE_TIER_JOB_LIMIT = 10;
+// Free tier job limit is now defined in useTierFeatures.ts
+// FREE_TIER_LIMITS.maxActiveJobs = 5
 
 const sumBreakdown = (breakdown: CostBreakdown): number =>
   breakdown.labor + breakdown.material + breakdown.other;
@@ -91,8 +92,8 @@ function App() {
     hasLaborCapacityAccess ? companyId : null
   );
 
-  // Subscription status for job limits
-  const { isPro } = useSubscription();
+  // Tier features for subscription-based feature gating
+  const tierFeatures = useTierFeatures();
 
   // Local storage for UI preferences (not stored in Supabase)
   const [snapshot, setSnapshot] = useLocalStorage<JobsSnapshot | null>('wip-jobs-snapshot', null);
@@ -139,6 +140,16 @@ function App() {
 
   // Job limit modal state
   const [isJobLimitModalOpen, setIsJobLimitModalOpen] = useState(false);
+
+  // Upgrade modal state
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<keyof TierFeatures | undefined>();
+
+  // Handler for upgrade requests from child components
+  const handleUpgradeRequest = useCallback((feature: keyof TierFeatures) => {
+    setUpgradeFeature(feature);
+    setIsUpgradeModalOpen(true);
+  }, []);
 
   // Count active jobs (excluding Archived and Completed which don't count toward limit)
   const activeJobCount = useMemo(() => {
@@ -409,7 +420,7 @@ function App() {
           updatedJob.status !== JobStatus.Archived &&
           updatedJob.status !== JobStatus.Completed;
 
-        if (!isPro && newJobCountsTowardLimit && activeJobCount >= FREE_TIER_JOB_LIMIT) {
+        if (!tierFeatures.isPro && newJobCountsTowardLimit && !tierFeatures.canAddMoreJobs(activeJobCount)) {
           // Free user has reached job limit
           setIsJobLimitModalOpen(true);
           return;
@@ -743,6 +754,7 @@ function App() {
             onExportCSV={() => exportJobsToCSV(sortedAndFilteredJobs, 'wip-jobs-export')}
             onExportPDF={() => exportJobsToPDF(sortedAndFilteredJobs, 'wip-report', { companyName: settings.companyName })}
             jobCount={sortedAndFilteredJobs.length}
+            onUpgradeRequest={handleUpgradeRequest}
           />
 
           <div>
@@ -762,6 +774,7 @@ function App() {
         userRole={userRole}
         activeEstimator={activeEstimator}
         companySettings={settings}
+        onUpgradeRequest={handleUpgradeRequest}
       />
       <NotesModal
         isOpen={isNotesModalOpen}
@@ -881,7 +894,7 @@ function App() {
         isOpen={isJobLimitModalOpen}
         onClose={() => setIsJobLimitModalOpen(false)}
         currentJobCount={activeJobCount}
-        jobLimit={FREE_TIER_JOB_LIMIT}
+        jobLimit={FREE_TIER_LIMITS.maxActiveJobs}
         onUpgrade={async () => {
           setIsJobLimitModalOpen(false);
           // Trigger Stripe checkout
@@ -910,6 +923,16 @@ function App() {
             alert('Failed to start upgrade process. Please try again.');
           }
         }}
+      />
+
+      {/* Upgrade Modal for Feature Gating */}
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => {
+          setIsUpgradeModalOpen(false);
+          setUpgradeFeature(undefined);
+        }}
+        feature={upgradeFeature}
       />
     </div>
   );

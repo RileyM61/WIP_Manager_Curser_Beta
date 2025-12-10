@@ -8,4 +8,6 @@ export { default as AddClientCompanyModal } from './AddClientCompanyModal';
 export { default as JobLimitModal } from './JobLimitModal';
 export { default as SnapshotComparisonModal } from './SnapshotComparisonModal';
 export { default as TeamManagementModal } from './TeamManagementModal';
+export { default as UpgradeModal, STRIPE_PRICES } from './UpgradeModal';
+export { default as ChangeOrderFormModal } from './ChangeOrderFormModal';
 

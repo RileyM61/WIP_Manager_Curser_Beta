@@ -9,4 +9,6 @@ export { useSubscription } from './useSubscription';
 export { useInvitations, getInvitationByToken, acceptInvitation } from './useInvitations';
 export { useWeeklySnapshots, useMonthlySnapshots, getWeekInfo, getMonthInfo } from './useWeeklySnapshots';
 export { useJobFinancialSnapshots } from './useJobFinancialSnapshots';
+export { useTierFeatures, FREE_TIER_LIMITS, getFreeTierFeatures, getProTierFeatures } from './useTierFeatures';
+export type { TierFeatures } from './useTierFeatures';
 

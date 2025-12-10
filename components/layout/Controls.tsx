@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { JobStatus, ViewMode, SortKey, SortDirection, FilterType, UserRole } from '../../types';
+import { useTierFeatures, TierFeatures } from '../../hooks/useTierFeatures';
 import { GridIcon, TableIcon } from '../shared/icons';
 
 // Gantt chart icon
@@ -68,6 +69,7 @@ interface ControlsProps {
   onExportCSV?: () => void;
   onExportPDF?: () => void;
   jobCount?: number;
+  onUpgradeRequest?: (feature: keyof TierFeatures) => void;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -92,9 +94,11 @@ const Controls: React.FC<ControlsProps> = ({
   onExportCSV,
   onExportPDF,
   jobCount = 0,
+  onUpgradeRequest,
 }) => {
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
+  const tierFeatures = useTierFeatures();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -165,13 +169,22 @@ const Controls: React.FC<ControlsProps> = ({
                 Forecast
               </button>
               <button
-                onClick={() => setFilter('reports')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'reports'
+                onClick={() => {
+                  if (tierFeatures.canUseReportsView) {
+                    setFilter('reports');
+                  } else if (onUpgradeRequest) {
+                    onUpgradeRequest('canUseReportsView');
+                  }
+                }}
+                className={`relative px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'reports'
                   ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  }`}
+                  } ${!tierFeatures.canUseReportsView ? 'opacity-75' : ''}`}
               >
                 Reports
+                {!tierFeatures.canUseReportsView && (
+                  <span className="ml-1 text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full">Pro</span>
+                )}
               </button>
             </div>
           </div>
@@ -206,25 +219,41 @@ const Controls: React.FC<ControlsProps> = ({
                     <GridIcon />
                   </button>
                   <button
-                    onClick={() => setViewMode('table')}
+                    onClick={() => {
+                      if (tierFeatures.canUseTableView) {
+                        setViewMode('table');
+                      } else if (onUpgradeRequest) {
+                        onUpgradeRequest('canUseTableView');
+                      }
+                    }}
                     className={`p-2 rounded-md transition-all ${viewMode === 'table'
                       ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                      }`}
+                      } ${!tierFeatures.canUseTableView ? 'opacity-50' : ''}`}
                     aria-label="Table view"
+                    title={tierFeatures.canUseTableView ? 'Table view' : tierFeatures.getUpgradeMessage('canUseTableView')}
                   >
                     <TableIcon />
+                    {!tierFeatures.canUseTableView && <span className="sr-only">Pro only</span>}
                   </button>
                   <button
-                    onClick={() => setViewMode('gantt')}
+                    onClick={() => {
+                      if (tierFeatures.canUseGanttView) {
+                        setViewMode('gantt');
+                      } else if (onUpgradeRequest) {
+                        onUpgradeRequest('canUseGanttView');
+                      }
+                    }}
+                    disabled={!tierFeatures.canUseGanttView}
                     className={`p-2 rounded-md transition-all ${viewMode === 'gantt'
                       ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                      }`}
+                      } ${!tierFeatures.canUseGanttView ? 'opacity-50 cursor-not-allowed' : ''}`}
                     aria-label="Gantt chart view"
-                    title="Gantt Chart"
+                    title={tierFeatures.canUseGanttView ? 'Gantt Chart' : tierFeatures.getUpgradeMessage('canUseGanttView')}
                   >
                     <GanttIcon />
+                    {!tierFeatures.canUseGanttView && <span className="sr-only">Pro only</span>}
                   </button>
                 </div>
 
