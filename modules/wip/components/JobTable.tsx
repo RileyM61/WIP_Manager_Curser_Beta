@@ -135,14 +135,14 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
-            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Job Name / No.</th>
-            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Client / PM</th>
-            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Costs to Date</th>
-            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost to Complete</th>
-            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Invoiced</th>
-            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Summary</th>
-            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">% Complete</th>
-            <th scope="col" className="relative px-4 py-3">
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[160px]">Job Name / No.</th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[100px]">Client / PM</th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[110px]">Costs to Date</th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[110px]">Cost to Complete</th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[130px]">Invoiced / As Of</th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[120px]">Summary</th>
+            <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">% Complete</th>
+            <th scope="col" className="relative px-4 py-3 min-w-[100px]">
               <span className="sr-only">Actions</span>
             </th>
           </tr>
@@ -285,7 +285,7 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
                 </td>
 
                 {/* Invoiced - Editable */}
-                <td className="px-4 py-3 whitespace-nowrap text-sm">
+                <td className={`px-4 py-3 text-sm ${isEditing ? '' : 'whitespace-nowrap'}`}>
                   {isEditing && editData ? (
                     <div className="space-y-1">
                       <InlineInput label="Total" value={sumBreakdown(editData.invoiced)} onChange={(v) => updateInvoiced('labor', v)} compact />
