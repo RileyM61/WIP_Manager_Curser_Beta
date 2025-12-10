@@ -23,6 +23,8 @@ import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import AcceptableUsePolicy from './pages/legal/AcceptableUsePolicy';
 import CookiePolicy from './pages/legal/CookiePolicy';
+import { OnboardingWizardModal } from './components/onboarding/OnboardingWizardModal';
+import { WIPCoachProvider } from './components/feedback/WIPCoach';
 
 /**
  * Main App Router
@@ -57,72 +59,75 @@ function App() {
     <Sentry.ErrorBoundary fallback={ErrorFallback} showDialog>
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            {/* ============================================ */}
-            {/* PUBLIC ROUTES - Landing Pages */}
-            {/* ============================================ */}
+          <WIPCoachProvider>
+            <OnboardingWizardModal />
+            <Routes>
+              {/* ============================================ */}
+              {/* PUBLIC ROUTES - Landing Pages */}
+              {/* ============================================ */}
 
-            {/* Domain-aware main landing - serves different content based on URL */}
-            <Route path="/" element={<DomainAwareLanding />} />
+              {/* Domain-aware main landing - serves different content based on URL */}
+              <Route path="/" element={<DomainAwareLanding />} />
 
-            {/* WIP Insights standalone landing (for direct marketing) */}
-            <Route path="/wip" element={<WIPInsightsLanding />} />
+              {/* WIP Insights standalone landing (for direct marketing) */}
+              <Route path="/wip" element={<WIPInsightsLanding />} />
 
-            {/* CFO Pro - Premium managed service */}
-            <Route path="/cfo-pro" element={<CFOProPage />} />
+              {/* CFO Pro - Premium managed service */}
+              <Route path="/cfo-pro" element={<CFOProPage />} />
 
-            {/* Value Builder - Free calculator lead gen */}
-            <Route path="/value-builder" element={<ValueBuilderLanding />} />
-            <Route path="/value-builder/calculate" element={<ValueBuilderCalculator />} />
+              {/* Value Builder - Free calculator lead gen */}
+              <Route path="/value-builder" element={<ValueBuilderLanding />} />
+              <Route path="/value-builder/calculate" element={<ValueBuilderCalculator />} />
 
-            {/* Authentication */}
-            <Route path="/auth" element={<AuthPage />} />
+              {/* Authentication */}
+              <Route path="/auth" element={<AuthPage />} />
 
-            {/* Legal Pages */}
-            <Route path="/legal/terms" element={<TermsOfService />} />
-            <Route path="/legal/privacy" element={<PrivacyPolicy />} />
-            <Route path="/legal/acceptable-use" element={<AcceptableUsePolicy />} />
-            <Route path="/legal/cookies" element={<CookiePolicy />} />
+              {/* Legal Pages */}
+              <Route path="/legal/terms" element={<TermsOfService />} />
+              <Route path="/legal/privacy" element={<PrivacyPolicy />} />
+              <Route path="/legal/acceptable-use" element={<AcceptableUsePolicy />} />
+              <Route path="/legal/cookies" element={<CookiePolicy />} />
 
-            {/* ============================================ */}
-            {/* PROTECTED ROUTES - App Shell */}
-            {/* ============================================ */}
+              {/* ============================================ */}
+              {/* PROTECTED ROUTES - App Shell */}
+              {/* ============================================ */}
 
-            <Route path="/app" element={<AppShell />}>
-              {/* Module Dashboard - the hub */}
-              <Route index element={<ModuleDashboard />} />
+              <Route path="/app" element={<AppShell />}>
+                {/* Module Dashboard - the hub */}
+                <Route index element={<ModuleDashboard />} />
 
-              {/* WIP Module */}
-              <Route path="wip/*" element={<WIPManagerApp />} />
+                {/* WIP Module */}
+                <Route path="wip/*" element={<WIPManagerApp />} />
 
-              {/* Discovery Module - Executive Interviews */}
-              <Route path="discovery/*" element={<DiscoveryPage />} />
+                {/* Discovery Module - Executive Interviews */}
+                <Route path="discovery/*" element={<DiscoveryPage />} />
 
-              {/* Labor Capacity Module */}
-              <Route path="capacity/*" element={<LaborCapacityPage />} />
+                {/* Labor Capacity Module */}
+                <Route path="capacity/*" element={<LaborCapacityPage />} />
 
-              {/* Value Builder Module */}
-              <Route path="value-builder/*" element={<ValueBuilderPage />} />
+                {/* Value Builder Module */}
+                <Route path="value-builder/*" element={<ValueBuilderPage />} />
 
-              {/* Future Modules - Placeholder routes */}
-              {/* These will show "Coming Soon" via the dashboard for now */}
-              <Route path="forecasting/*" element={<ComingSoonModule moduleName="Cash Flow Forecasting" />} />
-              <Route path="budget/*" element={<ForecastVsActualsPage />} />
-              <Route path="jcurve/*" element={<ComingSoonModule moduleName="J-Curve Investment Analysis" />} />
-              <Route path="covenant/*" element={<ComingSoonModule moduleName="Covenant Compliance" />} />
-              <Route path="profitability/*" element={<ComingSoonModule moduleName="Profitability Analytics" />} />
-              <Route path="bidnobid/*" element={<ComingSoonModule moduleName="Bid/No-Bid Decisions" />} />
-              <Route path="scenarios/*" element={<ComingSoonModule moduleName="Scenario Planning" />} />
-              <Route path="reporting/*" element={<ComingSoonModule moduleName="Financial Reporting" />} />
-            </Route>
+                {/* Future Modules - Placeholder routes */}
+                {/* These will show "Coming Soon" via the dashboard for now */}
+                <Route path="forecasting/*" element={<ComingSoonModule moduleName="Cash Flow Forecasting" />} />
+                <Route path="budget/*" element={<ForecastVsActualsPage />} />
+                <Route path="jcurve/*" element={<ComingSoonModule moduleName="J-Curve Investment Analysis" />} />
+                <Route path="covenant/*" element={<ComingSoonModule moduleName="Covenant Compliance" />} />
+                <Route path="profitability/*" element={<ComingSoonModule moduleName="Profitability Analytics" />} />
+                <Route path="bidnobid/*" element={<ComingSoonModule moduleName="Bid/No-Bid Decisions" />} />
+                <Route path="scenarios/*" element={<ComingSoonModule moduleName="Scenario Planning" />} />
+                <Route path="reporting/*" element={<ComingSoonModule moduleName="Financial Reporting" />} />
+              </Route>
 
-            {/* ============================================ */}
-            {/* LEGACY REDIRECT - Old /app route behavior */}
-            {/* ============================================ */}
+              {/* ============================================ */}
+              {/* LEGACY REDIRECT - Old /app route behavior */}
+              {/* ============================================ */}
 
-            {/* Catch-all: redirect unknown routes to home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* Catch-all: redirect unknown routes to home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </WIPCoachProvider>
         </AuthProvider>
       </BrowserRouter>
     </Sentry.ErrorBoundary>

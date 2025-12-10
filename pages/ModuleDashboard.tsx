@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useModuleAccess } from '../hooks/useModuleAccess';
 import { useSupabaseSettings } from '../hooks/useSupabaseSettings';
 import { MODULES, ModuleId, ALL_MODULE_IDS } from '../types/modules';
+import { OnboardingWidget } from '../components/onboarding/OnboardingWidget';
 
 // ============================================================================
 // MODULE CARD COMPONENT
@@ -188,6 +189,9 @@ const ModuleDashboard: React.FC = () => {
           </p>
         </div>
 
+        {/* Onboarding Widget (Visible only if applicable) */}
+        <OnboardingWidget />
+
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
@@ -251,7 +255,7 @@ const ModuleDashboard: React.FC = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

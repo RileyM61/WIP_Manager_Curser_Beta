@@ -72,7 +72,12 @@ export const ALLOWED_EMAILS = [
   'scott@junctionpeak.com',
   'jordan@blueriver.com',
   'todd@ranchfenceinc.com',
+<<<<<<< HEAD
   'cwdpsd@gmail.com',
+=======
+  'newbie@test.com',
+  'ninja@test.com',
+>>>>>>> dev
 ] as const;
 
 /**
