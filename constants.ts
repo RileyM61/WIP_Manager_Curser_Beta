@@ -13,14 +13,14 @@ export const ROUTES = {
   // Landing pages
   home: '/',
   wipLanding: '/wip',
-  
+
   // Auth
   auth: '/auth',
-  
+
   // Protected app routes
   app: '/app',
   dashboard: '/app',
-  
+
   // Module routes
   wip: '/app/wip',
   forecasting: '/app/forecasting',
@@ -72,6 +72,8 @@ export const ALLOWED_EMAILS = [
   'scott@junctionpeak.com',
   'jordan@blueriver.com',
   'todd@ranchfenceinc.com',
+  'newbie@test.com',
+  'ninja@test.com',
 ] as const;
 
 /**
