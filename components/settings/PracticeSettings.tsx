@@ -21,7 +21,8 @@ const PracticeSettings: React.FC<PracticeSettingsProps> = ({
   const [saving, setSaving] = useState(false);
 
   const isManaged = settings.companyType === 'managed';
-  const isCfo = managedCompanies.length > 0 || !isManaged;
+  // Only true if user actually has managed companies (is a real CFO)
+  const isCfo = managedCompanies.length > 0;
 
   // If this is a managed company, show who manages it
   if (isManaged) {
@@ -45,7 +46,7 @@ const PracticeSettings: React.FC<PracticeSettingsProps> = ({
                 Your company's access to this platform is provided through your CFO's services.
                 Contact them for any questions about your subscription or module access.
               </p>
-              
+
               {/* Show granted modules */}
               {settings.grantedModules && settings.grantedModules.length > 0 && (
                 <div className="mt-4">
@@ -167,7 +168,7 @@ const PracticeSettings: React.FC<PracticeSettingsProps> = ({
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {managedCompanies.map(company => {
               const isEditing = editingCompanyId === company.id;
-              
+
               return (
                 <div key={company.id} className="p-6">
                   <div className="flex items-start justify-between">
@@ -182,7 +183,7 @@ const PracticeSettings: React.FC<PracticeSettingsProps> = ({
                         </p>
                       </div>
                     </div>
-                    
+
                     {!isEditing && (
                       <button
                         onClick={() => handleEditModules(company)}
@@ -221,15 +222,14 @@ const PracticeSettings: React.FC<PracticeSettingsProps> = ({
                         {Object.values(MODULES).map(module => {
                           const isEnabled = editingModules.includes(module.id);
                           const isWip = module.id === 'wip';
-                          
+
                           return (
                             <label
                               key={module.id}
-                              className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
-                                isEnabled 
-                                  ? 'bg-blue-100 dark:bg-blue-900/30' 
+                              className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${isEnabled
+                                  ? 'bg-blue-100 dark:bg-blue-900/30'
                                   : 'hover:bg-gray-100 dark:hover:bg-gray-600'
-                              } ${isWip ? 'opacity-75' : ''}`}
+                                } ${isWip ? 'opacity-75' : ''}`}
                             >
                               <input
                                 type="checkbox"
