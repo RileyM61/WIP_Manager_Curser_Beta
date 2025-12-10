@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useOnboarding } from '../../hooks/useOnboarding';
 
 export const OnboardingWizardModal: React.FC = () => {
+    // Only show if user has a company (completed company onboarding)
+    const { companyId } = useAuth();
     const { state, setLevel } = useOnboarding();
     const [isOpen, setIsOpen] = useState(!state.is_onboarding_completed && state.user_level === 'undecided');
     const [view, setView] = useState<'selection' | 'quiz'>('selection');
     const [quizStep, setQuizStep] = useState(0);
     const [quizScore, setQuizScore] = useState(0); // High score = Ninja
 
-    // If already completed, don't show
-    if (state.is_onboarding_completed || state.user_level !== 'undecided') return null;
+    // If already completed or no company yet, don't show
+    if (!companyId || state.is_onboarding_completed || state.user_level !== 'undecided') return null;
 
     const handleSelect = async (level: 'newbie' | 'ninja') => {
         await setLevel(level);
