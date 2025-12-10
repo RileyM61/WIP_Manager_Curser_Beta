@@ -165,6 +165,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           <AppearanceSettings
             theme={theme}
             onThemeChange={onThemeChange}
+            settings={currentSettings}
+            onChange={handleSettingsChange}
+            onSave={handleSave}
           />
         );
       case 'notifications':

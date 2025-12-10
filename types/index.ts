@@ -197,6 +197,11 @@ export interface JobFinancialSnapshot {
 
 export type ViewMode = 'grid' | 'table' | 'gantt' | 'reports';
 
+// Formatting Options (for Appearance settings)
+export type DateFormatOption = 'MM/DD/YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD';
+export type NumberFormatOption = 'us' | 'eu';  // US = 1,234.56 | EU = 1.234,56
+export type CurrencyLocale = 'USD' | 'EUR' | 'GBP' | 'CAD';
+
 export type SortKey = 'jobName' | 'jobNo' | 'client' | 'projectManager' | 'status' | 'startDate';
 
 export type SortDirection = 'asc' | 'desc';
@@ -303,6 +308,11 @@ export interface Settings {
   defaultLaborBillRate?: number;     // $/hr for labor billing
   defaultMaterialMarkup?: number;    // Multiplier, e.g., 1.15 = 15% markup
   defaultOtherMarkup?: number;       // Multiplier, e.g., 1.10 = 10% markup
+
+  // Appearance & Formatting
+  dateFormat?: DateFormatOption;     // Date display format
+  numberFormat?: NumberFormatOption; // Number grouping style (US/EU)
+  currencyLocale?: CurrencyLocale;   // Currency symbol & locale
 }
 
 export interface Company {
