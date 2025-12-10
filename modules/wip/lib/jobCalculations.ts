@@ -1,10 +1,124 @@
-import { Job, CostBreakdown, MobilizationPhase } from '../../../types';
+import { Job, CostBreakdown, MobilizationPhase, ChangeOrder } from '../../../types';
 
 /**
  * Sum all components of a cost breakdown
  */
 export const sumBreakdown = (breakdown: CostBreakdown): number =>
   breakdown.labor + breakdown.material + breakdown.other;
+
+/**
+ * Add two CostBreakdowns together
+ */
+export const addBreakdowns = (a: CostBreakdown, b: CostBreakdown): CostBreakdown => ({
+  labor: a.labor + b.labor,
+  material: a.material + b.material,
+  other: a.other + b.other,
+});
+
+/**
+ * Sum approved/completed CO contract values
+ */
+export const sumApprovedCOContracts = (changeOrders: ChangeOrder[]): CostBreakdown => {
+  const approved = changeOrders.filter(co => co.status === 'approved' || co.status === 'completed');
+  return approved.reduce(
+    (sum, co) => addBreakdowns(sum, co.contract),
+    { labor: 0, material: 0, other: 0 }
+  );
+};
+
+/**
+ * Sum approved/completed CO costs
+ */
+export const sumApprovedCOCosts = (changeOrders: ChangeOrder[]): CostBreakdown => {
+  const approved = changeOrders.filter(co => co.status === 'approved' || co.status === 'completed');
+  return approved.reduce(
+    (sum, co) => addBreakdowns(sum, co.costs),
+    { labor: 0, material: 0, other: 0 }
+  );
+};
+
+/**
+ * Sum approved/completed CO budgets
+ */
+export const sumApprovedCOBudgets = (changeOrders: ChangeOrder[]): CostBreakdown => {
+  const approved = changeOrders.filter(co => co.status === 'approved' || co.status === 'completed');
+  return approved.reduce(
+    (sum, co) => addBreakdowns(sum, co.budget),
+    { labor: 0, material: 0, other: 0 }
+  );
+};
+
+/**
+ * Sum approved/completed CO invoiced values
+ */
+export const sumApprovedCOInvoiced = (changeOrders: ChangeOrder[]): CostBreakdown => {
+  const approved = changeOrders.filter(co => co.status === 'approved' || co.status === 'completed');
+  return approved.reduce(
+    (sum, co) => addBreakdowns(sum, co.invoiced),
+    { labor: 0, material: 0, other: 0 }
+  );
+};
+
+/**
+ * Sum approved/completed CO cost-to-complete values
+ */
+export const sumApprovedCOCostToComplete = (changeOrders: ChangeOrder[]): CostBreakdown => {
+  const approved = changeOrders.filter(co => co.status === 'approved' || co.status === 'completed');
+  return approved.reduce(
+    (sum, co) => addBreakdowns(sum, co.costToComplete),
+    { labor: 0, material: 0, other: 0 }
+  );
+};
+
+/**
+ * Get job totals including approved COs
+ * Returns effective totals for contract, costs, budget, invoiced, and costToComplete
+ */
+export const getJobTotalsWithCOs = (job: Job, changeOrders: ChangeOrder[] = []) => {
+  const coContracts = sumApprovedCOContracts(changeOrders);
+  const coCosts = sumApprovedCOCosts(changeOrders);
+  const coBudgets = sumApprovedCOBudgets(changeOrders);
+  const coInvoiced = sumApprovedCOInvoiced(changeOrders);
+  const coCostToComplete = sumApprovedCOCostToComplete(changeOrders);
+
+  return {
+    contract: addBreakdowns(job.contract, coContracts),
+    costs: addBreakdowns(job.costs, coCosts),
+    budget: addBreakdowns(job.budget, coBudgets),
+    invoiced: addBreakdowns(job.invoiced, coInvoiced),
+    costToComplete: addBreakdowns(job.costToComplete, coCostToComplete),
+    // Also provide just the CO portions for display
+    coContract: coContracts,
+    coCosts: coCosts,
+    coBudget: coBudgets,
+    coInvoiced: coInvoiced,
+    coCostToComplete: coCostToComplete,
+    hasApprovedCOs: changeOrders.some(co => co.status === 'approved' || co.status === 'completed'),
+  };
+};
+
+/**
+ * Calculate forecasted profit with approved COs included
+ */
+export const calculateForecastedProfitWithCOs = (job: Job, changeOrders: ChangeOrder[] = []): number => {
+  const totals = getJobTotalsWithCOs(job, changeOrders);
+
+  if (job.jobType === 'time-material' && job.tmSettings) {
+    // For T&M, need to calculate earned revenue then subtract costs
+    // Note: CO T&M earned revenue would need separate calculation
+    // For now, use simple contract - costs for COs
+    const earned = calculateEarnedRevenue(job);
+    const coProfit = sumBreakdown(totals.coContract) - sumBreakdown(totals.coCosts);
+    return earned.total - sumBreakdown(job.costs) + coProfit;
+  } else {
+    // For fixed price, profit is total contract minus forecasted costs
+    const totalContract = sumBreakdown(totals.contract);
+    const totalCosts = sumBreakdown(totals.costs);
+    const totalCostToComplete = sumBreakdown(totals.costToComplete);
+    return totalContract - (totalCosts + totalCostToComplete);
+  }
+};
+
 
 /**
  * Calculate earned revenue for a job based on its type
@@ -30,7 +144,7 @@ export const calculateEarnedRevenue = (job: Job): {
   if (job.jobType === 'time-material' && job.tmSettings) {
     // T&M calculation
     const tm = job.tmSettings;
-    
+
     // Labor earned depends on billing type
     let laborEarned: number;
     if (tm.laborBillingType === 'fixed-rate') {
@@ -40,11 +154,11 @@ export const calculateEarnedRevenue = (job: Job): {
       // Markup: Labor Cost × Markup
       laborEarned = job.costs.labor * (tm.laborMarkup || 1);
     }
-    
+
     // Material and Other use markup
     const materialEarned = job.costs.material * (tm.materialMarkup || 1);
     const otherEarned = job.costs.other * (tm.otherMarkup || 1);
-    
+
     return {
       labor: laborEarned,
       material: materialEarned,
@@ -53,24 +167,30 @@ export const calculateEarnedRevenue = (job: Job): {
     };
   } else {
     // Fixed Price calculation - component-level % complete
-    // Each component is calculated independently to account for varying markups
-    
-    // Calculate % complete for each component separately
-    const laborPctComplete = job.budget.labor > 0 
-      ? job.costs.labor / job.budget.labor 
+    // Each component is calculated independently using Costs / (Costs + CTC)
+    // This represents actual progress based on forecasted total costs
+
+    // Calculate total forecasted costs per component
+    const laborTotal = job.costs.labor + job.costToComplete.labor;
+    const materialTotal = job.costs.material + job.costToComplete.material;
+    const otherTotal = job.costs.other + job.costToComplete.other;
+
+    // Calculate % complete for each component: Costs / (Costs + CTC)
+    const laborPctComplete = laborTotal > 0
+      ? job.costs.labor / laborTotal
       : 0;
-    const materialPctComplete = job.budget.material > 0 
-      ? job.costs.material / job.budget.material 
+    const materialPctComplete = materialTotal > 0
+      ? job.costs.material / materialTotal
       : 0;
-    const otherPctComplete = job.budget.other > 0 
-      ? job.costs.other / job.budget.other 
+    const otherPctComplete = otherTotal > 0
+      ? job.costs.other / otherTotal
       : 0;
-    
+
     // Earned revenue for each component = Contract × Component % Complete
     const laborEarned = job.contract.labor * laborPctComplete;
     const materialEarned = job.contract.material * materialPctComplete;
     const otherEarned = job.contract.other * otherPctComplete;
-    
+
     return {
       labor: laborEarned,
       material: materialEarned,
@@ -93,7 +213,7 @@ export const calculateBillingDifference = (job: Job): {
   const earned = calculateEarnedRevenue(job);
   const totalInvoiced = sumBreakdown(job.invoiced);
   const difference = totalInvoiced - earned.total;
-  
+
   return {
     difference,
     isOverBilled: difference > 0,
@@ -121,13 +241,15 @@ export const calculateForecastedProfit = (job: Job): number => {
 
 /**
  * Get the % complete for a job (only meaningful for fixed-price jobs)
+ * Uses Costs / (Costs + CTC) methodology
  */
 export const calculatePercentComplete = (job: Job): number => {
-  const totalBudget = sumBreakdown(job.budget);
   const totalCosts = sumBreakdown(job.costs);
-  
-  if (totalBudget === 0) return 0;
-  return (totalCosts / totalBudget) * 100;
+  const totalCTC = sumBreakdown(job.costToComplete);
+  const totalForecastedCost = totalCosts + totalCTC;
+
+  if (totalForecastedCost === 0) return 0;
+  return (totalCosts / totalForecastedCost) * 100;
 };
 
 /**
@@ -155,19 +277,19 @@ export interface ScheduleWarning {
  */
 export const getMobilizationWarnings = (job: Job): ScheduleWarning[] => {
   const warnings: ScheduleWarning[] = [];
-  
+
   // Skip if no contract end date
   if (!job.endDate || job.endDate === 'TBD') {
     return warnings;
   }
-  
+
   const contractEndDate = new Date(job.endDate).getTime();
-  
+
   // Check mobilization phases
   if (job.mobilizations && job.mobilizations.length > 0) {
     job.mobilizations.forEach(mob => {
       if (!mob.enabled) return;
-      
+
       // Check if demobilization date is past contract end
       if (mob.demobilizeDate && mob.demobilizeDate !== 'TBD') {
         const demobDate = new Date(mob.demobilizeDate).getTime();
@@ -181,7 +303,7 @@ export const getMobilizationWarnings = (job: Job): ScheduleWarning[] => {
           });
         }
       }
-      
+
       // Check if mobilization date is past contract end (shouldn't happen but check anyway)
       if (mob.mobilizeDate && mob.mobilizeDate !== 'TBD') {
         const mobDate = new Date(mob.mobilizeDate).getTime();
@@ -196,7 +318,7 @@ export const getMobilizationWarnings = (job: Job): ScheduleWarning[] => {
       }
     });
   }
-  
+
   return warnings;
 };
 
@@ -222,12 +344,12 @@ export const hasScheduleWarnings = (job: Job): boolean => {
   if (mobWarnings.length > 0) {
     return true;
   }
-  
+
   // Check target date
   if (isJobBehindTargetDate(job)) {
     return true;
   }
-  
+
   return false;
 };
 
@@ -236,10 +358,10 @@ export const hasScheduleWarnings = (job: Job): boolean => {
  */
 export const getAllScheduleWarnings = (job: Job): ScheduleWarning[] => {
   const warnings: ScheduleWarning[] = [];
-  
+
   // Add mobilization warnings
   warnings.push(...getMobilizationWarnings(job));
-  
+
   // Add target date warning
   if (isJobBehindTargetDate(job)) {
     const targetDate = new Date(job.targetEndDate!);
@@ -251,7 +373,7 @@ export const getAllScheduleWarnings = (job: Job): ScheduleWarning[] => {
       severity: daysLate > 30 ? 'critical' : 'warning',
     });
   }
-  
+
   return warnings;
 };
 

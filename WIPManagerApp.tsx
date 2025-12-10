@@ -24,6 +24,7 @@ import ForecastView from './components/views/ForecastView';
 import NotesModal from './components/modals/NotesModal';
 import SettingsPage from './components/settings/SettingsPage';
 import JobHistoryPanel from './components/JobHistoryPanel';
+import ChangeOrderPanel from './components/ChangeOrderPanel';
 import CapacityModal from './components/modals/CapacityModal';
 import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
 import SnapshotComparisonModal from './components/modals/SnapshotComparisonModal';
@@ -125,6 +126,9 @@ function App() {
 
   // Job History panel state
   const [jobForHistory, setJobForHistory] = useState<Job | null>(null);
+
+  // Change Orders panel state
+  const [jobForChangeOrders, setJobForChangeOrders] = useState<Job | null>(null);
 
   // Snapshot comparison modal state
   const [snapshotComparison, setSnapshotComparison] = useState<{
@@ -478,6 +482,15 @@ function App() {
     setJobForHistory(null);
   };
 
+  // Change Orders handlers
+  const handleOpenChangeOrders = (job: Job) => {
+    setJobForChangeOrders(job);
+  };
+
+  const handleCloseChangeOrders = () => {
+    setJobForChangeOrders(null);
+  };
+
   // Use the job financial snapshots hook for quick snapshots
   const { createSnapshotFromJob } = useJobFinancialSnapshots(companyId || '');
 
@@ -632,7 +645,7 @@ function App() {
       );
     }
     if (viewMode === 'grid') {
-      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} userRole={userRole} activeEstimator={activeEstimator} />;
+      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} onOpenChangeOrders={handleOpenChangeOrders} userRole={userRole} activeEstimator={activeEstimator} companyId={companyId || undefined} />;
     }
     return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onSave={handleSaveJob} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode} activeEstimator={activeEstimator} />;
   }
@@ -792,6 +805,16 @@ function App() {
           companyId={companyId}
           isOpen={!!jobForHistory}
           onClose={handleCloseHistory}
+        />
+      )}
+
+      {/* Change Orders Panel */}
+      {companyId && jobForChangeOrders && (
+        <ChangeOrderPanel
+          isOpen={!!jobForChangeOrders}
+          onClose={handleCloseChangeOrders}
+          job={jobForChangeOrders}
+          companyId={companyId}
         />
       )}
 

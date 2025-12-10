@@ -52,8 +52,43 @@ export interface TMSettings {
 }
 
 // ============================================================================
+// Change Orders
+// ============================================================================
+
+export type ChangeOrderStatus = 'pending' | 'approved' | 'rejected' | 'completed';
+
+export interface ChangeOrder {
+  id: string;
+  jobId: string;
+  companyId?: string;
+  coNumber: number;              // Sequential per job (1, 2, 3...)
+  description: string;
+  coType: JobType;               // Can be fixed-price or time-material (independent of parent job)
+  status: ChangeOrderStatus;
+
+  // Financial breakdowns (same structure as Job)
+  contract: CostBreakdown;
+  budget: CostBreakdown;
+  costs: CostBreakdown;
+  invoiced: CostBreakdown;
+  costToComplete: CostBreakdown;
+
+  // T&M settings (for T&M COs only)
+  tmSettings?: TMSettings;
+
+  // Tracking dates
+  submittedDate?: string;
+  approvedDate?: string;
+  completedDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+}
+
+// ============================================================================
 // Scheduling Types
 // ============================================================================
+
 
 export interface MobilizationPhase {
   id: number;                  // 1-4 for the four possible phases
