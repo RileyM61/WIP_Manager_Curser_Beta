@@ -3,6 +3,10 @@ import { useModuleAccess } from './useModuleAccess';
 import { useSupabaseSettings } from './useSupabaseSettings';
 import { useAuth } from '../context/AuthContext';
 
+export const FREE_TIER_LIMITS = {
+    maxActiveJobs: 5,
+};
+
 export interface TierFeatures {
     canUseTimeAndMaterial: boolean;
     canUseMobilization: boolean;
