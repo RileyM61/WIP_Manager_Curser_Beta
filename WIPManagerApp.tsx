@@ -71,7 +71,7 @@ function App() {
   // Supabase hooks for data
   const { jobs, loading: jobsLoading, addJob, updateJob, deleteJob, refreshJobs } = useSupabaseJobs(companyId);
   const { settings, loading: settingsLoading, error: settingsError, updateSettings, refreshSettings } = useSupabaseSettings(companyId);
-  const { loadNotes, addNote: addNoteToSupabase } = useSupabaseNotes(companyId);
+  const { loadNotes, addNote: addNoteToSupabase, updateNote: updateNoteInSupabase, deleteNote: deleteNoteFromSupabase } = useSupabaseNotes(companyId);
 
   // CFO Practice - managed companies
   const {
@@ -753,6 +753,14 @@ function App() {
         isOpen={isNotesModalOpen}
         onClose={handleCloseNotes}
         onAddNote={handleAddNote}
+        onUpdateNote={async (noteId, noteText) => {
+          const updatedNote = await updateNoteInSupabase(noteId, noteText);
+          setJobNotes(prev => prev.map(n => n.id === noteId ? updatedNote : n));
+        }}
+        onDeleteNote={async (noteId) => {
+          await deleteNoteFromSupabase(noteId);
+          setJobNotes(prev => prev.filter(n => n.id !== noteId));
+        }}
         job={jobForNotes ? { ...jobForNotes, notes: jobNotes } : null}
       />
       {companyId && user && (
