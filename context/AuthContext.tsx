@@ -13,6 +13,7 @@ interface ProfileRow {
   user_id: string;
   company_id: string | null;
   role: string;
+  onboarding_state?: any; // JSONB
   companies?: {
     id: string;
     name: string;
@@ -74,7 +75,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setLoadingProfile(true);
     const { data, error } = await supabase!
       .from('profiles')
-      .select('user_id, company_id, role, companies:company_id ( id, name )')
+      .select('user_id, company_id, role, onboarding_state, companies:company_id ( id, name )')
       .eq('user_id', session.user.id)
       .maybeSingle();
 
