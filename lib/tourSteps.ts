@@ -25,7 +25,7 @@ export const tourSteps: TourStep[] = [
   {
     target: '[data-tour="view-toggle"]',
     title: 'Change Your View',
-    content: 'Toggle between Grid view (cards) and Table view depending on your preference. Grid is great for a quick overview, Table is better for detailed analysis.',
+    content: 'Use these toggle buttons to switch between Grid view (cards), Table view (spreadsheet), or Gantt view (timeline). Grid is great for a quick overview, whilst Table is better for detailed editing.',
     placement: 'bottom',
   },
   {

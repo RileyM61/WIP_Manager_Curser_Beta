@@ -25,12 +25,12 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
   // Find and highlight the target element
   const updateTargetPosition = useCallback(() => {
     if (!step) return;
-    
+
     const element = document.querySelector(step.target);
     if (element) {
       const rect = element.getBoundingClientRect();
       setTargetRect(rect);
-      
+
       // Scroll element into view if needed
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
@@ -43,7 +43,7 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
       updateTargetPosition();
       window.addEventListener('resize', updateTargetPosition);
       window.addEventListener('scroll', updateTargetPosition);
-      
+
       return () => {
         window.removeEventListener('resize', updateTargetPosition);
         window.removeEventListener('scroll', updateTargetPosition);
@@ -143,11 +143,11 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
               <rect width="100%" height="100%" fill="white" />
               {targetRect && (
                 <rect
-                  x={targetRect.left - 8}
-                  y={targetRect.top - 8}
-                  width={targetRect.width + 16}
-                  height={targetRect.height + 16}
-                  rx="8"
+                  x={targetRect.left - 12}
+                  y={targetRect.top - 12}
+                  width={targetRect.width + 24}
+                  height={targetRect.height + 24}
+                  rx="12"
                   fill="black"
                 />
               )}
@@ -166,10 +166,10 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
           <div
             className="absolute border-2 border-blue-500 rounded-lg pointer-events-none animate-pulse"
             style={{
-              top: targetRect.top - 8,
-              left: targetRect.left - 8,
-              width: targetRect.width + 16,
-              height: targetRect.height + 16,
+              top: targetRect.top - 12,
+              left: targetRect.left - 12,
+              width: targetRect.width + 24,
+              height: targetRect.height + 24,
             }}
           />
         )}
@@ -211,11 +211,10 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
           <button
             onClick={handlePrev}
             disabled={isFirstStep}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              isFirstStep
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${isFirstStep
+              ? 'text-gray-400 cursor-not-allowed'
+              : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+              }`}
           >
             ← Previous
           </button>
@@ -233,13 +232,12 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
             <button
               key={index}
               onClick={() => setCurrentStep(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                index === currentStep
-                  ? 'bg-blue-600'
-                  : index < currentStep
-                    ? 'bg-blue-300'
-                    : 'bg-gray-300 dark:bg-gray-600'
-              }`}
+              className={`w-2 h-2 rounded-full transition-colors ${index === currentStep
+                ? 'bg-blue-600'
+                : index < currentStep
+                  ? 'bg-blue-300'
+                  : 'bg-gray-300 dark:bg-gray-600'
+                }`}
             />
           ))}
         </div>
