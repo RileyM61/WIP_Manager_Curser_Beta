@@ -57,8 +57,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onAddClient,
   onUpdateClientModules,
   jobs = [],
-}) => {
-  const [activeSection, setActiveSection] = useState<SettingsSection>('company');
+  initialSection = 'company',
+}: SettingsPageProps & { initialSection?: SettingsSection }) => {
+  const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
   const isOwner = userRole === 'owner';

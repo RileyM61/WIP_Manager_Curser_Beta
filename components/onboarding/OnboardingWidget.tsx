@@ -9,7 +9,11 @@ interface ChecklistItem {
     cta: string;
 }
 
-export const OnboardingWidget: React.FC = () => {
+interface OnboardingWidgetProps {
+    onAction?: (actionId: string) => void;
+}
+
+export const OnboardingWidget: React.FC<OnboardingWidgetProps> = ({ onAction }) => {
     const { state, dismissChecklist, updateChecklist, loading } = useOnboarding();
     const navigate = useNavigate();
 
@@ -69,7 +73,12 @@ export const OnboardingWidget: React.FC = () => {
         if (!state.checklist_progress?.[item.id]) {
             await updateChecklist(item.id, true);
         }
-        item.action?.();
+
+        if (onAction) {
+            onAction(item.id);
+        } else {
+            item.action?.();
+        }
     };
 
     return (

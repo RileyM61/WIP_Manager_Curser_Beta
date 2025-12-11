@@ -34,8 +34,10 @@ import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
 import { ReportsView } from './components/reports';
-import { tourSteps, markTourCompleted } from './lib/tourSteps';
+import { OnboardingWidget } from './components/onboarding/OnboardingWidget';
+import { tourSteps, markTourCompleted, hasCompletedTour } from './lib/tourSteps';
 import { hasScheduleWarnings } from './modules/wip/lib/jobCalculations';
+import { useOnboarding } from './hooks/useOnboarding';
 
 type FocusMode = 'default' | 'pm-at-risk' | 'pm-late';
 
@@ -74,6 +76,9 @@ function App() {
   const { jobs, loading: jobsLoading, addJob, updateJob, deleteJob, refreshJobs } = useSupabaseJobs(companyId);
   const { settings, loading: settingsLoading, error: settingsError, updateSettings, refreshSettings } = useSupabaseSettings(companyId);
   const { loadNotes, addNote: addNoteToSupabase, updateNote: updateNoteInSupabase, deleteNote: deleteNoteFromSupabase } = useSupabaseNotes(companyId);
+
+  // Onboarding hook
+  const { state: onboardingState } = useOnboarding();
 
   // CFO Practice - managed companies
   const {
@@ -116,6 +121,7 @@ function App() {
   const [jobForNotes, setJobForNotes] = useState<Job | null>(null);
   const [jobNotes, setJobNotes] = useState<Note[]>([]);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [settingsInitialSection, setSettingsInitialSection] = useState<any>('company'); // Using any to avoid import cycles, broadly compatible string
   const [focusMode, setFocusMode] = useState<FocusMode>('default');
   const [isCapacityModalOpen, setIsCapacityModalOpen] = useState(false);
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
@@ -124,6 +130,17 @@ function App() {
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showWorkflows, setShowWorkflows] = useState(false);
+
+  // Auto-start tour for new users (if level is set)
+  useEffect(() => {
+    if (onboardingState.user_level && onboardingState.user_level !== 'undecided' && !hasCompletedTour()) {
+      // Small delay to ensure UI is ready
+      const timer = setTimeout(() => {
+        setIsTourOpen(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [onboardingState.user_level]);
 
   // Job History panel state
   const [jobForHistory, setJobForHistory] = useState<Job | null>(null);
@@ -708,13 +725,42 @@ function App() {
     );
   }
 
+  const handleOnboardingAction = (actionId: string) => {
+    switch (actionId) {
+      case 'profile_setup':
+        setSettingsInitialSection('company');
+        setIsSettingsModalOpen(true);
+        break;
+      case 'configure_markups':
+        setSettingsInitialSection('defaults');
+        setIsSettingsModalOpen(true);
+        break;
+      case 'import_data':
+        setSettingsInitialSection('data');
+        setIsSettingsModalOpen(true);
+        break;
+      case 'invite_team':
+        setSettingsInitialSection('users');
+        setIsSettingsModalOpen(true);
+        break;
+      default:
+        // Default to just opening settings
+        setSettingsInitialSection('company');
+        setIsSettingsModalOpen(true);
+        break;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-gray-900 text-brand-dark-gray dark:text-gray-300 bg-graph-paper">
       <Header
         companyName={settings.companyName}
         companyLogo={settings.companyLogo}
         onAddJob={handleAddJobClick}
-        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenSettings={() => {
+          setSettingsInitialSection('company');
+          setIsSettingsModalOpen(true);
+        }}
         onSignOut={signOut}
         theme={theme}
         onToggleTheme={handleToggleTheme}
@@ -732,6 +778,8 @@ function App() {
       />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">
+          <OnboardingWidget onAction={handleOnboardingAction} />
+
           <Controls
             filter={filter}
             setFilter={handleFilterChange}
@@ -808,6 +856,7 @@ function App() {
             await updateGrantedModules(clientCompanyId, modules);
           }}
           jobs={jobs}
+          initialSection={settingsInitialSection}
         />
       )}
 
