@@ -12,9 +12,10 @@ interface GuidedTourProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  onStepChange?: (stepIndex: number) => void;
 }
 
-const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onComplete }) => {
+const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onComplete, onStepChange }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
@@ -55,8 +56,16 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(0);
+      onStepChange?.(0);
     }
-  }, [isOpen]);
+  }, [isOpen, onStepChange]);
+
+  // Notify parent of step changes
+  useEffect(() => {
+    if (isOpen) {
+      onStepChange?.(currentStep);
+    }
+  }, [currentStep, isOpen, onStepChange]);
 
   const handleNext = () => {
     if (isLastStep) {

@@ -914,6 +914,7 @@ function App() {
       )}
 
       {/* Guided Tour */}
+      {/* Guided Tour */}
       <GuidedTour
         steps={tourSteps}
         isOpen={isTourOpen}
@@ -921,6 +922,17 @@ function App() {
         onComplete={() => {
           setIsTourOpen(false);
           markTourCompleted();
+        }}
+        onStepChange={(stepIndex) => {
+          // Ensure appropriate elements are visible for each step
+          // Step 3 (index 3): View Toggle - requires job list view
+          // Step 4 (index 4): Export Button - requires job list view
+          if (stepIndex === 3 || stepIndex === 4) {
+            // If we're in Company, Forecast, or Reports view, switch to Active Jobs
+            if (filter === 'company' || filter === 'forecast' || filter === 'reports') {
+              setFilter(JobStatus.Active);
+            }
+          }
         }}
       />
 
