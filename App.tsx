@@ -25,6 +25,7 @@ import AcceptableUsePolicy from './pages/legal/AcceptableUsePolicy';
 import CookiePolicy from './pages/legal/CookiePolicy';
 import { OnboardingWizardModal } from './components/onboarding/OnboardingWizardModal';
 import { WIPCoachProvider } from './components/feedback/WIPCoach';
+import ResetOnboarding from './components/debug/ResetOnboarding';
 
 /**
  * Main App Router
@@ -87,6 +88,9 @@ function App() {
               <Route path="/legal/privacy" element={<PrivacyPolicy />} />
               <Route path="/legal/acceptable-use" element={<AcceptableUsePolicy />} />
               <Route path="/legal/cookies" element={<CookiePolicy />} />
+
+              {/* Debug Tools */}
+              <Route path="/debug/reset" element={<ResetOnboarding />} />
 
               {/* ============================================ */}
               {/* PROTECTED ROUTES - App Shell */}
