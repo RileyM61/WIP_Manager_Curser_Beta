@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { IndustryType, RevenueRange, EmployeeRange, ServicePreference } from '../types';
 import { ModuleId, MODULES, ALL_MODULE_IDS } from '../types/modules';
+import TermsModal from '../components/modals/TermsModal';
 
 // ============================================================================
 // TYPES
@@ -429,35 +430,10 @@ const CompanyOnboarding: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 flex flex-col items-center gap-4">
-          <label className="flex items-start gap-3 cursor-pointer group text-left">
-            <div className="relative flex items-center pt-0.5">
-              <input
-                type="checkbox"
-                required
-                className="peer sr-only"
-                checked={acceptedTerms === true}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-              />
-              <div className="h-5 w-5 rounded border-2 border-slate-400 bg-transparent transition-all peer-checked:border-orange-500 peer-checked:bg-orange-500 hover:border-orange-400">
-                <svg className="h-full w-full stroke-white p-0.5 opacity-0 peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" strokeWidth="3" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              </div>
-            </div>
-            <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
-              I agree to the{' '}
-              <Link to="/legal/terms" target="_blank" className="font-semibold text-orange-400 hover:text-orange-300 hover:underline">
-                Terms of Service
-              </Link>
-              {' '}and{' '}
-              <Link to="/legal/privacy" target="_blank" className="font-semibold text-orange-400 hover:text-orange-300 hover:underline">
-                Privacy Policy
-              </Link>
-            </span>
-          </label>
-        </div>
+        {/* Terms Modal */}
+        {!acceptedTerms && (
+          <TermsModal onAccept={() => setAcceptedTerms(true)} />
+        )}
       </div>
     </div>
   );
