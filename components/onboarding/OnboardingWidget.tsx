@@ -45,22 +45,46 @@ export const OnboardingWidget: React.FC<OnboardingWidgetProps> = ({ onAction }) 
 
     const ninjaItems: ChecklistItem[] = [
         {
-            id: 'import_data',
-            label: 'Import Jobs via CSV',
-            cta: 'Import Data',
-            action: () => navigate('/settings/data-admin')
+            id: 'profile_setup',
+            label: 'Complete your Company Profile',
+            cta: 'Company Settings',
+            action: () => navigate('/settings')
+        },
+        {
+            id: 'configure_markups',
+            label: 'Set Job Defaults & T&M Markups',
+            cta: 'Job Defaults',
+            action: () => navigate('/settings')
+        },
+        {
+            id: 'seed_jobs',
+            label: 'Add your initial Jobs (manual)',
+            cta: 'Go to Jobs',
+            action: () => navigate('/app/wip')
         },
         {
             id: 'invite_team',
             label: 'Invite your Project Managers',
-            cta: 'Manage Team',
-            action: () => navigate('/settings/team')
+            cta: 'Users & Team',
+            action: () => navigate('/settings')
         },
         {
-            id: 'configure_markups',
-            label: 'Set Default T&M Markups',
-            cta: 'Configure',
+            id: 'weekly_update',
+            label: 'Run your first Weekly Update (Effective Date + inputs)',
+            cta: 'Weekly Update',
+            action: () => navigate('/app/wip')
+        },
+        {
+            id: 'create_snapshot',
+            label: 'Create a Snapshot (after updates)',
+            cta: 'Data Admin',
             action: () => navigate('/settings')
+        },
+        {
+            id: 'review_wip',
+            label: 'Review Insights (find risk & take action)',
+            cta: 'View Insights',
+            action: () => navigate('/app/wip')
         }
     ];
 

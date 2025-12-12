@@ -97,6 +97,12 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     setCurrentSettings(settings);
   }, [settings]);
 
+  // When opening the modal, honor the provided initialSection (supports deep-linking from onboarding actions).
+  React.useEffect(() => {
+    if (!isOpen) return;
+    setActiveSection(initialSection);
+  }, [isOpen, initialSection]);
+
   // If current section is owner-only and user is not owner, switch to first visible section
   React.useEffect(() => {
     const currentItem = navItems.find(item => item.id === activeSection);

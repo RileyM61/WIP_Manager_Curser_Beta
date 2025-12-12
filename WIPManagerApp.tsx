@@ -735,13 +735,20 @@ function App() {
         setSettingsInitialSection('defaults');
         setIsSettingsModalOpen(true);
         break;
-      case 'import_data':
-        setSettingsInitialSection('data');
-        setIsSettingsModalOpen(true);
-        break;
       case 'invite_team':
         setSettingsInitialSection('users');
         setIsSettingsModalOpen(true);
+        break;
+      case 'create_snapshot':
+        setSettingsInitialSection('data');
+        setIsSettingsModalOpen(true);
+        break;
+      case 'seed_jobs':
+      case 'weekly_update':
+      case 'review_wip':
+        // These actions keep the user in the WIP module; the CTA is the list view.
+        // (No-op here because they're already on /app/wip; the widget also supports direct navigation
+        // when used outside WIPManagerApp.)
         break;
       default:
         // Default to just opening settings
