@@ -94,8 +94,10 @@ const AuthPage: React.FC = () => {
     setLoading(true);
     setMessage(null);
     try {
+      if (!supabase) throw new Error('Supabase client not configured');
+
       if (mode === 'login') {
-        const { error } = await supabase!.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         // If there's an invite, the useEffect will handle accepting it
         if (!inviteToken) {
@@ -124,7 +126,7 @@ const AuthPage: React.FC = () => {
           setLoading(false);
           return;
         }
-        const { error } = await supabase!.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
 
         if (inviteInfo?.valid) {

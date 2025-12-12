@@ -41,8 +41,15 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   // Initialize session + auth listener
   useEffect(() => {
     let isMounted = true;
+
+    if (!supabase) {
+      console.warn('[AuthContext] Supabase client not configured');
+      setLoadingSession(false);
+      return;
+    }
+
     const initSession = async () => {
-      const { data, error } = await supabase?.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
       if (error) {
         console.error('[AuthContext] Error fetching session', error);
       }
@@ -54,10 +61,12 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
     initSession();
 
-    const { data: listener } = supabase!.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      if (!newSession) {
-        setProfile(null);
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (isMounted) {
+        setSession(newSession);
+        if (!newSession) {
+          setProfile(null);
+        }
       }
     });
 
