@@ -173,6 +173,21 @@ function App() {
     setIsUpgradeModalOpen(true);
   }, []);
 
+  const handleTourStepChange = useCallback((stepIndex: number) => {
+    // Ensure appropriate elements are visible for each step
+    // Step 3 (index 3): View Toggle - requires job list view
+    // Step 4 (index 4): Export Button - requires job list view
+    if (stepIndex === 3 || stepIndex === 4) {
+      setFilter(prev => {
+        // If we're in Company, Forecast, or Reports view, switch to Active Jobs
+        if (prev === 'company' || prev === 'forecast' || prev === 'reports') {
+          return JobStatus.Active;
+        }
+        return prev;
+      });
+    }
+  }, [setFilter]);
+
   // Count active jobs (excluding Archived and Completed which don't count toward limit)
   const activeJobCount = useMemo(() => {
     return jobs.filter(job =>
@@ -787,20 +802,7 @@ function App() {
     }
   };
 
-  const handleTourStepChange = useCallback((stepIndex: number) => {
-    // Ensure appropriate elements are visible for each step
-    // Step 3 (index 3): View Toggle - requires job list view
-    // Step 4 (index 4): Export Button - requires job list view
-    if (stepIndex === 3 || stepIndex === 4) {
-      setFilter(prev => {
-        // If we're in Company, Forecast, or Reports view, switch to Active Jobs
-        if (prev === 'company' || prev === 'forecast' || prev === 'reports') {
-          return JobStatus.Active;
-        }
-        return prev;
-      });
-    }
-  }, [setFilter]);
+
 
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-gray-900 text-brand-dark-gray dark:text-gray-300 bg-graph-paper">
