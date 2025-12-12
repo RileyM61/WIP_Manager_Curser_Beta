@@ -150,6 +150,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           <UsersSettings
             companyId={companyId}
             currentUserId={currentUserId}
+            settings={currentSettings}
+            onChange={handleSettingsChange}
+            onSave={handleSave}
           />
         );
       case 'defaults':

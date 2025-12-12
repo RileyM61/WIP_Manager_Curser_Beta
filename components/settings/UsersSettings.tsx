@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useInvitations } from '../../hooks/useInvitations';
-import { UserRole } from '../../types';
+import { Settings, UserRole } from '../../types';
 
 interface UsersSettingsProps {
   companyId: string;
   currentUserId: string;
+  settings: Settings;
+  onChange: (settings: Partial<Settings>) => void;
+  onSave: () => void;
 }
 
-const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId }) => {
+const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId, settings, onChange, onSave }) => {
   const {
     invitations,
     teamMembers,
@@ -27,6 +30,50 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId 
   const [localError, setLocalError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+
+  // PM & Estimator List State
+  const [newPm, setNewPm] = useState('');
+  const [newEstimator, setNewEstimator] = useState('');
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleAddPm = () => {
+    if (newPm.trim() && !settings.projectManagers.includes(newPm.trim())) {
+      onChange({
+        projectManagers: [...settings.projectManagers, newPm.trim()].sort(),
+      });
+      setNewPm('');
+      setHasChanges(true);
+    }
+  };
+
+  const handleRemovePm = (pmToRemove: string) => {
+    onChange({
+      projectManagers: settings.projectManagers.filter(pm => pm !== pmToRemove),
+    });
+    setHasChanges(true);
+  };
+
+  const handleAddEstimator = () => {
+    if (newEstimator.trim() && !settings.estimators.includes(newEstimator.trim())) {
+      onChange({
+        estimators: [...settings.estimators, newEstimator.trim()].sort(),
+      });
+      setNewEstimator('');
+      setHasChanges(true);
+    }
+  };
+
+  const handleRemoveEstimator = (estimatorToRemove: string) => {
+    onChange({
+      estimators: settings.estimators.filter(est => est !== estimatorToRemove),
+    });
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    onSave();
+    setHasChanges(false);
+  };
 
   useEffect(() => {
     if (companyId) {
@@ -80,7 +127,7 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId 
 
   const handleRemoveMember = async (userId: string) => {
     if (!confirm('Are you sure you want to remove this team member?')) return;
-    
+
     const result = await removeTeamMember(companyId, userId);
     if (result.success) {
       fetchTeamMembers(companyId);
@@ -122,7 +169,7 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId 
       {/* Invite New User */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Invite Team Member</h3>
-        
+
         <form onSubmit={handleSendInvite} className="flex flex-col sm:flex-row gap-3">
           <input
             type="email"
@@ -155,7 +202,7 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId 
       {pendingInvitations.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Pending Invitations</h3>
-          
+
           <div className="space-y-3">
             {pendingInvitations.map(invitation => (
               <div
@@ -197,7 +244,7 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId 
       {/* Team Members */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Team Members</h3>
-        
+
         {loading ? (
           <div className="text-center py-8 text-gray-500">Loading team members...</div>
         ) : teamMembers.length === 0 ? (
@@ -234,7 +281,123 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId 
           </div>
         )}
       </div>
-    </div>
+
+      {/* Manual PM & Estimator Lists */}
+      <div className="space-y-6">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Job Assignments</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            Define the list of Project Managers and Estimators that can be assigned to jobs in the dropdowns.
+            <br className="hidden sm:block" />
+            <span className="italic opacity-80">Note: Listing a name here does not give them user access. Invite them above to give access.</span>
+          </p>
+        </div>
+
+        {/* Project Managers */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-1">Project Managers List</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Names available in the "Project Manager" dropdown on jobs.
+          </p>
+
+          <div className="space-y-2 mb-4">
+            {settings.projectManagers.map(pm => (
+              <div key={pm} className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                <span className="text-sm text-gray-800 dark:text-gray-200">{pm}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemovePm(pm)}
+                  className="text-red-500 hover:text-red-700 text-sm font-medium"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            {settings.projectManagers.length === 0 && (
+              <p className="text-sm text-gray-400 italic">No project managers added yet</p>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newPm}
+              onChange={(e) => setNewPm(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddPm()}
+              placeholder="Add new PM name"
+              className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
+            />
+            <button
+              type="button"
+              onClick={handleAddPm}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        {/* Estimators */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-1">Estimators List</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Names available in the "Estimator" dropdown on jobs.
+          </p>
+
+          <div className="space-y-2 mb-4">
+            {settings.estimators.map(estimator => (
+              <div key={estimator} className="flex items-center justify-between bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                <span className="text-sm text-gray-800 dark:text-gray-200">{estimator}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveEstimator(estimator)}
+                  className="text-red-500 hover:text-red-700 text-sm font-medium"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            {settings.estimators.length === 0 && (
+              <p className="text-sm text-gray-400 italic">No estimators added yet</p>
+            )}
+          </div>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newEstimator}
+              onChange={(e) => setNewEstimator(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddEstimator()}
+              placeholder="Add new Estimator name"
+              className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-gray-700 dark:text-gray-200"
+            />
+            <button
+              type="button"
+              onClick={handleAddEstimator}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        {/* Save Button */}
+        {hasChanges && (
+          <div className="fixed bottom-6 right-8 z-50 animate-bounce-subtle">
+            <button
+              type="button"
+              onClick={handleSave}
+              className="px-6 py-3 bg-blue-600 text-white rounded-full text-base font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+            >
+              <span>Save Changes</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+    </div >
   );
 };
 
