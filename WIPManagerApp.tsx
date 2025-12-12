@@ -108,6 +108,11 @@ function App() {
   const [filter, setFilter] = useLocalStorage<FilterType>('wip-filter', JobStatus.Active);
   const [theme, setTheme] = useLocalStorage<'light' | 'dark'>('wip-theme',
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const [weeklyUpdateMode, setWeeklyUpdateMode] = useLocalStorage<boolean>('wip-weekly-update-mode', false);
+  const [weeklyAsOfDate, setWeeklyAsOfDate] = useLocalStorage<string>(
+    'wip-weekly-asof-date',
+    new Date().toISOString().split('T')[0]
+  );
 
   // UI state
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -629,6 +634,16 @@ function App() {
     });
   }, [jobs, filter, sortKey, sortDirection, searchQuery, pmFilter, focusMode, userRole, activeEstimator]);
 
+  const weeklyEligibleJobs = useMemo(() => {
+    return sortedAndFilteredJobs.filter(job => job.status === JobStatus.Active || job.status === JobStatus.OnHold);
+  }, [sortedAndFilteredJobs]);
+
+  const weeklyUpdatedCount = useMemo(() => {
+    const target = (weeklyAsOfDate || '').substring(0, 10);
+    if (!target) return 0;
+    return weeklyEligibleJobs.filter(job => (job.asOfDate || '').substring(0, 10) === target).length;
+  }, [weeklyEligibleJobs, weeklyAsOfDate]);
+
   const renderContent = () => {
     if (!settings) return null;
 
@@ -675,7 +690,18 @@ function App() {
     if (viewMode === 'grid') {
       return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} onOpenChangeOrders={handleOpenChangeOrders} userRole={userRole} activeEstimator={activeEstimator} companyId={companyId || undefined} />;
     }
-    return <JobTable jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onSave={handleSaveJob} onOpenNotes={handleOpenNotes} userRole={userRole} focusMode={focusMode} activeEstimator={activeEstimator} />;
+    return (
+      <JobTable
+        jobs={sortedAndFilteredJobs}
+        onEdit={handleEditJobClick}
+        onSave={handleSaveJob}
+        onOpenNotes={handleOpenNotes}
+        userRole={userRole}
+        focusMode={focusMode}
+        activeEstimator={activeEstimator}
+        defaultAsOfDate={weeklyUpdateMode ? weeklyAsOfDate : undefined}
+      />
+    );
   }
 
   // Show loading state while data is being fetched
@@ -810,6 +836,12 @@ function App() {
             onExportPDF={() => exportJobsToPDF(sortedAndFilteredJobs, 'wip-report', { companyName: settings.companyName })}
             jobCount={sortedAndFilteredJobs.length}
             onUpgradeRequest={handleUpgradeRequest}
+            weeklyUpdateMode={weeklyUpdateMode}
+            setWeeklyUpdateMode={setWeeklyUpdateMode}
+            weeklyAsOfDate={weeklyAsOfDate}
+            setWeeklyAsOfDate={setWeeklyAsOfDate}
+            weeklyUpdatedCount={weeklyUpdatedCount}
+            weeklyTotalCount={weeklyEligibleJobs.length}
           />
 
           <div>

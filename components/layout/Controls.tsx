@@ -70,6 +70,13 @@ interface ControlsProps {
   onExportPDF?: () => void;
   jobCount?: number;
   onUpgradeRequest?: (feature: keyof TierFeatures) => void;
+  // Weekly Update Mode (table view ergonomics)
+  weeklyUpdateMode?: boolean;
+  setWeeklyUpdateMode?: (enabled: boolean) => void;
+  weeklyAsOfDate?: string;
+  setWeeklyAsOfDate?: (date: string) => void;
+  weeklyUpdatedCount?: number;
+  weeklyTotalCount?: number;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -95,6 +102,12 @@ const Controls: React.FC<ControlsProps> = ({
   onExportPDF,
   jobCount = 0,
   onUpgradeRequest,
+  weeklyUpdateMode = false,
+  setWeeklyUpdateMode,
+  weeklyAsOfDate,
+  setWeeklyAsOfDate,
+  weeklyUpdatedCount,
+  weeklyTotalCount,
 }) => {
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
@@ -378,6 +391,43 @@ const Controls: React.FC<ControlsProps> = ({
                   <option value="startDate-asc">Oldest</option>
                 </select>
               </div>
+
+              {/* Weekly Update Mode (table view) */}
+              {viewMode === 'table' && setWeeklyUpdateMode && (
+                <div className="hidden lg:flex items-center gap-3 pl-3 ml-3 border-l border-gray-200 dark:border-gray-700">
+                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={weeklyUpdateMode}
+                      onChange={(e) => setWeeklyUpdateMode(e.target.checked)}
+                      className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
+                    />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Weekly Update Mode
+                    </span>
+                  </label>
+
+                  {weeklyUpdateMode && weeklyAsOfDate !== undefined && setWeeklyAsOfDate && (
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="weekly-asof" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        As Of:
+                      </label>
+                      <input
+                        id="weekly-asof"
+                        type="date"
+                        value={weeklyAsOfDate}
+                        onChange={(e) => setWeeklyAsOfDate(e.target.value)}
+                        className="text-sm border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      />
+                      {typeof weeklyUpdatedCount === 'number' && typeof weeklyTotalCount === 'number' && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Updated: <span className="font-semibold text-gray-700 dark:text-gray-200">{weeklyUpdatedCount}</span>/{weeklyTotalCount}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

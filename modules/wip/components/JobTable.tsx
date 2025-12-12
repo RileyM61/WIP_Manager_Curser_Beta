@@ -12,6 +12,7 @@ interface JobTableProps {
   userRole: UserRole;
   focusMode: 'default' | 'pm-at-risk' | 'pm-late';
   activeEstimator?: string;
+  defaultAsOfDate?: string;
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -53,7 +54,7 @@ interface EditableRowData {
   asOfDate: string;
 }
 
-const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, userRole, focusMode, activeEstimator }) => {
+const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, userRole, focusMode, activeEstimator, defaultAsOfDate }) => {
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [editData, setEditData] = useState<EditableRowData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -65,9 +66,9 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
       costs: { ...job.costs },
       costToComplete: { ...job.costToComplete },
       invoiced: { ...job.invoiced },
-      asOfDate: job.asOfDate || new Date().toISOString().split('T')[0],
+      asOfDate: defaultAsOfDate || job.asOfDate || new Date().toISOString().split('T')[0],
     });
-  }, []);
+  }, [defaultAsOfDate]);
 
   // Cancel editing
   const handleCancelEdit = useCallback(() => {
