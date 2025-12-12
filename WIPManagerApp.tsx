@@ -784,6 +784,21 @@ function App() {
     }
   };
 
+  const handleTourStepChange = useCallback((stepIndex: number) => {
+    // Ensure appropriate elements are visible for each step
+    // Step 3 (index 3): View Toggle - requires job list view
+    // Step 4 (index 4): Export Button - requires job list view
+    if (stepIndex === 3 || stepIndex === 4) {
+      setFilter(prev => {
+        // If we're in Company, Forecast, or Reports view, switch to Active Jobs
+        if (prev === 'company' || prev === 'forecast' || prev === 'reports') {
+          return JobStatus.Active;
+        }
+        return prev;
+      });
+    }
+  }, [setFilter]);
+
   return (
     <div className="min-h-screen bg-brand-gray dark:bg-gray-900 text-brand-dark-gray dark:text-gray-300 bg-graph-paper">
       <Header
@@ -862,6 +877,7 @@ function App() {
         activeEstimator={activeEstimator}
         companySettings={settings}
         onUpgradeRequest={handleUpgradeRequest}
+        existingJobs={jobs}
       />
       <NotesModal
         isOpen={isNotesModalOpen}
@@ -962,17 +978,7 @@ function App() {
           setIsTourOpen(false);
           markTourCompleted();
         }}
-        onStepChange={(stepIndex) => {
-          // Ensure appropriate elements are visible for each step
-          // Step 3 (index 3): View Toggle - requires job list view
-          // Step 4 (index 4): Export Button - requires job list view
-          if (stepIndex === 3 || stepIndex === 4) {
-            // If we're in Company, Forecast, or Reports view, switch to Active Jobs
-            if (filter === 'company' || filter === 'forecast' || filter === 'reports') {
-              setFilter(JobStatus.Active);
-            }
-          }
-        }}
+        onStepChange={handleTourStepChange}
       />
 
       {/* Glossary Page (full-screen overlay) */}

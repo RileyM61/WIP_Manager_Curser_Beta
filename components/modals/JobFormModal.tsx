@@ -35,9 +35,10 @@ interface JobFormModalProps {
   activeEstimator?: string;
   companySettings?: Settings | null;  // Company settings for default T&M markups
   onUpgradeRequest?: (feature: keyof TierFeatures) => void;
+  existingJobs?: Job[];
 }
 
-const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '', companySettings, onUpgradeRequest }) => {
+const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, onDelete, jobToEdit, projectManagers, estimators = [], defaultStatus, userRole = 'owner', activeEstimator = '', companySettings, onUpgradeRequest, existingJobs }) => {
   // Estimators can only edit Future or Draft jobs
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && jobToEdit && jobToEdit.status !== JobStatus.Future && jobToEdit.status !== JobStatus.Draft;
   // Estimators cannot delete jobs
@@ -273,6 +274,16 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       alert("Job Name, Job Number, and Client are required.");
       setActiveTab('details'); // Switch to details tab to show required fields
       return;
+    }
+
+    // Check for duplicate Job No
+    if (existingJobs) {
+      const duplicate = existingJobs.find(j => j.jobNo === job.jobNo && j.id !== (jobToEdit?.id));
+      if (duplicate) {
+        alert("A job with this Job Number already exists. Please use a unique Job Number.");
+        setActiveTab('details');
+        return;
+      }
     }
 
     const isNewJob = !jobToEdit;
