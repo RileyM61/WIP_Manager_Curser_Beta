@@ -769,7 +769,10 @@ function App() {
         setSettingsInitialSection('data');
         setIsSettingsModalOpen(true);
         break;
+      case 'first_job':
       case 'seed_jobs':
+        handleAddJobClick();
+        break;
       case 'weekly_update':
       case 'review_wip':
         // These actions keep the user in the WIP module; the CTA is the list view.
