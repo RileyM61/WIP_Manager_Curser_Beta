@@ -812,6 +812,7 @@ function App() {
       <Header
         companyName={settings.companyName}
         companyLogo={settings.companyLogo}
+        aiEnabled={Boolean(settings.aiEnabled)}
         onAddJob={handleAddJobClick}
         onOpenSettings={() => {
           setSettingsInitialSection('company');

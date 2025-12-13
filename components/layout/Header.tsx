@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabase';
 interface HeaderProps {
   companyName: string;
   companyLogo?: string;
+  aiEnabled?: boolean;
   onAddJob: () => void;
   onOpenSettings: () => void;
   onSignOut: () => void;
@@ -30,6 +31,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({
   companyName,
   companyLogo,
+  aiEnabled = false,
   onAddJob,
   onOpenSettings,
   onSignOut,
@@ -164,6 +166,15 @@ const Header: React.FC<HeaderProps> = ({
                       {isUpgrading ? 'Loading...' : 'Upgrade →'}
                     </button>
                   </>
+                )}
+
+                {aiEnabled && (
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full shadow-sm"
+                    title="AI features are enabled by your workspace admin. Data sharing is controlled in Settings → Legal."
+                  >
+                    AI Enabled
+                  </span>
                 )}
               </div>
             )}
