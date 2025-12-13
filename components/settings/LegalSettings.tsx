@@ -1,6 +1,54 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Settings } from '../../types';
 
-const LegalSettings: React.FC = () => {
+interface LegalSettingsProps {
+  settings: Settings;
+  onChange: (settings: Partial<Settings>) => void;
+  onSave: () => void;
+  isOwner: boolean;
+}
+
+const LegalSettings: React.FC<LegalSettingsProps> = ({ settings, onChange, onSave, isOwner }) => {
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const aiEnabled = Boolean(settings.aiEnabled);
+  const aiDataSharing = settings.aiDataSharing || {
+    includeJobFinancialTotals: true,
+    includeCostBreakdownDetail: false,
+    includeNotes: false,
+    includeClientIdentifiers: false,
+    includeAttachments: false,
+  };
+
+  const setAiEnabled = (enabled: boolean) => {
+    onChange({
+      aiEnabled: enabled,
+      aiDataSharing: {
+        includeJobFinancialTotals: aiDataSharing.includeJobFinancialTotals ?? true,
+        includeCostBreakdownDetail: aiDataSharing.includeCostBreakdownDetail ?? false,
+        includeNotes: aiDataSharing.includeNotes ?? false,
+        includeClientIdentifiers: aiDataSharing.includeClientIdentifiers ?? false,
+        includeAttachments: aiDataSharing.includeAttachments ?? false,
+      },
+    });
+    setHasChanges(true);
+  };
+
+  const setAiDataSharing = (partial: Partial<typeof aiDataSharing>) => {
+    onChange({
+      aiDataSharing: {
+        ...aiDataSharing,
+        ...partial,
+      },
+    });
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    onSave();
+    setHasChanges(false);
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -117,6 +165,123 @@ const LegalSettings: React.FC = () => {
         </div>
       </div>
 
+      {/* AI Data Sharing Controls (Admin) */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-2">AI Data Sharing Controls (Admin)</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          These workspace-wide settings control whether optional AI features are enabled and what categories of data may be used as context.
+        </p>
+
+        {!isOwner && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-amber-800 dark:text-amber-200 text-sm mb-4">
+            Only workspace owners can change AI data sharing settings.
+          </div>
+        )}
+
+        <div className="space-y-5">
+          {/* Master Toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Enable AI Features</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                When enabled, certain features may use third-party AI service providers (per the Privacy Policy).
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAiEnabled(!aiEnabled)}
+              disabled={!isOwner}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${aiEnabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'} ${!isOwner ? 'opacity-60 cursor-not-allowed' : ''}`}
+              aria-label="Toggle AI features"
+            >
+              <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition ${aiEnabled ? 'translate-x-5' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          {/* Category toggles */}
+          <div className={`${!aiEnabled ? 'opacity-60' : ''}`}>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-2">Allowed data categories</p>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={aiDataSharing.includeJobFinancialTotals}
+                  disabled={!isOwner || !aiEnabled}
+                  onChange={(e) => setAiDataSharing({ includeJobFinancialTotals: e.target.checked })}
+                  className="mt-1 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                />
+                <div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Job financial totals</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Totals like contract, earned, invoiced, costs, and cost-to-complete.</div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={aiDataSharing.includeCostBreakdownDetail}
+                  disabled={!isOwner || !aiEnabled}
+                  onChange={(e) => setAiDataSharing({ includeCostBreakdownDetail: e.target.checked })}
+                  className="mt-1 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                />
+                <div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Cost breakdown detail</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Labor/material/other components (more context, more sensitivity).</div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={aiDataSharing.includeNotes}
+                  disabled={!isOwner || !aiEnabled}
+                  onChange={(e) => setAiDataSharing({ includeNotes: e.target.checked })}
+                  className="mt-1 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                />
+                <div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Notes</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Internal notes can contain sensitive details. Default off is recommended.</div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={aiDataSharing.includeClientIdentifiers}
+                  disabled={!isOwner || !aiEnabled}
+                  onChange={(e) => setAiDataSharing({ includeClientIdentifiers: e.target.checked })}
+                  className="mt-1 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                />
+                <div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Client identifiers</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Client/company names and identifiers.</div>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={aiDataSharing.includeAttachments}
+                  disabled={!isOwner || !aiEnabled}
+                  onChange={(e) => setAiDataSharing({ includeAttachments: e.target.checked })}
+                  className="mt-1 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                />
+                <div>
+                  <div className="text-sm font-medium text-gray-800 dark:text-gray-200">Attachments / images</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Off by default. Enable only if you later add attachment-based AI features.</div>
+                </div>
+              </label>
+            </div>
+
+            {!aiEnabled && (
+              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                Enable AI Features to configure allowed data categories.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Contact */}
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800 p-6">
         <h3 className="text-lg font-medium text-blue-800 dark:text-blue-200 mb-2">Questions?</h3>
@@ -127,6 +292,19 @@ const LegalSettings: React.FC = () => {
           </a>
         </p>
       </div>
+
+      {/* Save Button */}
+      {hasChanges && isOwner && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            Save Changes
+          </button>
+        </div>
+      )}
     </div>
   );
 };

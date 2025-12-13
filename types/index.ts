@@ -271,6 +271,15 @@ export type RevenueRange = 'Under $1M' | '$1M-$5M' | '$5M-$10M' | '$10M-$25M' | 
 export type EmployeeRange = '1-10' | '11-25' | '26-50' | '51-100' | '100+';
 export type ServicePreference = 'self-service' | 'cfo-managed';
 
+// AI data sharing controls (for optional AI features)
+export interface AiDataSharingSettings {
+  includeJobFinancialTotals: boolean;
+  includeCostBreakdownDetail: boolean;
+  includeNotes: boolean;
+  includeClientIdentifiers: boolean;
+  includeAttachments: boolean;
+}
+
 export interface Settings {
   companyName: string;
   projectManagers: string[];
@@ -313,6 +322,10 @@ export interface Settings {
   dateFormat?: DateFormatOption;     // Date display format
   numberFormat?: NumberFormatOption; // Number grouping style (US/EU)
   currencyLocale?: CurrencyLocale;   // Currency symbol & locale
+
+  // AI Feature Controls (workspace admin settings; future optional AI features)
+  aiEnabled?: boolean;
+  aiDataSharing?: AiDataSharingSettings;
 }
 
 export interface Company {

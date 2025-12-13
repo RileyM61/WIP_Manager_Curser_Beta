@@ -102,6 +102,14 @@ export function useSupabaseSettings(companyId?: string | null) {
         annualRevenueRange: data.annual_revenue_range || undefined,
         employeeCountRange: data.employee_count_range || undefined,
         servicePreference: data.service_preference || undefined,
+        aiEnabled: Boolean(data.ai_enabled),
+        aiDataSharing: {
+          includeJobFinancialTotals: data.ai_share_job_financial_totals !== undefined ? Boolean(data.ai_share_job_financial_totals) : true,
+          includeCostBreakdownDetail: Boolean(data.ai_share_cost_breakdown_detail),
+          includeNotes: Boolean(data.ai_share_notes),
+          includeClientIdentifiers: Boolean(data.ai_share_client_identifiers),
+          includeAttachments: Boolean(data.ai_share_attachments),
+        },
       };
 
       setSettings(appSettings);
@@ -197,6 +205,12 @@ export function useSupabaseSettings(companyId?: string | null) {
           capacity_plan_id: capacityPlanId,
           capacity_enabled: newSettings.capacityEnabled,
           company_logo: newSettings.companyLogo || null,
+          ai_enabled: Boolean(newSettings.aiEnabled),
+          ai_share_job_financial_totals: newSettings.aiDataSharing?.includeJobFinancialTotals ?? true,
+          ai_share_cost_breakdown_detail: Boolean(newSettings.aiDataSharing?.includeCostBreakdownDetail),
+          ai_share_notes: Boolean(newSettings.aiDataSharing?.includeNotes),
+          ai_share_client_identifiers: Boolean(newSettings.aiDataSharing?.includeClientIdentifiers),
+          ai_share_attachments: Boolean(newSettings.aiDataSharing?.includeAttachments),
         })
         .eq('id', settingsRowId)
         .eq('company_id', companyId);

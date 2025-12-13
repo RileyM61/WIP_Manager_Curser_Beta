@@ -233,7 +233,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           />
         );
       case 'legal':
-        return <LegalSettings />;
+        return (
+          <LegalSettings
+            settings={currentSettings}
+            onChange={handleSettingsChange}
+            onSave={handleSave}
+            isOwner={isOwner}
+          />
+        );
       default:
         return null;
     }
