@@ -25,3 +25,6 @@ dist-ssr
 # .gitignore
 .env.local
 .env.*.local
+
+# Local-only assets (do not commit)
+public/images/ai-coach/coach.png

@@ -1,6 +1,8 @@
 ## AI Coach avatar image
 
-Place the approved AI Coach avatar image from the chat into this folder as:
+This repo expects the AI Coach avatar to be **provided locally** (it is not tracked in git to avoid committing binaries).
+
+Place the approved AI Coach avatar image into this folder as:
 
 - `public/images/ai-coach/coach.png`
 
