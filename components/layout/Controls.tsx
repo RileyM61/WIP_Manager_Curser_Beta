@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { JobStatus, ViewMode, SortKey, SortDirection, FilterType, UserRole } from '../../types';
 import { useTierFeatures, TierFeatures } from '../../hooks/useTierFeatures';
 import { GridIcon, TableIcon } from '../shared/icons';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { KnowledgeDrawer } from '../knowledge/KnowledgeDrawer';
 
 // Gantt chart icon
 const GanttIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
@@ -77,6 +79,9 @@ interface ControlsProps {
   setWeeklyAsOfDate?: (date: string) => void;
   weeklyUpdatedCount?: number;
   weeklyTotalCount?: number;
+  companyId?: string | null;
+  weeklyReviewAutoOpen?: boolean;
+  onWeeklyReviewAutoOpenConsumed?: () => void;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -108,10 +113,34 @@ const Controls: React.FC<ControlsProps> = ({
   setWeeklyAsOfDate,
   weeklyUpdatedCount,
   weeklyTotalCount,
+  companyId,
+  weeklyReviewAutoOpen,
+  onWeeklyReviewAutoOpenConsumed,
 }) => {
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
   const tierFeatures = useTierFeatures();
+  const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(true);
+  const [knowledgeOpen, setKnowledgeOpen] = useState(false);
+  const [knowledgeDocId, setKnowledgeDocId] = useState<string | null>(null);
+
+  type WeeklyAction = { text: string; owner: string; dueDate: string };
+  const weeklyActionsKey = useMemo(() => {
+    const cid = companyId || 'default';
+    const date = weeklyAsOfDate || 'no-date';
+    return `wip-weekly-review-actions:${cid}:${date}`;
+  }, [companyId, weeklyAsOfDate]);
+
+  const [weeklyActions, setWeeklyActions] = useLocalStorage<WeeklyAction[]>(weeklyActionsKey, [
+    { text: '', owner: '', dueDate: '' },
+    { text: '', owner: '', dueDate: '' },
+    { text: '', owner: '', dueDate: '' },
+  ]);
+
+  const openKnowledge = (docId: string) => {
+    setKnowledgeDocId(docId);
+    setKnowledgeOpen(true);
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -142,6 +171,21 @@ const Controls: React.FC<ControlsProps> = ({
   const pmMyJobsActive = userRole === 'projectManager' && focusMode === 'default' && filter === JobStatus.Active && pmFilter === activePmForFilter;
   const pmAtRiskActive = userRole === 'projectManager' && focusMode === 'pm-at-risk';
   const pmLateActive = userRole === 'projectManager' && focusMode === 'pm-late';
+
+  const showWeeklyReviewPanel = viewMode === 'table' && weeklyUpdateMode;
+  const isAsOfSet = !!weeklyAsOfDate;
+  const isWeeklyInputsComplete =
+    typeof weeklyUpdatedCount === 'number' &&
+    typeof weeklyTotalCount === 'number' &&
+    weeklyTotalCount > 0 &&
+    weeklyUpdatedCount >= weeklyTotalCount;
+
+  useEffect(() => {
+    if (weeklyReviewAutoOpen && showWeeklyReviewPanel) {
+      setIsWeeklyReviewOpen(true);
+      onWeeklyReviewAutoOpenConsumed?.();
+    }
+  }, [weeklyReviewAutoOpen, showWeeklyReviewPanel, onWeeklyReviewAutoOpenConsumed]);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -430,6 +474,213 @@ const Controls: React.FC<ControlsProps> = ({
               )}
             </div>
           </div>
+
+          {/* Weekly WIP Review (List View + Weekly Update Mode only) */}
+          {showWeeklyReviewPanel && (
+            <div className="mt-4">
+              <div className="bg-amber-50/70 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setIsWeeklyReviewOpen((v) => !v)}
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                >
+                  <div className="text-left">
+                    <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                      Weekly WIP Review
+                    </div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      A 5-step weekly routine to protect margin and cash
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Educational guidance only. Verify with your CPA/legal counsel before relying on this for reporting, tax, or contract decisions.
+                    </div>
+                  </div>
+                  <div className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                    {isWeeklyInputsComplete ? 'Ready' : 'In progress'}
+                  </div>
+                </button>
+
+                {isWeeklyReviewOpen && (
+                  <div className="px-4 pb-4 space-y-3">
+                    {/* Step 1 */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                            Step 1
+                          </div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Confirm your As-Of date
+                            {isAsOfSet ? (
+                              <span className="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Complete</span>
+                            ) : (
+                              <span className="ml-2 text-xs font-semibold text-red-600 dark:text-red-400">Missing</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            WIP is point-in-time. The As-Of date is the anchor for weekly reporting and comparisons.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openKnowledge('01_Foundations/What_WIP_Is')}
+                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+                        >
+                          Learn why
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                            Step 2
+                          </div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Update weekly inputs (Costs + CTC + Invoiced)
+                            {isWeeklyInputsComplete ? (
+                              <span className="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Complete</span>
+                            ) : (
+                              <span className="ml-2 text-xs font-semibold text-amber-700 dark:text-amber-300">Work the list</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Keep updates small and weekly. Big month-end swings are usually stale forecasts.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openKnowledge('02_Mechanics/Cost_to_Complete')}
+                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+                        >
+                          Learn why
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Step 3 */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                            Step 3
+                          </div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Billing position quick check (cash risk)
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Watch for chronic underbilling, or overbilling that is growing while production slows.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openKnowledge('02_Mechanics/Overbilling_Underbilling')}
+                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+                        >
+                          Learn why
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Step 4 */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                            Step 4
+                          </div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Margin drift / warning signs quick check
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Identify which jobs need action this week before margin loss becomes irreversible.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openKnowledge('03_Reading_the_WIP/Warning_Signs')}
+                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+                        >
+                          Learn why
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Step 5 */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                            Step 5
+                          </div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Set your Top 3 actions (owner + due date)
+                          </div>
+                          <div className="mt-2 space-y-2">
+                            {weeklyActions.map((a, idx) => (
+                              <div key={idx} className="grid grid-cols-1 lg:grid-cols-6 gap-2">
+                                <input
+                                  value={a.text}
+                                  onChange={(e) =>
+                                    setWeeklyActions((prev) => {
+                                      const next = [...prev];
+                                      next[idx] = { ...next[idx], text: e.target.value };
+                                      return next;
+                                    })
+                                  }
+                                  placeholder={`Action ${idx + 1} (what will change?)`}
+                                  className="lg:col-span-3 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                                <input
+                                  value={a.owner}
+                                  onChange={(e) =>
+                                    setWeeklyActions((prev) => {
+                                      const next = [...prev];
+                                      next[idx] = { ...next[idx], owner: e.target.value };
+                                      return next;
+                                    })
+                                  }
+                                  placeholder="Owner"
+                                  className="lg:col-span-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                                <input
+                                  type="date"
+                                  value={a.dueDate}
+                                  onChange={(e) =>
+                                    setWeeklyActions((prev) => {
+                                      const next = [...prev];
+                                      next[idx] = { ...next[idx], dueDate: e.target.value };
+                                      return next;
+                                    })
+                                  }
+                                  className="lg:col-span-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => openKnowledge('05_Decision_Making/When_to_Push_Collections')}
+                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
+                        >
+                          Learn why
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <KnowledgeDrawer
+                isOpen={knowledgeOpen}
+                onClose={() => setKnowledgeOpen(false)}
+                initialDocId={knowledgeDocId}
+              />
+            </div>
+          )}
         </div>
       )}
 

@@ -68,7 +68,7 @@ const PrivacyPolicy: React.FC = () => {
                             <li>Analyze usage patterns to improve user experience</li>
                             <li>Detect, prevent, and address technical issues or fraud</li>
                             <li>Generate anonymized, aggregate statistics</li>
-                            <li>Power AI-assisted features (using anonymized or consented data)</li>
+                            <li>Provide optional AI-assisted features (when enabled), including generating responses based on user prompts and permitted workspace data</li>
                         </ul>
                     </section>
 
@@ -87,13 +87,42 @@ const PrivacyPolicy: React.FC = () => {
                                 <p className="text-white/60 text-sm">Payment processing (PCI-DSS compliant)</p>
                             </div>
                             <div>
-                                <h3 className="font-semibold text-white">Google/AI Providers</h3>
-                                <p className="text-white/60 text-sm">AI-assisted features (data processed per provider privacy policies)</p>
+                                <h3 className="font-semibold text-white">AI Service Providers (Optional)</h3>
+                                <p className="text-white/60 text-sm">If enabled, AI-assisted features may be processed by third-party AI service providers acting as service providers/processors</p>
                             </div>
                             <div>
                                 <h3 className="font-semibold text-white">Analytics Providers</h3>
                                 <p className="text-white/60 text-sm">Service usage analysis (anonymized where possible)</p>
                             </div>
+                        </div>
+                        <div className="mt-6 space-y-3 text-white/80 leading-relaxed">
+                            <h3 className="text-xl font-medium text-white">3.1 AI Features (Optional)</h3>
+                            <ul className="list-disc list-inside text-white/80 space-y-2 ml-4">
+                                <li>
+                                    <strong>What may be shared:</strong> If AI Features are enabled or used, we may share your prompt and relevant workspace/company data
+                                    (for example: job records, financial fields, schedules, notes, snapshots, and other data stored in the Service) with AI service providers
+                                    to generate outputs.
+                                </li>
+                                <li>
+                                    <strong>Workspace admin controls:</strong> We may provide workspace administrator controls to limit which categories of workspace data are included in AI processing
+                                    (for example, excluding notes or client identifiers). When configured, we will honor these workspace-wide settings when providing AI Features.
+                                </li>
+                                <li>
+                                    <strong>Data minimization:</strong> We aim to share only the minimum data reasonably necessary to fulfill the request, subject to the context required for the feature to work.
+                                </li>
+                                <li>
+                                    <strong>No sale / no advertising use:</strong> We do not sell your data. We do not permit AI service providers to use your data for their own marketing purposes.
+                                </li>
+                                <li>
+                                    <strong>Training:</strong> We do not allow AI service providers to use your workspace data to train their public AI models unless you explicitly opt in (if offered).
+                                </li>
+                                <li>
+                                    <strong>Retention:</strong> AI inputs/outputs may be retained for a limited period to provide the Service, improve reliability and safety, prevent abuse, and comply with legal obligations.
+                                </li>
+                                <li>
+                                    <strong>User guidance:</strong> Avoid including sensitive personal information in prompts (e.g., Social Security numbers, health data) unless necessary and you have the right to provide it.
+                                </li>
+                            </ul>
                         </div>
                         <p className="text-white/80 leading-relaxed mt-4">
                             We may also disclose information if required by law, to protect our rights, or in connection

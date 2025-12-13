@@ -13,6 +13,8 @@ interface JobTableProps {
   focusMode: 'default' | 'pm-at-risk' | 'pm-late';
   activeEstimator?: string;
   defaultAsOfDate?: string;
+  weeklyUpdateMode?: boolean;
+  weeklyAsOfDate?: string;
 }
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
@@ -54,7 +56,7 @@ interface EditableRowData {
   asOfDate: string;
 }
 
-const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, userRole, focusMode, activeEstimator, defaultAsOfDate }) => {
+const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, userRole, focusMode, activeEstimator, defaultAsOfDate, weeklyUpdateMode = false, weeklyAsOfDate }) => {
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [editData, setEditData] = useState<EditableRowData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -189,6 +191,15 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
             const targetVariance = typeof job.targetProfit === 'number' ? forecastedProfit - job.targetProfit : null;
             const isMarginRisk = targetVariance !== null && targetVariance < 0;
 
+            const displayAsOfDate = isEditing && editData ? editData.asOfDate : (job.asOfDate || '');
+            const isMissingWeeklyAsOf = weeklyUpdateMode && !displayAsOfDate;
+            const isAsOfMismatch = weeklyUpdateMode && !!displayAsOfDate && !!weeklyAsOfDate && displayAsOfDate !== weeklyAsOfDate;
+            const isStaleSinceWeeklyDate =
+              weeklyUpdateMode &&
+              !!weeklyAsOfDate &&
+              !!job.lastUpdated &&
+              new Date(job.lastUpdated).getTime() < new Date(`${weeklyAsOfDate}T00:00:00`).getTime();
+
             const rowHighlightClass =
               isEditing
                 ? 'ring-2 ring-brand-blue bg-blue-50 dark:bg-blue-900/20'
@@ -299,6 +310,16 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
                           onChange={(e) => setEditData(prev => prev ? { ...prev, asOfDate: e.target.value } : null)}
                           className="w-full px-1.5 py-0.5 text-xs border border-amber-300 dark:border-amber-600 rounded bg-amber-50 dark:bg-amber-900/30 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-amber-500"
                         />
+                        {weeklyUpdateMode && isMissingWeeklyAsOf && (
+                          <div className="text-[10px] text-red-600 dark:text-red-400 mt-1 font-semibold">
+                            Missing weekly As-Of date
+                          </div>
+                        )}
+                        {weeklyUpdateMode && isAsOfMismatch && (
+                          <div className="text-[10px] text-amber-700 dark:text-amber-300 mt-1 font-semibold">
+                            Not aligned to weekly date
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -309,9 +330,24 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
                           {billingInfo.label}: {currencyFormatter.format(Math.abs(billingInfo.difference))}
                         </div>
                       )}
-                      {job.asOfDate && (
+                      {weeklyUpdateMode && isMissingWeeklyAsOf && (
+                        <div className="text-[10px] text-red-600 dark:text-red-400 mt-1 font-semibold">
+                          Missing weekly As-Of date
+                        </div>
+                      )}
+                      {weeklyUpdateMode && isAsOfMismatch && (
+                        <div className="text-[10px] text-amber-700 dark:text-amber-300 mt-1 font-semibold">
+                          As-Of not aligned to weekly date
+                        </div>
+                      )}
+                      {weeklyUpdateMode && isStaleSinceWeeklyDate && (
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                          Not updated since weekly date
+                        </div>
+                      )}
+                      {!!displayAsOfDate && (
                         <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
-                          As of: {new Date(job.asOfDate).toLocaleDateString()}
+                          As of: {new Date(displayAsOfDate).toLocaleDateString()}
                         </div>
                       )}
                     </div>
