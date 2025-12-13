@@ -715,6 +715,8 @@ function App() {
         focusMode={focusMode}
         activeEstimator={activeEstimator}
         defaultAsOfDate={weeklyUpdateMode ? weeklyAsOfDate : undefined}
+        weeklyUpdateMode={weeklyUpdateMode}
+        weeklyAsOfDate={weeklyAsOfDate}
       />
     );
   }
@@ -790,9 +792,10 @@ function App() {
         break;
       case 'weekly_update':
       case 'review_wip':
-        // These actions keep the user in the WIP module; the CTA is the list view.
-        // (No-op here because they're already on /app/wip; the widget also supports direct navigation
-        // when used outside WIPManagerApp.)
+        // Take them to the List View weekly workflow.
+        setFilter(JobStatus.Active);
+        setViewMode('table');
+        setWeeklyUpdateMode(true);
         break;
       default:
         // Default to just opening settings
@@ -862,6 +865,7 @@ function App() {
             setWeeklyAsOfDate={setWeeklyAsOfDate}
             weeklyUpdatedCount={weeklyUpdatedCount}
             weeklyTotalCount={weeklyEligibleJobs.length}
+            companyId={companyId}
           />
 
           <div>
