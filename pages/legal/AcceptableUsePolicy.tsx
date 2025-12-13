@@ -91,6 +91,7 @@ const AcceptableUsePolicy: React.FC = () => {
                             <li>Use AI features to generate misleading financial data</li>
                             <li>Submit prompts designed to extract training data or models</li>
                             <li>Rely solely on AI outputs without human verification for critical decisions</li>
+                            <li>Rely on AI outputs without appropriate human review for accounting, tax, legal, compliance, billing/collections, or safety-critical decisions</li>
                         </ul>
                     </section>
 

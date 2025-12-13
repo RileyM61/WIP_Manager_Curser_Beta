@@ -67,6 +67,9 @@ export const KnowledgeDrawer: React.FC<KnowledgeDrawerProps> = ({ isOpen, onClos
                 Knowledge
               </div>
               <div className="text-lg font-bold text-gray-900 dark:text-white">WIP CFO</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Educational guidance only. Verify with your CPA/legal counsel before relying on this for reporting, tax, or contract decisions.
+              </div>
             </div>
             <button
               onClick={onClose}

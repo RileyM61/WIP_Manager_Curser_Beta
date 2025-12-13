@@ -491,6 +491,9 @@ const Controls: React.FC<ControlsProps> = ({
                     <div className="text-sm font-semibold text-gray-900 dark:text-white">
                       A 5-step weekly routine to protect margin and cash
                     </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Educational guidance only. Verify with your CPA/legal counsel before relying on this for reporting, tax, or contract decisions.
+                    </div>
                   </div>
                   <div className="text-xs font-semibold text-amber-700 dark:text-amber-300">
                     {isWeeklyInputsComplete ? 'Ready' : 'In progress'}

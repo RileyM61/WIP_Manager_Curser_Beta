@@ -81,7 +81,37 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">6. Prohibited Uses</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">6. AI-Assisted Features; No Professional Advice</h2>
+                <p className="text-white/80 leading-relaxed mb-4">
+                    The Service may offer optional AI-assisted features ("AI Features") that can generate guidance, explanations,
+                    suggested workflows, or interpretations based on information you provide.
+                </p>
+                <ul className="list-disc list-inside text-white/80 space-y-2 ml-4">
+                    <li>
+                        <strong>No professional advice:</strong> AI Features are provided for informational and educational purposes only and do not constitute
+                        accounting, audit, tax, legal, financial, investment, or other professional advice. ChainLink CFO is not acting as your accountant, auditor,
+                        tax advisor, attorney, fiduciary, or financial advisor through the Service.
+                    </li>
+                    <li>
+                        <strong>Workspace admin controls:</strong> If your workspace administrator enables AI Features, they may configure controls that limit which categories
+                        of workspace data are included (for example, excluding notes or client identifiers). Those settings apply workspace-wide.
+                    </li>
+                    <li>
+                        <strong>Optional third-party processing:</strong> If AI Features are enabled or used, your inputs (including prompts and relevant workspace/company data permitted by your settings)
+                        and AI outputs may be processed by third-party AI service providers acting as service providers/processors to deliver the AI Features.
+                    </li>
+                    <li>
+                        <strong>Your responsibility:</strong> You are responsible for ensuring your AI settings reflect your organization’s policies and contractual obligations, including any confidentiality requirements.
+                        You are solely responsible for validating inputs and outputs and for all decisions, filings, compliance obligations, reporting, and business outcomes.
+                    </li>
+                    <li>
+                        <strong>No guarantees:</strong> AI outputs may be inaccurate, incomplete, outdated, or unsuitable for your situation. Do not rely on AI outputs as the sole basis for business-critical decisions.
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">7. Prohibited Uses</h2>
                 <p className="text-white/80 leading-relaxed mb-4">
                     You agree not to:
                 </p>
@@ -97,7 +127,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">7. Intellectual Property</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">8. Intellectual Property</h2>
                 <p className="text-white/80 leading-relaxed">
                     The Service, including all software, design, text, graphics, and other content (excluding User Content),
                     is owned by ChainLink CFO and protected by intellectual property laws. You may not copy, modify,
@@ -106,7 +136,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">8. Service Availability</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">9. Service Availability</h2>
                 <p className="text-white/80 leading-relaxed">
                     We strive to maintain high availability but do not guarantee uninterrupted access.
                     The Service may be temporarily unavailable for maintenance, updates, or circumstances beyond our control.
@@ -115,7 +145,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">9. Limitation of Liability</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">10. Limitation of Liability</h2>
                 <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-6">
                     <p className="text-white/80 leading-relaxed">
                         TO THE MAXIMUM EXTENT PERMITTED BY LAW, CHAINLINK CFO SHALL NOT BE LIABLE FOR ANY INDIRECT,
@@ -127,7 +157,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">10. Disclaimer of Warranties</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">11. Disclaimer of Warranties</h2>
                 <p className="text-white/80 leading-relaxed">
                     THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND,
                     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
@@ -136,7 +166,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">11. Indemnification</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">12. Indemnification</h2>
                 <p className="text-white/80 leading-relaxed">
                     You agree to indemnify and hold harmless ChainLink CFO, its affiliates, officers, directors,
                     employees, and agents from any claims, damages, losses, or expenses arising from your use of
@@ -145,7 +175,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">12. Termination</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">13. Termination</h2>
                 <p className="text-white/80 leading-relaxed mb-4">
                     Either party may terminate this agreement at any time:
                 </p>
@@ -157,7 +187,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">13. Dispute Resolution</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">14. Dispute Resolution</h2>
                 <p className="text-white/80 leading-relaxed">
                     Any disputes arising from these Terms or the Service shall be resolved through binding arbitration
                     in accordance with the American Arbitration Association rules. The arbitration shall take place
@@ -167,7 +197,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">14. Governing Law</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">15. Governing Law</h2>
                 <p className="text-white/80 leading-relaxed">
                     These Terms shall be governed by and construed in accordance with the laws of the State of California,
                     United States, without regard to its conflict of law provisions.
@@ -175,7 +205,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">15. Changes to Terms</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">16. Changes to Terms</h2>
                 <p className="text-white/80 leading-relaxed">
                     We may update these Terms from time to time. We will notify you of material changes by email
                     or through the Service. Your continued use after changes become effective constitutes acceptance
@@ -184,7 +214,7 @@ export const TermsContent: React.FC = () => {
             </section>
 
             <section>
-                <h2 className="text-2xl font-semibold text-orange-400 mb-4">16. Contact Us</h2>
+                <h2 className="text-2xl font-semibold text-orange-400 mb-4">17. Contact Us</h2>
                 <p className="text-white/80 leading-relaxed">
                     If you have questions about these Terms, please contact us at:
                 </p>
