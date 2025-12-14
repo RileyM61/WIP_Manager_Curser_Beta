@@ -65,7 +65,7 @@ interface ControlsProps {
   projectManagers: string[];
   userRole: UserRole;
   focusMode: 'default' | 'pm-at-risk' | 'pm-late';
-  onQuickFilterSelect: (quick: 'owner-capacity' | 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
+  onQuickFilterSelect: (quick: 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
   onExportCSV?: () => void;
@@ -165,8 +165,6 @@ const Controls: React.FC<ControlsProps> = ({
   const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
   const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'weekly';
   const isWeeklyView = filter === 'weekly';
-
-  const ownerCapacityActive = userRole === 'owner' && filter === 'company' && focusMode === 'default';
 
   const pmMyJobsActive = userRole === 'projectManager' && focusMode === 'default' && filter === JobStatus.Active && pmFilter === activePmForFilter;
   const pmAtRiskActive = userRole === 'projectManager' && focusMode === 'pm-at-risk';
@@ -719,27 +717,10 @@ const Controls: React.FC<ControlsProps> = ({
       {/* ============================================ */}
       {/* ROW 3: Quick Actions (Role-specific) */}
       {/* ============================================ */}
-      {(userRole === 'owner' || userRole === 'projectManager' || userRole === 'estimator') && (
+      {(userRole === 'projectManager' || userRole === 'estimator') && (
         <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Quick Actions:</span>
-
-            {userRole === 'owner' && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => onQuickFilterSelect('owner-capacity')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${ownerCapacityActive
-                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400'
-                    }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Capacity Snapshot
-                </button>
-              </div>
-            )}
 
             {userRole === 'projectManager' && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">

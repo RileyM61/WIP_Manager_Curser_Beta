@@ -43,7 +43,6 @@ import { useOnboarding } from './hooks/useOnboarding';
 type FocusMode = 'default' | 'pm-at-risk' | 'pm-late';
 
 type QuickFilterKey =
-  | 'owner-capacity'
   | 'pm-my-jobs'
   | 'pm-at-risk'
   | 'pm-late';
@@ -352,13 +351,6 @@ function App() {
     const myPm = activeProjectManager || settings.projectManagers[0] || 'all';
 
     switch (quick) {
-      case 'owner-capacity':
-        setFocusMode('default');
-        setFilter('company');
-        setViewMode('table');
-        setPmFilter('all');
-        setIsCapacityModalOpen(true);
-        break;
       case 'pm-my-jobs':
         setFilter(JobStatus.Active);
         setPmFilter(myPm);
