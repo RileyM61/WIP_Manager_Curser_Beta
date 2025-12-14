@@ -3,12 +3,14 @@
 // ============================================================================
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useEmployees } from '../hooks/useEmployees';
 import { useDepartments } from '../hooks/useDepartments';
 import { useProjections } from '../hooks/useProjections';
 import { Employee, EmployeeFormData, AllocationFormData } from '../types';
 import { CURRENCY_FORMAT, HOURS_FORMAT, PERCENT_FORMAT } from '../constants';
+import { ROUTES } from '../../../constants';
 import EmployeeRoster from './EmployeeRoster';
 import EmployeeFormModal from './EmployeeFormModal';
 import DepartmentManager from './DepartmentManager';
@@ -104,7 +106,19 @@ const LaborCapacityPage: React.FC = () => {
   if (loading) {
     return (
       <>
-        <DashboardNavButton floating />
+        <div className="fixed z-50 flex items-center gap-2 top-4 left-4">
+          <DashboardNavButton />
+          <Link
+            to={ROUTES.wip}
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 shadow-sm hover:border-orange-400 hover:text-orange-500 dark:hover:text-orange-300 hover:shadow-lg hover:shadow-orange-500/10 transition-colors backdrop-blur"
+            aria-label="Back to WIP"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Back to WIP</span>
+          </Link>
+        </div>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -122,7 +136,19 @@ const LaborCapacityPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <DashboardNavButton />
+              <div className="flex items-center gap-2">
+                <DashboardNavButton />
+                <Link
+                  to={ROUTES.wip}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 shadow-sm hover:border-orange-400 hover:text-orange-500 dark:hover:text-orange-300 hover:shadow-lg hover:shadow-orange-500/10 transition-colors backdrop-blur"
+                  aria-label="Back to WIP"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                  <span>Back to WIP</span>
+                </Link>
+              </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Labor Capacity
