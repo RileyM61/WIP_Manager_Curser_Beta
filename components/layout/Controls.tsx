@@ -65,7 +65,7 @@ interface ControlsProps {
   projectManagers: string[];
   userRole: UserRole;
   focusMode: 'default' | 'pm-at-risk' | 'pm-late';
-  onQuickFilterSelect: (quick: 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
+  onQuickFilterSelect: (quick: 'owner-troubled-jobs' | 'owner-weekly-revenue' | 'owner-pm-review' | 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
   onExportCSV?: () => void;
@@ -532,6 +532,28 @@ const Controls: React.FC<ControlsProps> = ({
 
                 {isWeeklyReviewOpen && (
                   <div className="px-4 pb-4 space-y-3">
+                    {/* Owner's Weekly Agenda */}
+                    {userRole === 'owner' && (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-3 mb-2">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg">👑</span>
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                              Owner's Weekly Agenda
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
+                              <p>✓ <strong>Review PM Scorecard</strong> in Company view - identify who needs support</p>
+                              <p>✓ <strong>Check Needs Attention queue</strong> - which PMs have the most troubled jobs?</p>
+                              <p>✓ <strong>Spot patterns</strong> - chronic underbilling? Margin fade across multiple PMs?</p>
+                              <p>✓ <strong>Schedule 1:1s</strong> - meet with PMs who have 2+ jobs needing attention</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Step 1 */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
                       <div className="flex items-start justify-between gap-4">
@@ -717,10 +739,54 @@ const Controls: React.FC<ControlsProps> = ({
       {/* ============================================ */}
       {/* ROW 3: Quick Actions (Role-specific) */}
       {/* ============================================ */}
-      {(userRole === 'projectManager' || userRole === 'estimator') && (
+      {(userRole === 'owner' || userRole === 'projectManager' || userRole === 'estimator') && (
         <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Quick Actions:</span>
+
+            {userRole === 'owner' && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => onQuickFilterSelect('owner-troubled-jobs')}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+                    filter === JobStatus.Active && viewMode === 'grid' && focusMode === 'default'
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600 dark:hover:text-red-400'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  Troubled Jobs
+                </button>
+                <button
+                  onClick={() => onQuickFilterSelect('owner-weekly-revenue')}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+                    filter === 'company'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-green-400 hover:text-green-600 dark:hover:text-green-400'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Weekly Revenue
+                </button>
+                <button
+                  onClick={() => onQuickFilterSelect('owner-pm-review')}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+                    filter === 'company'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
+                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  PM Review
+                </button>
+              </div>
+            )}
 
             {userRole === 'projectManager' && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">

@@ -55,6 +55,67 @@ const calculateTotalEarnedRevenue = (jobList: Job[]): number => {
   }, 0);
 };
 
+// Check if a job is behind schedule (target end date vs current end date)
+const isJobBehindSchedule = (job: Job): boolean => {
+  if (!job.targetEndDate || job.targetEndDate === 'TBD' || !job.endDate || job.endDate === 'TBD') {
+    return false;
+  }
+  const target = new Date(job.targetEndDate).getTime();
+  const current = new Date(job.endDate).getTime();
+  // Behind schedule if current end date is more than 2 weeks past target
+  const twoWeeksMs = 14 * 24 * 60 * 60 * 1000;
+  return current > target + twoWeeksMs;
+};
+
+// Calculate PM performance metrics
+interface PMScorecard {
+  name: string;
+  activeJobs: number;
+  avgMargin: number;
+  totalUnderbilled: number;
+  jobsBehindSchedule: number;
+  marginRank: 'good' | 'warning' | 'critical';
+  billingRank: 'good' | 'warning' | 'critical';
+  scheduleRank: 'good' | 'warning' | 'critical';
+}
+
+const calculatePMScorecards = (jobsByPm: Record<string, any[]>): PMScorecard[] => {
+  return Object.entries(jobsByPm).map(([pmName, pmJobs]) => {
+    const activeJobs = pmJobs.filter(job => job.status === JobStatus.Active);
+    const totalMargin = activeJobs.reduce((sum, job) => sum + job.profitMargin, 0);
+    const avgMargin = activeJobs.length > 0 ? totalMargin / activeJobs.length : 0;
+    
+    // Calculate total underbilled (only negative billing differences)
+    const totalUnderbilled = pmJobs
+      .filter(job => job.billingDifference < 0)
+      .reduce((sum, job) => sum + Math.abs(job.billingDifference), 0);
+    
+    // Count jobs behind schedule
+    const jobsBehindSchedule = pmJobs.filter(job => 
+      job.status === JobStatus.Active && isJobBehindSchedule(job)
+    ).length;
+    
+    // Determine rankings
+    const marginRank: 'good' | 'warning' | 'critical' = 
+      avgMargin >= 20 ? 'good' : avgMargin >= 10 ? 'warning' : 'critical';
+    const billingRank: 'good' | 'warning' | 'critical' = 
+      totalUnderbilled === 0 ? 'good' : totalUnderbilled < 50000 ? 'warning' : 'critical';
+    const scheduleRank: 'good' | 'warning' | 'critical' = 
+      jobsBehindSchedule === 0 ? 'good' : jobsBehindSchedule === 1 ? 'warning' : 'critical';
+    
+    return {
+      name: pmName,
+      activeJobs: activeJobs.length,
+      avgMargin,
+      totalUnderbilled,
+      jobsBehindSchedule,
+      marginRank,
+      billingRank,
+      scheduleRank,
+    };
+  }).sort((a, b) => b.activeJobs - a.activeJobs); // Sort by active jobs desc
+};
+
 const CompanyView: React.FC<CompanyViewProps> = ({ 
   jobs, 
   snapshot, 
@@ -150,6 +211,19 @@ const CompanyView: React.FC<CompanyViewProps> = ({
   const weeklyEarnedRevenue = currentEarnedRevenue - previousEarnedRevenue;
   const snapshotDate = snapshot ? new Date(snapshot.timestamp).toLocaleDateString() : 'N/A';
 
+  // Calculate PM Scorecards
+  const pmScorecards = calculatePMScorecards(jobsByPm);
+
+  // Calculate previous billing position for trend
+  const previousBillingPosition = snapshot?.jobs ? snapshot.jobs.reduce((acc, job) => {
+    const earned = calculateEarnedRevenue(job);
+    const invoiced = sumBreakdown(job.invoiced);
+    return acc + (invoiced - earned.total);
+  }, 0) : null;
+  const billingTrend = previousBillingPosition !== null 
+    ? totalNetBillingDifference - previousBillingPosition 
+    : null;
+
   const capacityRows: CapacityRow[] = Array.isArray(capacityPlan?.rows) ? capacityPlan.rows : [];
   const totalAvailableCapacity = capacityRows.reduce((sum, row) => sum + row.headcount * row.hoursPerPerson, 0);
   const totalCommittedCapacity = capacityRows.reduce((sum, row) => sum + row.committedHours, 0);
@@ -203,12 +277,28 @@ const CompanyView: React.FC<CompanyViewProps> = ({
           </div>
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Net Billing Status</p>
-            <p className={`text-2xl font-bold ${totalNetBillingDifference >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-              {currencyFormatter.format(Math.abs(totalNetBillingDifference))}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className={`text-2xl font-bold ${totalNetBillingDifference >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {currencyFormatter.format(Math.abs(totalNetBillingDifference))}
+              </p>
+              {billingTrend !== null && billingTrend !== 0 && (
+                <span className={`flex items-center text-xs font-semibold px-1.5 py-0.5 rounded ${
+                  billingTrend > 0 
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                }`}>
+                  {billingTrend > 0 ? '↑' : '↓'} {currencyFormatter.format(Math.abs(billingTrend))}
+                </span>
+              )}
+            </div>
             <p className={`text-xs font-semibold ${totalNetBillingDifference >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               ({totalNetBillingDifference >= 0 ? 'Over Billed' : 'Under Billed'})
             </p>
+            {billingTrend !== null && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                {billingTrend > 0 ? 'Improved' : 'Declined'} since {snapshotDate}
+              </p>
+            )}
           </div>
           <div className="bg-white dark:bg-gray-700 p-4 rounded-lg border dark:border-gray-600">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Overall Average Profit Margin</p>
@@ -234,6 +324,81 @@ const CompanyView: React.FC<CompanyViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* PM Performance Scorecard */}
+      {pmScorecards.length > 0 && (
+        <div className="p-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">PM Performance Scorecard</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Compare project manager performance at a glance</p>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700/50">
+                <tr>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Project Manager</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Active Jobs</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Avg Margin</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Underbilled</th>
+                  <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Behind Schedule</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {pmScorecards.map((pm) => (
+                  <tr key={pm.name} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+                          {pm.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{pm.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <span className="text-lg font-bold text-gray-700 dark:text-gray-200">{pm.activeJobs}</span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold ${
+                        pm.marginRank === 'good' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : pm.marginRank === 'warning'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {pm.avgMargin.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold ${
+                        pm.billingRank === 'good'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : pm.billingRank === 'warning'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {pm.totalUnderbilled === 0 ? '✓ None' : currencyFormatter.format(pm.totalUnderbilled)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-center">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-semibold ${
+                        pm.scheduleRank === 'good'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : pm.scheduleRank === 'warning'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {pm.jobsBehindSchedule === 0 ? '✓ On Track' : `${pm.jobsBehindSchedule} job${pm.jobsBehindSchedule > 1 ? 's' : ''}`}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="p-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

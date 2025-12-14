@@ -154,6 +154,19 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
     item.reasons.some(r => r.severity === 'high')
   ).length;
 
+  // Calculate PM aggregation
+  const pmBreakdown = useMemo(() => {
+    const breakdown: Record<string, number> = {};
+    for (const item of attentionItems) {
+      const pm = item.job.projectManager || 'Unassigned';
+      breakdown[pm] = (breakdown[pm] || 0) + 1;
+    }
+    // Sort by count descending
+    return Object.entries(breakdown)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3); // Top 3 PMs
+  }, [attentionItems]);
+
   return (
     <div className="mb-6 bg-gradient-to-r from-red-50 to-amber-50 dark:from-red-900/20 dark:to-amber-900/20 border border-red-200 dark:border-red-800 rounded-xl overflow-hidden">
       {/* Header - Always visible */}
@@ -186,6 +199,18 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                 : 'Jobs with billing, margin, or schedule concerns'
               }
             </p>
+            {/* PM Aggregation Summary */}
+            {pmBreakdown.length > 0 && (
+              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                <span className="font-semibold">By PM:</span>{' '}
+                {pmBreakdown.map(([pm, count], idx) => (
+                  <span key={pm}>
+                    {pm} ({count})
+                    {idx < pmBreakdown.length - 1 ? ' • ' : ''}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         </div>
         <svg 

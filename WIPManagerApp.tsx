@@ -18,6 +18,7 @@ import CompanySwitcher from './components/layout/CompanySwitcher';
 import JobCardGrid from './modules/wip/components/JobCardGrid';
 import JobTable from './modules/wip/components/JobTable';
 import NeedsAttentionQueue from './modules/wip/components/NeedsAttentionQueue';
+import PortfolioHealthScore from './modules/wip/components/PortfolioHealthScore';
 import GanttView from './components/views/GanttView';
 import JobFormModal from './components/modals/JobFormModal';
 import CompanyView from './components/views/CompanyView';
@@ -43,6 +44,9 @@ import { useOnboarding } from './hooks/useOnboarding';
 type FocusMode = 'default' | 'pm-at-risk' | 'pm-late';
 
 type QuickFilterKey =
+  | 'owner-troubled-jobs'
+  | 'owner-weekly-revenue'
+  | 'owner-pm-review'
   | 'pm-my-jobs'
   | 'pm-at-risk'
   | 'pm-late';
@@ -351,6 +355,23 @@ function App() {
     const myPm = activeProjectManager || settings.projectManagers[0] || 'all';
 
     switch (quick) {
+      // Owner quick actions
+      case 'owner-troubled-jobs':
+        setFilter(JobStatus.Active);
+        setPmFilter('all');
+        setViewMode('grid'); // Grid view shows the Needs Attention queue
+        setFocusMode('default');
+        break;
+      case 'owner-weekly-revenue':
+        setFilter('company');
+        setFocusMode('default');
+        break;
+      case 'owner-pm-review':
+        setFilter('company');
+        setFocusMode('default');
+        // Company view will show PM Scorecard
+        break;
+      // PM quick actions
       case 'pm-my-jobs':
         setFilter(JobStatus.Active);
         setPmFilter(myPm);
@@ -713,6 +734,7 @@ function App() {
     if (viewMode === 'grid') {
       return (
         <>
+          <PortfolioHealthScore jobs={jobs} userRole={userRole} />
           <NeedsAttentionQueue jobs={jobs} onReviewJob={(job) => setExpandJobId(job.id)} isPro={tierFeatures.isPro} />
           <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} onOpenChangeOrders={handleOpenChangeOrders} userRole={userRole} activeEstimator={activeEstimator} companyId={companyId || undefined} expandJobId={expandJobId} onExpandJobHandled={() => setExpandJobId(null)} />
         </>
@@ -721,6 +743,7 @@ function App() {
     // Table view - Review goes to edit since there are no expandable cards in table
     return (
       <>
+        <PortfolioHealthScore jobs={jobs} userRole={userRole} />
         <NeedsAttentionQueue jobs={jobs} onReviewJob={handleEditJobClick} isPro={tierFeatures.isPro} />
         <JobTable
           jobs={sortedAndFilteredJobs}
