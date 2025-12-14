@@ -65,7 +65,7 @@ interface ControlsProps {
   projectManagers: string[];
   userRole: UserRole;
   focusMode: 'default' | 'pm-at-risk' | 'pm-late';
-  onQuickFilterSelect: (quick: 'owner-backlog' | 'owner-capacity' | 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
+  onQuickFilterSelect: (quick: 'owner-capacity' | 'pm-my-jobs' | 'pm-at-risk' | 'pm-late') => void;
   activeProjectManager: string;
   onActiveProjectManagerChange: (pm: string) => void;
   onExportCSV?: () => void;
@@ -166,7 +166,6 @@ const Controls: React.FC<ControlsProps> = ({
   const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'weekly';
   const isWeeklyView = filter === 'weekly';
 
-  const ownerBacklogActive = userRole === 'owner' && filter === 'forecast' && focusMode === 'default';
   const ownerCapacityActive = userRole === 'owner' && filter === 'company' && focusMode === 'default';
 
   const pmMyJobsActive = userRole === 'projectManager' && focusMode === 'default' && filter === JobStatus.Active && pmFilter === activePmForFilter;
@@ -727,18 +726,6 @@ const Controls: React.FC<ControlsProps> = ({
 
             {userRole === 'owner' && (
               <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => onQuickFilterSelect('owner-backlog')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${ownerBacklogActive
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                    : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  Backlog Lens
-                </button>
                 <button
                   onClick={() => onQuickFilterSelect('owner-capacity')}
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${ownerCapacityActive
