@@ -582,11 +582,14 @@ function App() {
   };
 
   const sortedAndFilteredJobs = useMemo(() => {
-    if (filter === 'company' || filter === 'forecast') {
+    if (filter === 'company' || filter === 'forecast' || filter === 'reports') {
       return [];
     }
 
-    let filteredJobs = jobs.filter(job => job.status === filter);
+    // Weekly Review shows Active and On Hold jobs
+    let filteredJobs = filter === 'weekly'
+      ? jobs.filter(job => job.status === JobStatus.Active || job.status === JobStatus.OnHold)
+      : jobs.filter(job => job.status === filter);
 
     // Estimators can only see jobs where they are the assigned estimator
     if (userRole === 'estimator' && activeEstimator) {
@@ -689,6 +692,23 @@ function App() {
           jobs={jobs}
           companyId={companyId!}
           companyName={settings?.companyName}
+        />
+      );
+    }
+    // Weekly Review tab - dedicated view with weekly mode always on
+    if (filter === 'weekly') {
+      return (
+        <JobTable
+          jobs={sortedAndFilteredJobs}
+          onEdit={handleEditJobClick}
+          onSave={handleSaveJob}
+          onOpenNotes={handleOpenNotes}
+          userRole={userRole}
+          focusMode={focusMode}
+          activeEstimator={activeEstimator}
+          defaultAsOfDate={weeklyAsOfDate}
+          weeklyUpdateMode={true}
+          weeklyAsOfDate={weeklyAsOfDate}
         />
       );
     }

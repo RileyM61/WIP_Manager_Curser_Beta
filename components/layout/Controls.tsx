@@ -163,7 +163,8 @@ const Controls: React.FC<ControlsProps> = ({
   };
 
   const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
-  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
+  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'weekly';
+  const isWeeklyView = filter === 'weekly';
 
   const ownerBacklogActive = userRole === 'owner' && filter === 'forecast' && focusMode === 'default';
   const ownerCapacityActive = userRole === 'owner' && filter === 'company' && focusMode === 'default';
@@ -172,7 +173,7 @@ const Controls: React.FC<ControlsProps> = ({
   const pmAtRiskActive = userRole === 'projectManager' && focusMode === 'pm-at-risk';
   const pmLateActive = userRole === 'projectManager' && focusMode === 'pm-late';
 
-  const showWeeklyReviewPanel = viewMode === 'table' && weeklyUpdateMode;
+  const showWeeklyReviewPanel = filter === 'weekly' || (viewMode === 'table' && weeklyUpdateMode);
   const isAsOfSet = !!weeklyAsOfDate;
   const isWeeklyInputsComplete =
     typeof weeklyUpdatedCount === 'number' &&
@@ -224,6 +225,15 @@ const Controls: React.FC<ControlsProps> = ({
                   }`}
               >
                 Forecast
+              </button>
+              <button
+                onClick={() => setFilter('weekly')}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'weekly'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                  }`}
+              >
+                Weekly Review
               </button>
               <button
                 onClick={() => {
@@ -436,8 +446,31 @@ const Controls: React.FC<ControlsProps> = ({
                 </select>
               </div>
 
-              {/* Weekly Update Mode (table view) */}
-              {viewMode === 'table' && setWeeklyUpdateMode && (
+              {/* Weekly Review Tab - As-Of Date Controls (always visible on weekly tab) */}
+              {filter === 'weekly' && weeklyAsOfDate !== undefined && setWeeklyAsOfDate && (
+                <div className="hidden lg:flex items-center gap-3 pl-3 ml-3 border-l border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="weekly-asof" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      As Of:
+                    </label>
+                    <input
+                      id="weekly-asof"
+                      type="date"
+                      value={weeklyAsOfDate}
+                      onChange={(e) => setWeeklyAsOfDate(e.target.value)}
+                      className="text-sm border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                    {typeof weeklyUpdatedCount === 'number' && typeof weeklyTotalCount === 'number' && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Updated: <span className="font-semibold text-gray-700 dark:text-gray-200">{weeklyUpdatedCount}</span>/{weeklyTotalCount}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Weekly Update Mode toggle (table view only, not needed on Weekly Review tab) */}
+              {filter !== 'weekly' && viewMode === 'table' && setWeeklyUpdateMode && (
                 <div className="hidden lg:flex items-center gap-3 pl-3 ml-3 border-l border-gray-200 dark:border-gray-700">
                   <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                     <input
@@ -453,11 +486,11 @@ const Controls: React.FC<ControlsProps> = ({
 
                   {weeklyUpdateMode && weeklyAsOfDate !== undefined && setWeeklyAsOfDate && (
                     <div className="flex items-center gap-2">
-                      <label htmlFor="weekly-asof" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      <label htmlFor="weekly-asof-table" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                         As Of:
                       </label>
                       <input
-                        id="weekly-asof"
+                        id="weekly-asof-table"
                         type="date"
                         value={weeklyAsOfDate}
                         onChange={(e) => setWeeklyAsOfDate(e.target.value)}

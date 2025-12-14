@@ -206,7 +206,7 @@ export type SortKey = 'jobName' | 'jobNo' | 'client' | 'projectManager' | 'statu
 
 export type SortDirection = 'asc' | 'desc';
 
-export type FilterType = JobStatus | 'company' | 'forecast' | 'reports';
+export type FilterType = JobStatus | 'company' | 'forecast' | 'reports' | 'weekly';
 
 export type WeekDay = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
 
