@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Job, JobStatus, UserRole } from '../../../types';
 import ProgressBar from '../../../components/ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../../../components/shared/icons';
@@ -6,6 +6,7 @@ import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calcu
 import { analyzeJobRisk, RiskLevel } from '../lib/smartEngines';
 import { useSubscription } from '../../../hooks/useSubscription';
 import { useChangeOrderCounts, COCountByJob } from '../../../hooks/useSupabaseChangeOrders';
+import { useLocalStorage } from '../../../hooks/useLocalStorage';
 
 interface JobCardGridProps {
   jobs: Job[];
@@ -33,7 +34,48 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
-const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (job: Job) => void; onOpenHistory?: (job: Job) => void; onTakeSnapshot?: (job: Job) => void; onOpenChangeOrders?: (job: Job) => void; userRole: UserRole; activeEstimator?: string; isPro: boolean; coCount?: COCountByJob; }> = ({ job, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, onOpenChangeOrders, userRole, activeEstimator, isPro, coCount }) => {
+// Chevron icons for expand/collapse
+const ChevronDownIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+  </svg>
+);
+
+const ChevronUpIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+  </svg>
+);
+
+interface JobCardProps {
+  job: Job;
+  onEdit: (job: Job) => void;
+  onOpenNotes: (job: Job) => void;
+  onOpenHistory?: (job: Job) => void;
+  onTakeSnapshot?: (job: Job) => void;
+  onOpenChangeOrders?: (job: Job) => void;
+  userRole: UserRole;
+  activeEstimator?: string;
+  isPro: boolean;
+  coCount?: COCountByJob;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
+}
+
+const JobCard: React.FC<JobCardProps> = ({ 
+  job, 
+  onEdit, 
+  onOpenNotes, 
+  onOpenHistory, 
+  onTakeSnapshot, 
+  onOpenChangeOrders, 
+  userRole, 
+  activeEstimator, 
+  isPro, 
+  coCount,
+  isExpanded,
+  onToggleExpand,
+}) => {
   // Estimators can only edit Future or Draft jobs where they are the assigned estimator
   const isEstimatorWithRestrictedAccess = userRole === 'estimator' && job.status !== JobStatus.Future && job.status !== JobStatus.Draft;
   const isTM = job.jobType === 'time-material';
@@ -90,10 +132,181 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
     }
   }
 
+  // Determine the most important alert to show in summary mode
+  const getPrimaryAlert = (): { type: string; message: string; severity: 'critical' | 'warning' | 'info' } | null => {
+    // Priority order: Critical schedule > Underbilling High > Schedule warning > Margin fade > Schedule drift > Underbilling Medium
+    if (hasCriticalWarning) {
+      return { type: 'schedule', message: 'Critical: Behind Schedule', severity: 'critical' };
+    }
+    if (showUnderbillingRisk && riskAnalysis.underbillingRisk === RiskLevel.High) {
+      return { type: 'billing', message: 'High Risk: Underbilling', severity: 'critical' };
+    }
+    if (hasScheduleWarning) {
+      return { type: 'schedule', message: 'Behind Schedule', severity: 'warning' };
+    }
+    if (showMarginFade) {
+      return { type: 'margin', message: `Margin Fade: -${riskAnalysis.marginFadePercent.toFixed(1)}%`, severity: 'warning' };
+    }
+    if (showScheduleDrift) {
+      return { type: 'drift', message: `Schedule Drift: ${riskAnalysis.scheduleDriftWeeks} wks`, severity: 'warning' };
+    }
+    if (showUnderbillingRisk) {
+      return { type: 'billing', message: 'Underbilling Risk', severity: 'warning' };
+    }
+    if (daysOnHold !== null && daysOnHold > 7) {
+      return { type: 'hold', message: `On Hold: ${daysOnHold} days`, severity: 'info' };
+    }
+    return null;
+  };
 
+  const primaryAlert = getPrimaryAlert();
+  const hasAnyAlert = primaryAlert !== null || (showUnderbillingRisk || showScheduleDrift || showMarginFade || hasScheduleWarning);
+
+  // Summary Mode Card
+  if (!isExpanded) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+        <div className="p-4">
+          {/* Header: Job Name + Status */}
+          <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base font-bold text-brand-blue dark:text-brand-light-blue leading-tight truncate">{job.jobName}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">#{job.jobNo} • {job.client}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${job.status === JobStatus.Draft ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-dashed border-slate-400' :
+                job.status === JobStatus.Future ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+                  job.status === JobStatus.Active ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
+                    job.status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                      job.status === JobStatus.Completed ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                }`}>
+                {job.status}
+              </span>
+              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${isTM
+                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                }`}>
+                {isTM ? 'T&M' : 'Fixed'}
+              </span>
+            </div>
+          </div>
+
+          {/* Key Metrics Row */}
+          <div className="mt-3 flex items-center justify-between gap-3">
+            {/* Profit */}
+            <div className="text-center">
+              <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                {isTM ? 'Profit' : 'Variance'}
+              </p>
+              <p className={`text-sm font-bold ${profitVariance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {profitVariance >= 0 ? '+' : ''}{currencyFormatter.format(profitVariance)}
+              </p>
+            </div>
+
+            {/* Billing Status */}
+            <div className="text-center">
+              <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Billing</p>
+              {billingInfo.difference !== 0 ? (
+                <p className={`text-sm font-bold ${billingInfo.isOverBilled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {billingInfo.isOverBilled ? 'Over' : 'Under'} {currencyFormatter.format(Math.abs(billingInfo.difference))}
+                </p>
+              ) : (
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">On Track</p>
+              )}
+            </div>
+
+            {/* % Complete (Fixed only) or Earned (T&M) */}
+            <div className="text-center">
+              {isTM ? (
+                <>
+                  <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Earned</p>
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {currencyFormatter.format(earnedRevenue.total)}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Complete</p>
+                  <p className="text-sm font-bold text-gray-700 dark:text-gray-200">
+                    {calculateProgress(totalCost, totalCostToComplete)}%
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Primary Alert (if any) */}
+          {primaryAlert && isPro && (
+            <div className={`mt-3 px-2 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 ${
+              primaryAlert.severity === 'critical' 
+                ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' 
+                : primaryAlert.severity === 'warning'
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+            }`}>
+              <span>{primaryAlert.severity === 'critical' ? '🚨' : primaryAlert.severity === 'warning' ? '⚠️' : 'ℹ️'}</span>
+              <span>{primaryAlert.message}</span>
+            </div>
+          )}
+
+          {/* Pro insight teaser */}
+          {!isPro && hasAnyAlert && (
+            <div className="mt-3 px-2 py-1.5 bg-gray-100 dark:bg-gray-700/50 rounded-md text-center border border-dashed border-gray-300 dark:border-gray-600">
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                🔒 Pro Insight Available
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Footer with actions */}
+        <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-2 flex items-center justify-between mt-auto">
+          <button
+            onClick={onToggleExpand}
+            className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-brand-blue dark:hover:text-brand-light-blue transition"
+          >
+            <ChevronDownIcon className="w-4 h-4" />
+            <span>Details</span>
+          </button>
+          
+          <div className="flex items-center gap-2">
+            <button onClick={() => onOpenNotes(job)} className="relative text-gray-500 dark:text-gray-400 hover:text-brand-blue dark:hover:text-white transition" title="Notes">
+              <ChatBubbleLeftTextIcon />
+              {job.notes && job.notes.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {job.notes.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => onEdit(job)}
+              className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded transition ${isEstimatorWithRestrictedAccess
+                ? 'text-gray-400 dark:text-gray-500'
+                : 'text-brand-light-blue hover:text-white hover:bg-brand-blue dark:hover:bg-brand-light-blue dark:hover:text-gray-900'
+                }`}
+            >
+              <EditIcon />
+              <span>{isEstimatorWithRestrictedAccess ? 'View' : 'Edit'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Expanded Mode Card (Full Detail)
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden transform hover:scale-105 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 ease-in-out flex flex-col">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col ring-2 ring-brand-blue/30 dark:ring-brand-light-blue/30">
       <div className="p-5 flex-grow">
+        {/* Collapse Button */}
+        <button
+          onClick={onToggleExpand}
+          className="w-full flex items-center justify-center gap-1 text-xs font-medium text-brand-blue dark:text-brand-light-blue hover:underline mb-3"
+        >
+          <ChevronUpIcon className="w-4 h-4" />
+          <span>Collapse</span>
+        </button>
+
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-lg font-bold text-brand-blue dark:text-brand-light-blue leading-tight">{job.jobName}</h3>
@@ -123,7 +336,6 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
           </div>
         )}
 
-        {/* Smart Engine Alerts */}
         {/* Smart Engine Alerts (Functionality Gating) */}
         {!isPro ? (
           (showUnderbillingRisk || showScheduleDrift || showMarginFade) && (
@@ -383,6 +595,21 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
 const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, onOpenChangeOrders, userRole, activeEstimator, companyId }) => {
   const { isPro } = useSubscription();
   const { coCounts, loadCOCounts, getCountForJob } = useChangeOrderCounts(companyId);
+  
+  // Track which cards are expanded (by job ID)
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+
+  const toggleCardExpansion = (jobId: string) => {
+    setExpandedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(jobId)) {
+        next.delete(jobId);
+      } else {
+        next.add(jobId);
+      }
+      return next;
+    });
+  };
 
   // Load CO counts on mount and when jobs change
   useEffect(() => {
@@ -398,11 +625,24 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, on
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {jobs.map((job) => (
-        <JobCard key={job.id} job={job} onEdit={onEdit} onOpenNotes={onOpenNotes} onOpenHistory={onOpenHistory} onTakeSnapshot={onTakeSnapshot} onOpenChangeOrders={onOpenChangeOrders} userRole={userRole} activeEstimator={activeEstimator} isPro={isPro} coCount={getCountForJob(job.id)} />
+        <JobCard 
+          key={job.id} 
+          job={job} 
+          onEdit={onEdit} 
+          onOpenNotes={onOpenNotes} 
+          onOpenHistory={onOpenHistory} 
+          onTakeSnapshot={onTakeSnapshot} 
+          onOpenChangeOrders={onOpenChangeOrders} 
+          userRole={userRole} 
+          activeEstimator={activeEstimator} 
+          isPro={isPro} 
+          coCount={getCountForJob(job.id)}
+          isExpanded={expandedCards.has(job.id)}
+          onToggleExpand={() => toggleCardExpansion(job.id)}
+        />
       ))}
     </div>
   );
 };
 
 export default JobCardGrid;
-
