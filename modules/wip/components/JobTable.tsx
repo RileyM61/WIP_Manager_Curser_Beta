@@ -4,6 +4,7 @@ import ProgressBar from '../../../components/ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../../../components/shared/icons';
 import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit, getAllScheduleWarnings } from '../lib/jobCalculations';
 import { useLocalStorage } from '../../../hooks/useLocalStorage';
+import InfoTooltip from '../../../components/help/InfoTooltip';
 
 interface JobTableProps {
   jobs: Job[];
@@ -230,7 +231,7 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-end">
+      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-end gap-2">
         <label className="inline-flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-300 select-none">
           <input
             type="checkbox"
@@ -239,8 +240,15 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
             className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
           />
           Simple inputs
-          <span className="text-[10px] font-normal text-gray-400 dark:text-gray-500">(totals first)</span>
         </label>
+        <InfoTooltip
+          title="Simple Inputs Mode"
+          shortText="Controls how you enter costs when editing a job row."
+          detailedText="ON (checked): Enter a single total for Costs, Cost-to-Complete, and Invoiced. The system automatically distributes the value across Labor, Material, and Other proportionally based on existing ratios. Click 'Show breakdown' if you need to adjust individual categories.
+
+OFF (unchecked): Always shows Labor, Material, and Other fields separately for precise entry of each cost category."
+          example="If your current costs are $6,000 Labor / $3,000 Material / $1,000 Other and you change the total to $20,000, Simple mode will scale to $12,000 / $6,000 / $2,000 (same 60/30/10 ratio)."
+        />
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
