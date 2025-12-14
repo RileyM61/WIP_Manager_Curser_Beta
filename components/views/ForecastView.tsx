@@ -59,15 +59,41 @@ const calculateMetrics = (job: Job): JobForecastMetrics => {
   };
 };
 
+type ForecastJob = Job & { metrics: JobForecastMetrics };
+
+const isDateTBD = (date?: string): boolean =>
+  !date || date === 'TBD';
+
+const toSortableTime = (job: Job): number => {
+  // Prefer contractual end date, fall back to target end date.
+  const candidate = !isDateTBD(job.endDate) ? job.endDate : (!isDateTBD(job.targetEndDate) ? job.targetEndDate : undefined);
+  if (!candidate) return Number.POSITIVE_INFINITY;
+  const t = new Date(candidate).getTime();
+  return Number.isFinite(t) ? t : Number.POSITIVE_INFINITY;
+};
+
+const sortByScheduleThenName = (a: ForecastJob, b: ForecastJob): number => {
+  const diff = toSortableTime(a) - toSortableTime(b);
+  if (diff !== 0) return diff;
+  // Stable tie-breakers
+  const nameDiff = (a.jobName || '').localeCompare(b.jobName || '');
+  if (nameDiff !== 0) return nameDiff;
+  return (a.jobNo || '').localeCompare(b.jobNo || '');
+};
 
 const ForecastView: React.FC<ForecastViewProps> = ({ jobs }) => {
   
-  const forecastJobs = jobs
+  const forecastJobsAll: ForecastJob[] = jobs
     .filter(job => job.status === JobStatus.Active || job.status === JobStatus.Future)
     .map(job => ({ ...job, metrics: calculateMetrics(job) }))
-    .sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
+    .sort(sortByScheduleThenName);
 
-  const totals = forecastJobs.reduce((acc, job) => {
+  // Split into scheduled vs unscheduled (TBD) for time-phased readability.
+  // IMPORTANT: totals still include BOTH.
+  const scheduledJobs = forecastJobsAll.filter(j => Number.isFinite(toSortableTime(j)) && toSortableTime(j) !== Number.POSITIVE_INFINITY);
+  const unscheduledJobs = forecastJobsAll.filter(j => !scheduledJobs.includes(j));
+
+  const totals = forecastJobsAll.reduce((acc, job) => {
     acc.totalContract += job.metrics.totalContract;
     acc.revenueToEarn += job.metrics.revenueToEarn;
     acc.costToComplete += job.metrics.costToComplete;
@@ -82,15 +108,37 @@ const ForecastView: React.FC<ForecastViewProps> = ({ jobs }) => {
 
   const totalForecastedProfitMargin = totals.totalContract > 0 ? (totals.forecastedProfit / totals.totalContract) * 100 : 0;
 
-  if (forecastJobs.length === 0) {
+  if (forecastJobsAll.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg shadow-sm">No Active or Future jobs to forecast.</div>;
   }
+
+  const unscheduledTotals = unscheduledJobs.reduce((acc, job) => {
+    acc.revenueToEarn += job.metrics.revenueToEarn;
+    acc.costToComplete += job.metrics.costToComplete;
+    acc.forecastedProfit += job.metrics.forecastedProfit;
+    return acc;
+  }, {
+    revenueToEarn: 0,
+    costToComplete: 0,
+    forecastedProfit: 0,
+  });
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
       <div className="p-5 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-xl font-bold text-brand-blue dark:text-brand-light-blue">Financial Forecast</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Projection based on active and future jobs, using estimated cost to complete.</p>
+        {unscheduledJobs.length > 0 && (
+          <div className="mt-3 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <div className="font-semibold">
+              {unscheduledJobs.length} job{unscheduledJobs.length === 1 ? '' : 's'} missing an End Date / Target Date (TBD)
+            </div>
+            <div className="mt-1">
+              These jobs are included in totals, but shown under <span className="font-semibold">Unscheduled</span> since they can’t be time-phased.
+              Unscheduled backlog: <span className="font-semibold">{currencyFormatter.format(unscheduledTotals.revenueToEarn)}</span>.
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="p-5 bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
@@ -163,7 +211,7 @@ const ForecastView: React.FC<ForecastViewProps> = ({ jobs }) => {
             </tr>
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {forecastJobs.map(job => (
+            {scheduledJobs.map(job => (
               <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{job.jobName}</div>
@@ -195,6 +243,52 @@ const ForecastView: React.FC<ForecastViewProps> = ({ jobs }) => {
                 </td>
               </tr>
             ))}
+            {unscheduledJobs.length > 0 && (
+              <>
+                <tr className="bg-gray-50 dark:bg-gray-700/30">
+                  <td colSpan={9} className="px-6 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                    Unscheduled (TBD dates)
+                    <span className="ml-2 normal-case font-normal text-gray-500 dark:text-gray-400">
+                      {unscheduledJobs.length} job{unscheduledJobs.length === 1 ? '' : 's'} • Backlog {currencyFormatter.format(unscheduledTotals.revenueToEarn)}
+                    </span>
+                  </td>
+                </tr>
+                {unscheduledJobs.map(job => (
+                  <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{job.jobName}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {job.projectManager} • End date: <span className="font-semibold">TBD</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
+                      {currencyFormatter.format(job.metrics.totalContract)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-brand-blue dark:text-brand-light-blue">
+                      {currencyFormatter.format(job.metrics.revenueToEarn)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
+                      {currencyFormatter.format(job.metrics.costToComplete)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
+                      {currencyFormatter.format(job.metrics.originalProfit)}
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-right text-sm font-semibold ${job.metrics.forecastedProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {currencyFormatter.format(job.metrics.forecastedProfit)}
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-right text-sm font-bold ${job.metrics.profitVariance > 0 ? 'text-green-600 dark:text-green-400' : job.metrics.profitVariance < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      {currencyFormatter.format(job.metrics.profitVariance)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-400">
+                      {typeof job.targetProfit === 'number' ? currencyFormatter.format(job.targetProfit) : '—'}
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-right text-sm font-semibold ${typeof job.targetProfit === 'number' ? (job.metrics.forecastedProfit - job.targetProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400') : 'text-gray-500 dark:text-gray-400'}`}>
+                      {typeof job.targetProfit === 'number' ? currencyFormatter.format(job.metrics.forecastedProfit - job.targetProfit) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </>
+            )}
           </tbody>
         </table>
       </div>

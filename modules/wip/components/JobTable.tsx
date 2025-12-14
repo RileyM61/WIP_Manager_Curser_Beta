@@ -3,6 +3,7 @@ import { Job, JobStatus, UserRole, CostBreakdown } from '../../../types';
 import ProgressBar from '../../../components/ui/ProgressBar';
 import { EditIcon, ChatBubbleLeftTextIcon, ClockIcon } from '../../../components/shared/icons';
 import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calculateForecastedProfit, getAllScheduleWarnings } from '../lib/jobCalculations';
+import { useLocalStorage } from '../../../hooks/useLocalStorage';
 
 interface JobTableProps {
   jobs: Job[];
@@ -30,20 +31,39 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
+const roundToCents = (value: number): number => Math.round(value * 100) / 100;
+
+const scaleBreakdownToTotal = (breakdown: CostBreakdown, total: number): CostBreakdown => {
+  const currentTotal = sumBreakdown(breakdown);
+  const nextTotal = Math.max(0, total || 0);
+
+  if (currentTotal <= 0) {
+    return { labor: nextTotal, material: 0, other: 0 };
+  }
+
+  const factor = nextTotal / currentTotal;
+  return {
+    labor: roundToCents(breakdown.labor * factor),
+    material: roundToCents(breakdown.material * factor),
+    other: roundToCents(breakdown.other * factor),
+  };
+};
+
 // Inline number input component
 const InlineInput: React.FC<{
   value: number;
   onChange: (value: number) => void;
   label?: string;
   compact?: boolean;
-}> = ({ value, onChange, label, compact = false }) => (
+  inputClassName?: string;
+}> = ({ value, onChange, label, compact = false, inputClassName }) => (
   <div className={compact ? '' : 'mb-1'}>
     {label && <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase">{label}</span>}
     <input
       type="number"
       value={value || 0}
       onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-      className="w-20 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue"
+      className={inputClassName || "w-20 px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue"}
     />
   </div>
 );
@@ -60,17 +80,24 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [editData, setEditData] = useState<EditableRowData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [simpleInputs, setSimpleInputs] = useLocalStorage<boolean>('wip-table-simple-inputs', true);
+  const [showBreakdown, setShowBreakdown] = useState<{ costs: boolean; ctc: boolean; invoiced: boolean }>({
+    costs: false,
+    ctc: false,
+    invoiced: false,
+  });
 
   // Start editing a job row
   const handleStartEdit = useCallback((job: Job) => {
     setEditingJobId(job.id);
+    setShowBreakdown({ costs: false, ctc: false, invoiced: false });
     setEditData({
       costs: { ...job.costs },
       costToComplete: { ...job.costToComplete },
       invoiced: { ...job.invoiced },
       asOfDate: defaultAsOfDate || job.asOfDate || new Date().toISOString().split('T')[0],
     });
-  }, [defaultAsOfDate]);
+  }, [defaultAsOfDate, setShowBreakdown]);
 
   // Cancel editing
   const handleCancelEdit = useCallback(() => {
@@ -104,38 +131,69 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
 
   // Update cost field
   const updateCost = useCallback((field: keyof CostBreakdown, value: number) => {
-    if (!editData) return;
     setEditData(prev => prev ? {
       ...prev,
       costs: { ...prev.costs, [field]: value }
     } : null);
-  }, [editData]);
+  }, []);
+
+  const updateCostsTotal = useCallback((total: number) => {
+    setEditData(prev => prev ? {
+      ...prev,
+      costs: scaleBreakdownToTotal(prev.costs, total),
+    } : null);
+  }, []);
 
   // Update cost to complete field
   const updateCostToComplete = useCallback((field: keyof CostBreakdown, value: number) => {
-    if (!editData) return;
     setEditData(prev => prev ? {
       ...prev,
       costToComplete: { ...prev.costToComplete, [field]: value }
     } : null);
-  }, [editData]);
+  }, []);
+
+  const updateCostToCompleteTotal = useCallback((total: number) => {
+    setEditData(prev => prev ? {
+      ...prev,
+      costToComplete: scaleBreakdownToTotal(prev.costToComplete, total),
+    } : null);
+  }, []);
 
   // Update invoiced field
   const updateInvoiced = useCallback((field: keyof CostBreakdown, value: number) => {
-    if (!editData) return;
     setEditData(prev => prev ? {
       ...prev,
       invoiced: { ...prev.invoiced, [field]: value }
     } : null);
-  }, [editData]);
+  }, []);
+
+  const updateInvoicedTotal = useCallback((total: number) => {
+    setEditData(prev => prev ? {
+      ...prev,
+      invoiced: scaleBreakdownToTotal(prev.invoiced, total),
+    } : null);
+  }, []);
 
   if (jobs.length === 0) {
     return <div className="text-center py-16 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg shadow-sm">No jobs found for this category.</div>;
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-end">
+        <label className="inline-flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-300 select-none">
+          <input
+            type="checkbox"
+            checked={simpleInputs}
+            onChange={(e) => setSimpleInputs(e.target.checked)}
+            className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
+          />
+          Simple inputs
+          <span className="text-[10px] font-normal text-gray-400 dark:text-gray-500">(totals first)</span>
+        </label>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr>
             <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[160px]">Job Name / No.</th>
@@ -258,12 +316,42 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
                 <td className="px-4 py-3 whitespace-nowrap text-sm">
                   {isEditing && editData ? (
                     <div className="space-y-1">
-                      <InlineInput label="Labor" value={editData.costs.labor} onChange={(v) => updateCost('labor', v)} compact />
-                      <InlineInput label="Material" value={editData.costs.material} onChange={(v) => updateCost('material', v)} compact />
-                      <InlineInput label="Other" value={editData.costs.other} onChange={(v) => updateCost('other', v)} compact />
-                      <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 pt-1 border-t dark:border-gray-600">
-                        Total: {currencyFormatter.format(sumBreakdown(editData.costs))}
-                      </div>
+                      {simpleInputs && !showBreakdown.costs ? (
+                        <div className="space-y-1">
+                          <InlineInput
+                            label="Total"
+                            value={sumBreakdown(editData.costs)}
+                            onChange={updateCostsTotal}
+                            compact
+                            inputClassName="w-28 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowBreakdown(prev => ({ ...prev, costs: true }))}
+                            className="text-[10px] font-semibold text-brand-blue dark:text-brand-light-blue hover:underline"
+                          >
+                            Show breakdown
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {simpleInputs && (
+                            <button
+                              type="button"
+                              onClick={() => setShowBreakdown(prev => ({ ...prev, costs: false }))}
+                              className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 hover:underline"
+                            >
+                              Hide breakdown
+                            </button>
+                          )}
+                          <InlineInput label="Labor" value={editData.costs.labor} onChange={(v) => updateCost('labor', v)} compact />
+                          <InlineInput label="Material" value={editData.costs.material} onChange={(v) => updateCost('material', v)} compact />
+                          <InlineInput label="Other" value={editData.costs.other} onChange={(v) => updateCost('other', v)} compact />
+                          <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 pt-1 border-t dark:border-gray-600">
+                            Total: {currencyFormatter.format(sumBreakdown(editData.costs))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-0.5">
@@ -279,12 +367,42 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
                 <td className="px-4 py-3 whitespace-nowrap text-sm">
                   {isEditing && editData ? (
                     <div className="space-y-1">
-                      <InlineInput label="Labor" value={editData.costToComplete.labor} onChange={(v) => updateCostToComplete('labor', v)} compact />
-                      <InlineInput label="Material" value={editData.costToComplete.material} onChange={(v) => updateCostToComplete('material', v)} compact />
-                      <InlineInput label="Other" value={editData.costToComplete.other} onChange={(v) => updateCostToComplete('other', v)} compact />
-                      <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 pt-1 border-t dark:border-gray-600">
-                        Total: {currencyFormatter.format(sumBreakdown(editData.costToComplete))}
-                      </div>
+                      {simpleInputs && !showBreakdown.ctc ? (
+                        <div className="space-y-1">
+                          <InlineInput
+                            label="Total"
+                            value={sumBreakdown(editData.costToComplete)}
+                            onChange={updateCostToCompleteTotal}
+                            compact
+                            inputClassName="w-28 px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowBreakdown(prev => ({ ...prev, ctc: true }))}
+                            className="text-[10px] font-semibold text-brand-blue dark:text-brand-light-blue hover:underline"
+                          >
+                            Show breakdown
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {simpleInputs && (
+                            <button
+                              type="button"
+                              onClick={() => setShowBreakdown(prev => ({ ...prev, ctc: false }))}
+                              className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 hover:underline"
+                            >
+                              Hide breakdown
+                            </button>
+                          )}
+                          <InlineInput label="Labor" value={editData.costToComplete.labor} onChange={(v) => updateCostToComplete('labor', v)} compact />
+                          <InlineInput label="Material" value={editData.costToComplete.material} onChange={(v) => updateCostToComplete('material', v)} compact />
+                          <InlineInput label="Other" value={editData.costToComplete.other} onChange={(v) => updateCostToComplete('other', v)} compact />
+                          <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 pt-1 border-t dark:border-gray-600">
+                            Total: {currencyFormatter.format(sumBreakdown(editData.costToComplete))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-0.5">
@@ -300,7 +418,44 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
                 <td className={`px-4 py-3 text-sm ${isEditing ? '' : 'whitespace-nowrap'}`}>
                   {isEditing && editData ? (
                     <div className="space-y-1">
-                      <InlineInput label="Total" value={sumBreakdown(editData.invoiced)} onChange={(v) => updateInvoiced('labor', v)} compact />
+                      {simpleInputs && !showBreakdown.invoiced ? (
+                        <div className="space-y-1">
+                          <InlineInput
+                            label="Invoiced (Total)"
+                            value={sumBreakdown(editData.invoiced)}
+                            onChange={updateInvoicedTotal}
+                            compact
+                            inputClassName="w-full px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowBreakdown(prev => ({ ...prev, invoiced: true }))}
+                            className="text-[10px] font-semibold text-brand-blue dark:text-brand-light-blue hover:underline"
+                          >
+                            Show breakdown
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          {simpleInputs && (
+                            <button
+                              type="button"
+                              onClick={() => setShowBreakdown(prev => ({ ...prev, invoiced: false }))}
+                              className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 hover:underline"
+                            >
+                              Hide breakdown
+                            </button>
+                          )}
+                          <div className="grid grid-cols-3 gap-2">
+                            <InlineInput label="Labor" value={editData.invoiced.labor} onChange={(v) => updateInvoiced('labor', v)} compact inputClassName="w-full px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue" />
+                            <InlineInput label="Mat." value={editData.invoiced.material} onChange={(v) => updateInvoiced('material', v)} compact inputClassName="w-full px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue" />
+                            <InlineInput label="Other" value={editData.invoiced.other} onChange={(v) => updateInvoiced('other', v)} compact inputClassName="w-full px-1.5 py-0.5 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-brand-blue focus:border-brand-blue" />
+                          </div>
+                          <div className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">
+                            Total: {currencyFormatter.format(sumBreakdown(editData.invoiced))}
+                          </div>
+                        </>
+                      )}
                       {/* As of Date */}
                       <div className="pt-2 border-t dark:border-gray-600">
                         <label className="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-semibold">As of Date</label>
@@ -443,6 +598,7 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
           })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };
