@@ -18,6 +18,9 @@ interface JobCardGridProps {
   userRole: UserRole;
   activeEstimator?: string;
   companyId?: string;
+  // External trigger to expand a specific job card
+  expandJobId?: string | null;
+  onExpandJobHandled?: () => void;
 }
 
 
@@ -602,7 +605,7 @@ const JobCard: React.FC<JobCardProps> = ({
   );
 }
 
-const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, onOpenChangeOrders, userRole, activeEstimator, companyId }) => {
+const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, onOpenChangeOrders, userRole, activeEstimator, companyId, expandJobId, onExpandJobHandled }) => {
   const { isPro } = useSubscription();
   const { coCounts, loadCOCounts, getCountForJob } = useChangeOrderCounts(companyId);
   
@@ -621,6 +624,22 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, on
     });
   };
 
+  // Handle external trigger to expand a specific job
+  useEffect(() => {
+    if (expandJobId) {
+      setExpandedCards(prev => new Set(prev).add(expandJobId));
+      // Scroll to the job card
+      setTimeout(() => {
+        const element = document.getElementById(`job-card-${expandJobId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+      // Notify parent that we've handled the expand request
+      onExpandJobHandled?.();
+    }
+  }, [expandJobId, onExpandJobHandled]);
+
   // Load CO counts on mount and when jobs change
   useEffect(() => {
     if (companyId && onOpenChangeOrders) {
@@ -635,21 +654,22 @@ const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, on
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {jobs.map((job) => (
-        <JobCard 
-          key={job.id} 
-          job={job} 
-          onEdit={onEdit} 
-          onOpenNotes={onOpenNotes} 
-          onOpenHistory={onOpenHistory} 
-          onTakeSnapshot={onTakeSnapshot} 
-          onOpenChangeOrders={onOpenChangeOrders} 
-          userRole={userRole} 
-          activeEstimator={activeEstimator} 
-          isPro={isPro} 
-          coCount={getCountForJob(job.id)}
-          isExpanded={expandedCards.has(job.id)}
-          onToggleExpand={() => toggleCardExpansion(job.id)}
-        />
+        <div key={job.id} id={`job-card-${job.id}`}>
+          <JobCard 
+            job={job} 
+            onEdit={onEdit} 
+            onOpenNotes={onOpenNotes} 
+            onOpenHistory={onOpenHistory} 
+            onTakeSnapshot={onTakeSnapshot} 
+            onOpenChangeOrders={onOpenChangeOrders} 
+            userRole={userRole} 
+            activeEstimator={activeEstimator} 
+            isPro={isPro} 
+            coCount={getCountForJob(job.id)}
+            isExpanded={expandedCards.has(job.id)}
+            onToggleExpand={() => toggleCardExpansion(job.id)}
+          />
+        </div>
       ))}
     </div>
   );

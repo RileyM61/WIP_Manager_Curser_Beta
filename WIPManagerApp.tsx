@@ -17,6 +17,7 @@ import Controls from './components/layout/Controls';
 import CompanySwitcher from './components/layout/CompanySwitcher';
 import JobCardGrid from './modules/wip/components/JobCardGrid';
 import JobTable from './modules/wip/components/JobTable';
+import NeedsAttentionQueue from './modules/wip/components/NeedsAttentionQueue';
 import GanttView from './components/views/GanttView';
 import JobFormModal from './components/modals/JobFormModal';
 import CompanyView from './components/views/CompanyView';
@@ -121,6 +122,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandJobId, setExpandJobId] = useState<string | null>(null);
   const [pmFilter, setPmFilter] = useState('all');
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [jobForNotes, setJobForNotes] = useState<Job | null>(null);
@@ -704,21 +706,30 @@ function App() {
       );
     }
     if (viewMode === 'grid') {
-      return <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} onOpenChangeOrders={handleOpenChangeOrders} userRole={userRole} activeEstimator={activeEstimator} companyId={companyId || undefined} />;
+      return (
+        <>
+          <NeedsAttentionQueue jobs={jobs} onReviewJob={(job) => setExpandJobId(job.id)} isPro={tierFeatures.isPro} />
+          <JobCardGrid jobs={sortedAndFilteredJobs} onEdit={handleEditJobClick} onOpenNotes={handleOpenNotes} onOpenHistory={handleOpenHistory} onTakeSnapshot={handleTakeSnapshot} onOpenChangeOrders={handleOpenChangeOrders} userRole={userRole} activeEstimator={activeEstimator} companyId={companyId || undefined} expandJobId={expandJobId} onExpandJobHandled={() => setExpandJobId(null)} />
+        </>
+      );
     }
+    // Table view - Review goes to edit since there are no expandable cards in table
     return (
-      <JobTable
-        jobs={sortedAndFilteredJobs}
-        onEdit={handleEditJobClick}
-        onSave={handleSaveJob}
-        onOpenNotes={handleOpenNotes}
-        userRole={userRole}
-        focusMode={focusMode}
-        activeEstimator={activeEstimator}
-        defaultAsOfDate={weeklyUpdateMode ? weeklyAsOfDate : undefined}
-        weeklyUpdateMode={weeklyUpdateMode}
-        weeklyAsOfDate={weeklyAsOfDate}
-      />
+      <>
+        <NeedsAttentionQueue jobs={jobs} onReviewJob={handleEditJobClick} isPro={tierFeatures.isPro} />
+        <JobTable
+          jobs={sortedAndFilteredJobs}
+          onEdit={handleEditJobClick}
+          onSave={handleSaveJob}
+          onOpenNotes={handleOpenNotes}
+          userRole={userRole}
+          focusMode={focusMode}
+          activeEstimator={activeEstimator}
+          defaultAsOfDate={weeklyUpdateMode ? weeklyAsOfDate : undefined}
+          weeklyUpdateMode={weeklyUpdateMode}
+          weeklyAsOfDate={weeklyAsOfDate}
+        />
+      </>
     );
   }
 
