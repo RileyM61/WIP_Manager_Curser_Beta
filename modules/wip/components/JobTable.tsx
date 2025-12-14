@@ -31,8 +31,6 @@ const calculateProgress = (cost: number, costToComplete: number): number => {
   return Math.round(percentage);
 };
 
-const roundToCents = (value: number): number => Math.round(value * 100) / 100;
-
 const scaleBreakdownToTotal = (breakdown: CostBreakdown, total: number): CostBreakdown => {
   const currentTotal = sumBreakdown(breakdown);
   const nextTotal = Math.max(0, total || 0);
@@ -41,11 +39,63 @@ const scaleBreakdownToTotal = (breakdown: CostBreakdown, total: number): CostBre
     return { labor: nextTotal, material: 0, other: 0 };
   }
 
+  // Scale proportionally, but ensure rounding doesn't change the total.
+  // We do this in cents using a "largest remainder" allocation so that:
+  // sum(components) === nextTotal (to the cent).
   const factor = nextTotal / currentTotal;
+  const nextTotalCents = Math.round(nextTotal * 100);
+
+  const raw = {
+    labor: breakdown.labor * factor,
+    material: breakdown.material * factor,
+    other: breakdown.other * factor,
+  };
+
+  const floorCents = {
+    labor: Math.floor(raw.labor * 100),
+    material: Math.floor(raw.material * 100),
+    other: Math.floor(raw.other * 100),
+  };
+
+  let remaining = nextTotalCents - (floorCents.labor + floorCents.material + floorCents.other);
+
+  // Guard: if we somehow overshot (shouldn't with floor), fall back to rounding and force-close the diff.
+  if (remaining < 0) {
+    const rounded = {
+      labor: Math.round(raw.labor * 100),
+      material: Math.round(raw.material * 100),
+      other: Math.round(raw.other * 100),
+    };
+    const roundedSum = rounded.labor + rounded.material + rounded.other;
+    const diff = nextTotalCents - roundedSum;
+    rounded.labor += diff;
+
+    return {
+      labor: rounded.labor / 100,
+      material: rounded.material / 100,
+      other: rounded.other / 100,
+    };
+  }
+
+  const remainders = [
+    { key: 'labor' as const, remainder: raw.labor * 100 - floorCents.labor },
+    { key: 'material' as const, remainder: raw.material * 100 - floorCents.material },
+    { key: 'other' as const, remainder: raw.other * 100 - floorCents.other },
+  ].sort((a, b) => b.remainder - a.remainder);
+
+  const allocated = { ...floorCents };
+  let i = 0;
+  while (remaining > 0) {
+    const k = remainders[i % remainders.length].key;
+    allocated[k] += 1;
+    remaining -= 1;
+    i += 1;
+  }
+
   return {
-    labor: roundToCents(breakdown.labor * factor),
-    material: roundToCents(breakdown.material * factor),
-    other: roundToCents(breakdown.other * factor),
+    labor: allocated.labor / 100,
+    material: allocated.material / 100,
+    other: allocated.other / 100,
   };
 };
 
