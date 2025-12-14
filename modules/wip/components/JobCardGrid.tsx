@@ -196,7 +196,7 @@ const JobCard: React.FC<JobCardProps> = ({
             {/* Profit */}
             <div className="text-center">
               <p className="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                {isTM ? 'Profit' : 'Variance'}
+                {isTM ? 'Profit' : 'Profit Var'}
               </p>
               <p className={`text-sm font-bold ${profitVariance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {profitVariance >= 0 ? '+' : ''}{currencyFormatter.format(profitVariance)}
@@ -263,7 +263,7 @@ const JobCard: React.FC<JobCardProps> = ({
         <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-2 flex items-center justify-between mt-auto">
           <button
             onClick={onToggleExpand}
-            className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-brand-blue dark:hover:text-brand-light-blue transition"
+            className="inline-flex items-center gap-1 text-xs font-bold text-brand-blue dark:text-brand-light-blue hover:underline transition"
           >
             <ChevronDownIcon className="w-4 h-4" />
             <span>Details</span>
@@ -278,6 +278,18 @@ const JobCard: React.FC<JobCardProps> = ({
                 </span>
               )}
             </button>
+            {onOpenChangeOrders && (
+              <button onClick={() => onOpenChangeOrders(job)} className="relative text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition" title="Change Orders">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {coCount && coCount.total > 0 && (
+                  <span className={`absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[10px] font-bold text-white ${coCount.pending > 0 ? 'bg-amber-500' : 'bg-green-500'}`}>
+                    {coCount.total}
+                  </span>
+                )}
+              </button>
+            )}
             <button
               onClick={() => onEdit(job)}
               className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded transition ${isEstimatorWithRestrictedAccess
