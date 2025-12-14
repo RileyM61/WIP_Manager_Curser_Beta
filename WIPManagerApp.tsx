@@ -175,9 +175,10 @@ function App() {
 
   const handleTourStepChange = useCallback((stepIndex: number) => {
     // Ensure appropriate elements are visible for each step
-    // Step 4 (index 4): View Toggle - requires job list view
-    // Step 5 (index 5): Export Button - requires job list view
-    if (stepIndex === 4 || stepIndex === 5) {
+    // Step 4 (index 3): Status Pills - requires Jobs view
+    // Step 5 (index 4): View Toggle - requires Jobs view
+    // Step 6 (index 5): Export Button - requires Jobs view
+    if (stepIndex === 3 || stepIndex === 4 || stepIndex === 5) {
       setFilter(prev => {
         // If we're in Company, Forecast, or Reports view, switch to Active Jobs
         if (prev === 'company' || prev === 'forecast' || prev === 'reports') {

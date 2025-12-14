@@ -39,6 +39,44 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ steps, isOpen, onClose, onCompl
     }
   }, [step]);
 
+  // Some steps rely on UI switching/rendering (e.g. Jobs view controls).
+  // If the target isn't in the DOM yet, retry briefly so the spotlight locks on.
+  useEffect(() => {
+    if (!isOpen || !step) return;
+
+    let cancelled = false;
+    let timer: number | undefined;
+    let attempts = 0;
+    const maxAttempts = 12; // ~1.8s at 150ms
+    const delayMs = 150;
+
+    const tryUpdate = () => {
+      if (cancelled) return;
+
+      const element = document.querySelector(step.target);
+      if (element) {
+        updateTargetPosition();
+        return;
+      }
+
+      attempts += 1;
+      if (attempts >= maxAttempts) {
+        setTargetRect(null);
+        return;
+      }
+
+      timer = window.setTimeout(tryUpdate, delayMs);
+    };
+
+    // Kick once immediately; if not found, it will retry.
+    tryUpdate();
+
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [isOpen, currentStep, step, updateTargetPosition]);
+
   useEffect(() => {
     if (isOpen) {
       updateTargetPosition();

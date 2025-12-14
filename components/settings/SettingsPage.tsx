@@ -40,6 +40,8 @@ interface SettingsPageProps {
   onUpdateClientModules?: (companyId: string, modules: ModuleId[]) => Promise<void>;
   // Data Admin props
   jobs?: Job[];
+  // Initial section to show (for deep-linking from onboarding actions)
+  initialSection?: SettingsSection;
 }
 
 const SettingsPage: React.FC<SettingsPageProps> = ({
@@ -58,7 +60,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   onUpdateClientModules,
   jobs = [],
   initialSection = 'company',
-}: SettingsPageProps & { initialSection?: SettingsSection }) => {
+}: SettingsPageProps) => {
   const [activeSection, setActiveSection] = useState<SettingsSection>(initialSection);
   const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
 
