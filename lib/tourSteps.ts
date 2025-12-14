@@ -17,9 +17,15 @@ export const tourSteps: TourStep[] = [
     placement: 'bottom',
   },
   {
-    target: '[data-tour="status-filters"]',
-    title: 'Filter by Status',
-    content: 'Use these tabs to filter jobs by their status: Future (upcoming), Active (in progress), On Hold, Completed, or Archived. The Company view shows your overall performance.',
+    target: '[data-tour="view-tabs"]',
+    title: 'Switch Between Views',
+    content: 'Use these tabs to switch between Jobs (day-to-day updates), Company (portfolio summary), Forecast (backlog + profit projection), and Reports (exports).',
+    placement: 'bottom',
+  },
+  {
+    target: '[data-tour="status-pills"]',
+    title: 'Filter Jobs by Status',
+    content: 'Within the Jobs view, use these pills to filter by status: Draft, Future, Active, On Hold, Completed, or Archived.',
     placement: 'bottom',
   },
   {

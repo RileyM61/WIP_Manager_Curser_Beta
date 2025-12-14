@@ -366,11 +366,6 @@ export interface OnboardingState {
   checklist_progress?: {
     [key: string]: boolean;
   };
-  gamification?: {
-    last_wip_date?: string;
-    wip_streak_weeks: number;
-    badges_earned: string[];
-  };
 }
 
 export interface Invitation {

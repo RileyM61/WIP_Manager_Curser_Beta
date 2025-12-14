@@ -24,7 +24,6 @@ import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import AcceptableUsePolicy from './pages/legal/AcceptableUsePolicy';
 import CookiePolicy from './pages/legal/CookiePolicy';
 import { OnboardingWizardModal } from './components/onboarding/OnboardingWizardModal';
-import { WIPCoachProvider } from './components/feedback/WIPCoach';
 import ResetOnboarding from './components/debug/ResetOnboarding';
 
 /**
@@ -60,9 +59,8 @@ function App() {
     <Sentry.ErrorBoundary fallback={ErrorFallback} showDialog>
       <BrowserRouter>
         <AuthProvider>
-          <WIPCoachProvider>
-            <OnboardingWizardModal />
-            <Routes>
+          <OnboardingWizardModal />
+          <Routes>
               {/* ============================================ */}
               {/* PUBLIC ROUTES - Landing Pages */}
               {/* ============================================ */}
@@ -130,8 +128,7 @@ function App() {
 
               {/* Catch-all: redirect unknown routes to home */}
               <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </WIPCoachProvider>
+          </Routes>
         </AuthProvider>
       </BrowserRouter>
     </Sentry.ErrorBoundary>

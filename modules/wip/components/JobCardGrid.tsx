@@ -6,7 +6,6 @@ import { sumBreakdown, calculateEarnedRevenue, calculateBillingDifference, calcu
 import { analyzeJobRisk, RiskLevel } from '../lib/smartEngines';
 import { useSubscription } from '../../../hooks/useSubscription';
 import { useChangeOrderCounts, COCountByJob } from '../../../hooks/useSupabaseChangeOrders';
-import { useWIPCoach } from '../../../components/feedback/WIPCoach';
 
 interface JobCardGridProps {
   jobs: Job[];
@@ -384,37 +383,6 @@ const JobCard: React.FC<{ job: Job; onEdit: (job: Job) => void; onOpenNotes: (jo
 const JobCardGrid: React.FC<JobCardGridProps> = ({ jobs, onEdit, onOpenNotes, onOpenHistory, onTakeSnapshot, onOpenChangeOrders, userRole, activeEstimator, companyId }) => {
   const { isPro } = useSubscription();
   const { coCounts, loadCOCounts, getCountForJob } = useChangeOrderCounts(companyId);
-
-  // Delight Engine: Check for wins
-  const { celebrate } = useWIPCoach();
-  const hasCelebratedRef = React.useRef(false);
-
-  useEffect(() => {
-    if (hasCelebratedRef.current || jobs.length === 0) return;
-
-    // 1. Find a "Profit Star" (Target Margin > 0 AND Forecast Margin > Target + 5%)
-    const starJob = jobs.find(j => {
-      if (j.status !== JobStatus.Active || !j.targetMargin) return false;
-      const metrics = calculateEarnedRevenue(j); // or use existing logic if extracted
-      // Re-calculate for check (efficient enough for client-side small lists)
-      const totalContract = sumBreakdown(j.contract);
-      const totalCost = sumBreakdown(j.costs);
-      const totalCostToComplete = sumBreakdown(j.costToComplete);
-      const forecastedProfit = totalContract - (totalCost + totalCostToComplete);
-      const margin = totalContract > 0 ? (forecastedProfit / totalContract) * 100 : 0;
-
-      return margin > (j.targetMargin + 5);
-    });
-
-    if (starJob) {
-      celebrate(
-        "Profit Star! 🚀",
-        `${starJob.jobName} is forecasting ${starJob.targetMargin && (starJob.targetMargin + 5).toFixed(1)}%+ margin. Great work!`
-      );
-      hasCelebratedRef.current = true;
-    }
-  }, [jobs, celebrate]);
-
 
   // Load CO counts on mount and when jobs change
   useEffect(() => {

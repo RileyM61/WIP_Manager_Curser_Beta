@@ -12,11 +12,7 @@ export const useOnboarding = () => {
         is_onboarding_completed: false,
         checklist_dismissed: false,
         user_level: 'undecided',
-        checklist_progress: {},
-        gamification: {
-            wip_streak_weeks: 0,
-            badges_earned: []
-        }
+        checklist_progress: {}
     };
 
     const getOnboardingState = useCallback((): OnboardingState => {
@@ -36,10 +32,6 @@ export const useOnboarding = () => {
                 checklist_progress: {
                     ...currentState.checklist_progress,
                     ...updates.checklist_progress
-                },
-                gamification: {
-                    ...currentState.gamification,
-                    ...updates.gamification
                 }
             };
 
@@ -79,29 +71,12 @@ export const useOnboarding = () => {
         });
     };
 
-    const incrementStreak = async () => {
-        // Logic for streak calculation would go here (checking last_wip_date)
-        // For now, simple incrementer for the "Delight Engine" POC
-        const currentState = getOnboardingState();
-        const currentStreak = currentState.gamification?.wip_streak_weeks || 0;
-
-        await updateOnboardingState({
-            gamification: {
-                ...currentState.gamification,
-                last_wip_date: new Date().toISOString(),
-                wip_streak_weeks: currentStreak + 1,
-                badges_earned: currentState.gamification?.badges_earned || []
-            }
-        });
-    };
-
     return {
         state: getOnboardingState(),
         updateOnboardingState,
         setLevel,
         dismissChecklist,
         updateChecklist,
-        incrementStreak,
         loading
     };
 };

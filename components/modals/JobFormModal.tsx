@@ -6,7 +6,6 @@ import { getDefaultTMSettings, sumBreakdown } from '../../modules/wip/lib/jobCal
 import InfoTooltip from '../help/InfoTooltip';
 import { helpContent } from '../../lib/helpContent';
 import { useTierFeatures, TierFeatures } from '../../hooks/useTierFeatures';
-import { useOnboarding } from '../../hooks/useOnboarding';
 
 // Default mobilization phases
 const getDefaultMobilizations = (): MobilizationPhase[] => [
@@ -49,7 +48,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
   // Tier features for subscription-based feature gating
   const tierFeatures = useTierFeatures();
-  const { incrementStreak } = useOnboarding();
 
   const getInitialState = (): Job => {
     const defaults: Job = {
@@ -301,7 +299,6 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
     // Clear draft after successful save
     localStorage.removeItem(DRAFT_STORAGE_KEY);
-    incrementStreak(); // Delight Engine: Track consistency
     onSave(jobToSave);
   };
 

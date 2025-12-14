@@ -27,11 +27,7 @@ const ResetOnboarding: React.FC = () => {
                             is_onboarding_completed: false,
                             checklist_dismissed: false,
                             user_level: 'undecided',
-                            checklist_progress: {},
-                            gamification: {
-                                wip_streak_weeks: 0,
-                                badges_earned: []
-                            }
+                            checklist_progress: {}
                         }
                     })
                     .eq('user_id', user.id);
