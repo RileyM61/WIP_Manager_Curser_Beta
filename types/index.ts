@@ -326,6 +326,10 @@ export interface Settings {
   // AI Feature Controls (workspace admin settings; future optional AI features)
   aiEnabled?: boolean;
   aiDataSharing?: AiDataSharingSettings;
+
+  // Owner-as-PM Settings
+  ownerIsAlsoPm?: boolean;        // True if the owner also manages jobs as a PM
+  ownerPmName?: string;           // The PM name the owner uses when assigned to jobs
 }
 
 export interface Company {

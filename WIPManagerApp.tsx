@@ -352,7 +352,10 @@ function App() {
 
   const handleQuickFilterSelect = useCallback((quick: QuickFilterKey) => {
     if (!settings) return;
-    const myPm = activeProjectManager || settings.projectManagers[0] || 'all';
+    // For PM quick actions: use ownerPmName if owner-as-PM, otherwise use activeProjectManager
+    const myPm = userRole === 'owner' && settings.ownerIsAlsoPm && settings.ownerPmName
+      ? settings.ownerPmName
+      : (activeProjectManager || settings.projectManagers[0] || 'all');
 
     switch (quick) {
       // Owner quick actions
@@ -371,7 +374,7 @@ function App() {
         setFocusMode('default');
         // Company view will show PM Scorecard
         break;
-      // PM quick actions
+      // PM quick actions (work for both PM role and Owner-as-PM)
       case 'pm-my-jobs':
         setFilter(JobStatus.Active);
         setPmFilter(myPm);
@@ -393,7 +396,7 @@ function App() {
       default:
         break;
     }
-  }, [activeProjectManager, settings, setFilter, setFocusMode, setPmFilter, setViewMode]);
+  }, [activeProjectManager, settings, userRole, setFilter, setFocusMode, setPmFilter, setViewMode]);
 
   const handleOpenCapacityModal = useCallback(() => {
     // If user has Labor Capacity access, navigate to that module instead
@@ -907,6 +910,8 @@ function App() {
             weeklyUpdatedCount={weeklyUpdatedCount}
             weeklyTotalCount={weeklyEligibleJobs.length}
             companyId={companyId}
+            ownerIsAlsoPm={settings.ownerIsAlsoPm}
+            ownerPmName={settings.ownerPmName}
           />
 
           <div>

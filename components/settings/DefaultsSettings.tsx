@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, WeekDay, JobStatus, UserRole } from '../../types';
+import { Settings, WeekDay, JobStatus } from '../../types';
 import { DEFAULT_CAPACITY_PLAN } from '../../hooks/useSupabaseSettings';
 
 interface DefaultsSettingsProps {
@@ -16,9 +16,7 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    if (name === 'defaultRole') {
-      onChange({ defaultRole: value as UserRole });
-    } else if (name === 'weekEndDay') {
+    if (name === 'weekEndDay') {
       onChange({ weekEndDay: value as WeekDay });
     } else if (name === 'defaultStatus') {
       onChange({ defaultStatus: value as JobStatus });
@@ -52,50 +50,28 @@ const DefaultsSettings: React.FC<DefaultsSettingsProps> = ({ settings, onChange,
         </p>
       </div>
 
-      {/* Default Status & Role */}
+      {/* Default Status */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">New Job Defaults</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="defaultStatus" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Default Job Status
-            </label>
-            <select
-              name="defaultStatus"
-              id="defaultStatus"
-              value={settings.defaultStatus}
-              onChange={handleChange}
-              className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
-            >
-              {Object.values(JobStatus).map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Status assigned to newly created jobs
-            </p>
-          </div>
-
-          <div>
-            <label htmlFor="defaultRole" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Default User Role
-            </label>
-            <select
-              name="defaultRole"
-              id="defaultRole"
-              value={settings.defaultRole}
-              onChange={handleChange}
-              className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
-            >
-              <option value="owner">Owner</option>
-              <option value="projectManager">Project Manager</option>
-              <option value="estimator">Estimator</option>
-            </select>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Role assigned to new team members
-            </p>
-          </div>
+        <div>
+          <label htmlFor="defaultStatus" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Default Job Status
+          </label>
+          <select
+            name="defaultStatus"
+            id="defaultStatus"
+            value={settings.defaultStatus}
+            onChange={handleChange}
+            className="block w-full max-w-xs border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-200"
+          >
+            {Object.values(JobStatus).map(status => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Status assigned to newly created jobs
+          </p>
         </div>
       </div>
 

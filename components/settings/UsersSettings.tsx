@@ -36,6 +36,24 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId,
   const [newEstimator, setNewEstimator] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Owner-as-PM toggle
+  const handleOwnerPmToggle = () => {
+    const newValue = !settings.ownerIsAlsoPm;
+    onChange({
+      ownerIsAlsoPm: newValue,
+      // If enabling and no PM name set, default to first PM or empty
+      ownerPmName: newValue && !settings.ownerPmName
+        ? settings.projectManagers[0] || ''
+        : settings.ownerPmName,
+    });
+    setHasChanges(true);
+  };
+
+  const handleOwnerPmNameChange = (pmName: string) => {
+    onChange({ ownerPmName: pmName });
+    setHasChanges(true);
+  };
+
   const handleAddPm = () => {
     if (newPm.trim() && !settings.projectManagers.includes(newPm.trim())) {
       onChange({
@@ -165,6 +183,86 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId,
           {successMessage}
         </div>
       )}
+
+      {/* Owner's Role Configuration */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-6">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
+            <span className="text-2xl">👑</span>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-1">Your Role</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              If you also manage jobs as a Project Manager, enable this to see combined quick actions and "My Jobs" filtering.
+            </p>
+
+            <div className="space-y-4">
+              {/* Toggle */}
+              <div className="flex items-center justify-between">
+                <label htmlFor="owner-pm-toggle" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  I also manage jobs as a Project Manager
+                </label>
+                <button
+                  id="owner-pm-toggle"
+                  type="button"
+                  onClick={handleOwnerPmToggle}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${settings.ownerIsAlsoPm ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition ${settings.ownerIsAlsoPm ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                  />
+                </button>
+              </div>
+
+              {/* PM Name Selector (only shown when toggle is on) */}
+              {settings.ownerIsAlsoPm && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-amber-200 dark:border-amber-700">
+                  <label htmlFor="owner-pm-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    My PM Name
+                  </label>
+                  {settings.projectManagers.length > 0 ? (
+                    <select
+                      id="owner-pm-name"
+                      value={settings.ownerPmName || ''}
+                      onChange={(e) => handleOwnerPmNameChange(e.target.value)}
+                      className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:text-gray-200"
+                    >
+                      <option value="">Select your PM name...</option>
+                      {settings.projectManagers.map(pm => (
+                        <option key={pm} value={pm}>{pm}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+                      Add yourself to the Project Managers list below first.
+                    </p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Select your name from the PM list so "My Jobs" filtering works for you.
+                  </p>
+                </div>
+              )}
+
+              {/* Info about what this enables */}
+              {settings.ownerIsAlsoPm && settings.ownerPmName && (
+                <div className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-300">
+                  <span>✓</span>
+                  <div>
+                    <p className="font-medium">You'll see:</p>
+                    <ul className="list-disc list-inside text-xs mt-1 space-y-0.5">
+                      <li>Combined Owner + PM quick actions</li>
+                      <li>"My Jobs" filter showing jobs assigned to "{settings.ownerPmName}"</li>
+                      <li>PM-specific insights in Weekly Review</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Invite New User */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">

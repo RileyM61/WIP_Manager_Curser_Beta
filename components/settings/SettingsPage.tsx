@@ -6,7 +6,6 @@ import UsersSettings from './UsersSettings';
 import DefaultsSettings from './DefaultsSettings';
 import AppearanceSettings from './AppearanceSettings';
 import LegalSettings from './LegalSettings';
-import ComingSoonSection from './ComingSoonSection';
 import PracticeSettings from './PracticeSettings';
 import DataAdminSettings from './DataAdminSettings';
 
@@ -16,11 +15,7 @@ type SettingsSection =
   | 'users'
   | 'defaults'
   | 'appearance'
-  | 'notifications'
-  | 'integrations'
-  | 'reports'
   | 'data'
-  | 'billing'
   | 'legal';
 
 interface SettingsPageProps {
@@ -71,6 +66,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const isCfo = managedCompanies.length > 0;
 
   // Navigation items with access control
+  // Note: Removed Coming Soon placeholders (Notifications, Integrations, Export & Reports, Billing)
+  // These will be re-added when features are actually built
   const navItems: { id: SettingsSection; label: string; icon: string; ownerOnly: boolean; show?: boolean }[] = [
     { id: 'company', label: 'Company', icon: '🏢', ownerOnly: true },
     { id: 'practice', label: 'CFO Practice', icon: '🏠', ownerOnly: true, show: isCfo || isManaged },
@@ -78,10 +75,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     { id: 'defaults', label: 'Job Defaults', icon: '⚙️', ownerOnly: true },
     { id: 'data', label: 'Data Admin', icon: '🗃️', ownerOnly: true },
     { id: 'appearance', label: 'Appearance', icon: '🎨', ownerOnly: false },
-    { id: 'notifications', label: 'Notifications', icon: '🔔', ownerOnly: false },
-    { id: 'integrations', label: 'Integrations', icon: '🔗', ownerOnly: true },
-    { id: 'reports', label: 'Export & Reports', icon: '📊', ownerOnly: true },
-    { id: 'billing', label: 'Billing', icon: '💳', ownerOnly: true, show: !isManaged },
     { id: 'legal', label: 'Legal', icon: '📜', ownerOnly: false },
   ];
 
@@ -180,58 +173,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             settings={currentSettings}
             onChange={handleSettingsChange}
             onSave={handleSave}
-          />
-        );
-      case 'notifications':
-        return (
-          <ComingSoonSection
-            title="Notifications"
-            description="Configure email alerts for job status changes, behind schedule warnings, and weekly WIP summaries."
-            features={[
-              'Email alerts when jobs go behind schedule',
-              'Weekly WIP summary reports',
-              'Job status change notifications',
-              'Custom alert thresholds',
-            ]}
-          />
-        );
-      case 'integrations':
-        return (
-          <ComingSoonSection
-            title="Integrations"
-            description="Connect WIP Manager to your accounting and project management tools."
-            features={[
-              'QuickBooks Online integration',
-              'QuickBooks Desktop sync',
-              'Sage integration',
-              'API access for custom integrations',
-            ]}
-          />
-        );
-      case 'reports':
-        return (
-          <ComingSoonSection
-            title="Export & Reports"
-            description="Customize your export formats and report templates."
-            features={[
-              'Custom PDF report templates',
-              'Company branding on exports',
-              'Scheduled report generation',
-              'Excel/CSV format options',
-            ]}
-          />
-        );
-      case 'billing':
-        return (
-          <ComingSoonSection
-            title="Billing & Subscription"
-            description="Manage your subscription plan and payment methods."
-            features={[
-              'View current plan details',
-              'Upgrade or downgrade subscription',
-              'Update payment method',
-              'Download invoices',
-            ]}
           />
         );
       case 'legal':

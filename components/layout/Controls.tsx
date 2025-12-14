@@ -82,6 +82,9 @@ interface ControlsProps {
   companyId?: string | null;
   weeklyReviewAutoOpen?: boolean;
   onWeeklyReviewAutoOpenConsumed?: () => void;
+  // Owner-as-PM settings
+  ownerIsAlsoPm?: boolean;
+  ownerPmName?: string;
 }
 
 const Controls: React.FC<ControlsProps> = ({
@@ -116,6 +119,8 @@ const Controls: React.FC<ControlsProps> = ({
   companyId,
   weeklyReviewAutoOpen,
   onWeeklyReviewAutoOpenConsumed,
+  ownerIsAlsoPm = false,
+  ownerPmName,
 }) => {
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
@@ -166,9 +171,12 @@ const Controls: React.FC<ControlsProps> = ({
   const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'weekly';
   const isWeeklyView = filter === 'weekly';
 
-  const pmMyJobsActive = userRole === 'projectManager' && focusMode === 'default' && filter === JobStatus.Active && pmFilter === activePmForFilter;
-  const pmAtRiskActive = userRole === 'projectManager' && focusMode === 'pm-at-risk';
-  const pmLateActive = userRole === 'projectManager' && focusMode === 'pm-late';
+  // PM quick filter states work for both PM role and Owner-as-PM
+  const isPmOrOwnerAsPm = userRole === 'projectManager' || (userRole === 'owner' && ownerIsAlsoPm && ownerPmName);
+  const activePmNameForOwner = userRole === 'owner' && ownerIsAlsoPm ? ownerPmName : activePmForFilter;
+  const pmMyJobsActive = isPmOrOwnerAsPm && focusMode === 'default' && filter === JobStatus.Active && pmFilter === activePmNameForOwner;
+  const pmAtRiskActive = isPmOrOwnerAsPm && focusMode === 'pm-at-risk';
+  const pmLateActive = isPmOrOwnerAsPm && focusMode === 'pm-late';
 
   const showWeeklyReviewPanel = filter === 'weekly' || (viewMode === 'table' && weeklyUpdateMode);
   const isAsOfSet = !!weeklyAsOfDate;
@@ -745,46 +753,90 @@ const Controls: React.FC<ControlsProps> = ({
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Quick Actions:</span>
 
             {userRole === 'owner' && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={() => onQuickFilterSelect('owner-troubled-jobs')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                    filter === JobStatus.Active && viewMode === 'grid' && focusMode === 'default'
-                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600 dark:hover:text-red-400'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  Troubled Jobs
-                </button>
-                <button
-                  onClick={() => onQuickFilterSelect('owner-weekly-revenue')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                    filter === 'company'
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-green-400 hover:text-green-600 dark:hover:text-green-400'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Weekly Revenue
-                </button>
-                <button
-                  onClick={() => onQuickFilterSelect('owner-pm-review')}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                    filter === 'company'
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  PM Review
-                </button>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                {/* Owner Quick Actions */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => onQuickFilterSelect('owner-troubled-jobs')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+                      filter === JobStatus.Active && viewMode === 'grid' && focusMode === 'default'
+                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600 dark:hover:text-red-400'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Troubled Jobs
+                  </button>
+                  <button
+                    onClick={() => onQuickFilterSelect('owner-weekly-revenue')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+                      filter === 'company'
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-green-400 hover:text-green-600 dark:hover:text-green-400'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Weekly Revenue
+                  </button>
+                  <button
+                    onClick={() => onQuickFilterSelect('owner-pm-review')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
+                      filter === 'company'
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    PM Review
+                  </button>
+                </div>
+
+                {/* PM Actions for Owner-as-PM */}
+                {ownerIsAlsoPm && ownerPmName && (
+                  <>
+                    <div className="hidden sm:block w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded">
+                        👑 + PM: {ownerPmName}
+                      </span>
+                      <button
+                        onClick={() => onQuickFilterSelect('pm-my-jobs')}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${pmMyJobsActive
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-amber-400 hover:text-amber-600'
+                        }`}
+                      >
+                        My Jobs
+                      </button>
+                      <button
+                        onClick={() => onQuickFilterSelect('pm-at-risk')}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmAtRiskActive
+                          ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                        At-Risk Margin
+                      </button>
+                      <button
+                        onClick={() => onQuickFilterSelect('pm-late')}
+                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmLateActive
+                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md'
+                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-yellow-400 hover:text-yellow-600'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                        Behind Schedule
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
