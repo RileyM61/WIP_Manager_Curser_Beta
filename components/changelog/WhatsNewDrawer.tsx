@@ -23,7 +23,8 @@ interface WhatsNewDrawerProps {
 
 const WhatsNewDrawer: React.FC<WhatsNewDrawerProps> = ({ isOpen, onClose }) => {
   // Get recent entries (last 60 days, visible in-app)
-  const entries = useMemo(() => getInAppEntries(60), []);
+  // Recalculate when drawer opens to ensure fresh date-based filtering
+  const entries = useMemo(() => getInAppEntries(60), [isOpen]);
   const groupedEntries = useMemo(() => groupByDate(entries), [entries]);
 
   // Mark as viewed when drawer opens
