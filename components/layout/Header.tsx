@@ -4,6 +4,7 @@ import { UserRole } from '../../types';
 import DashboardNavButton from './DashboardNavButton';
 import { useSubscription } from '../../hooks/useSubscription';
 import { supabase } from '../../lib/supabase';
+import { hasUnread } from '../../lib/changelog';
 
 interface HeaderProps {
   companyName: string;
@@ -26,6 +27,7 @@ interface HeaderProps {
   onOpenGlossary?: () => void;
   onOpenWorkflows?: () => void;
   onStartTour?: () => void;
+  onOpenWhatsNew?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -49,9 +51,16 @@ const Header: React.FC<HeaderProps> = ({
   onOpenGlossary,
   onOpenWorkflows,
   onStartTour,
+  onOpenWhatsNew,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [helpMenuOpen, setHelpMenuOpen] = useState(false);
+  const [showUnreadBadge, setShowUnreadBadge] = useState(false);
+
+  // Check for unread changelog entries
+  useEffect(() => {
+    setShowUnreadBadge(hasUnread());
+  }, []);
   const { isPro, isLoading: isSubscriptionLoading } = useSubscription();
   const [isUpgrading, setIsUpgrading] = useState(false);
 
@@ -360,6 +369,24 @@ const Header: React.FC<HeaderProps> = ({
                   </>
                 )}
               </div>
+
+              {/* What's New Button */}
+              <button
+                onClick={() => {
+                  setShowUnreadBadge(false);
+                  onOpenWhatsNew?.();
+                }}
+                className="relative p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                aria-label="What's New"
+                title="What's New"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                </svg>
+                {showUnreadBadge && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full" />
+                )}
+              </button>
 
               <button
                 onClick={onToggleTheme}

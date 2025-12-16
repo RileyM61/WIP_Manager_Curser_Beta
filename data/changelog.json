@@ -1,0 +1,136 @@
+{
+  "entries": [
+    {
+      "id": "2024-12-16-margin-variance-alerts",
+      "version": "2.4.0",
+      "title": "Margin Variance Alerts",
+      "category": "Added",
+      "summary": "Jobs now display a visual warning when the forecasted margin drops more than 5% from the original estimate.",
+      "whyItMatters": "You can now spot troubled jobs earlier. Instead of discovering margin erosion at month-end, you'll see a warning as soon as the forecast changes significantly. This gives you time to investigate and course-correct before small problems become big losses.",
+      "actionRequired": "None",
+      "releaseDate": "2024-12-16",
+      "isPublic": true,
+      "isInAppVisible": true,
+      "tags": ["WIP Logic", "Alerts"]
+    },
+    {
+      "id": "2024-12-14-cost-to-complete-auto-calc",
+      "version": "2.3.2",
+      "title": "Automatic Cost-to-Complete Updates",
+      "category": "Improved",
+      "summary": "When you update costs to date, the system now automatically recalculates cost-to-complete based on your original budget proportions.",
+      "whyItMatters": "This reduces manual data entry and helps keep your forecasts current. Previously, updating costs required manually adjusting cost-to-complete. Now the math happens automatically, so your WIP report stays accurate with less effort.",
+      "actionRequired": "None",
+      "releaseDate": "2024-12-14",
+      "isPublic": true,
+      "isInAppVisible": true,
+      "tags": ["WIP Logic", "Data Entry"]
+    },
+    {
+      "id": "2024-12-10-overbilling-display-fix",
+      "version": "2.3.1",
+      "title": "Overbilling Percentage Corrected",
+      "category": "Fixed",
+      "summary": "Fixed an issue where jobs with overbilling were displaying incorrect percentages in the Company View summary.",
+      "whyItMatters": "Your Company View now shows accurate overbilling totals. This was a display issue only - your actual job data was correct. The summary now matches what you see on individual job cards.",
+      "actionRequired": "None",
+      "releaseDate": "2024-12-10",
+      "isPublic": true,
+      "isInAppVisible": true,
+      "tags": ["Billing", "Bug Fix"]
+    },
+    {
+      "id": "2024-12-08-percent-complete-by-category",
+      "version": "2.3.0",
+      "title": "Percent Complete Now Calculated Per Cost Category",
+      "category": "Behavior Change",
+      "summary": "Percent complete is now calculated separately for Labor, Material, and Other costs, then combined for total earned revenue.",
+      "whyItMatters": "This matches standard construction accounting practices and produces more accurate earned revenue calculations. If your labor is 80% complete but materials are only 50% delivered, your earned revenue now reflects that difference rather than averaging them together.",
+      "actionRequired": "Recommended",
+      "actionDescription": "Review your active jobs to ensure cost-to-complete estimates are entered for each category (Labor, Material, Other) rather than just as a total.",
+      "releaseDate": "2024-12-08",
+      "isPublic": true,
+      "isInAppVisible": true,
+      "tags": ["WIP Logic", "Calculations"]
+    },
+    {
+      "id": "2024-12-05-change-order-tracking",
+      "version": "2.2.0",
+      "title": "Change Order Management",
+      "category": "Added",
+      "summary": "You can now track change orders separately from the base contract, with support for both pending and approved status.",
+      "whyItMatters": "Change orders are a leading indicator of project health. By tracking them separately, you can see how much of your contract value is still pending approval - critical information for cash flow planning and risk assessment.",
+      "actionRequired": "None",
+      "releaseDate": "2024-12-05",
+      "isPublic": true,
+      "isInAppVisible": true,
+      "tags": ["Change Orders", "New Feature"]
+    },
+    {
+      "id": "2024-12-01-dark-mode",
+      "version": "2.1.1",
+      "title": "Dark Mode Support",
+      "category": "Added",
+      "summary": "The application now supports dark mode, which can be toggled in Settings > Appearance.",
+      "whyItMatters": "Easier on the eyes during late-night month-end closes. Dark mode reduces eye strain and works better in low-light environments.",
+      "actionRequired": "None",
+      "releaseDate": "2024-12-01",
+      "isPublic": true,
+      "isInAppVisible": true,
+      "tags": ["UI", "Accessibility"]
+    },
+    {
+      "id": "2024-11-28-weekly-snapshot-comparison",
+      "version": "2.1.0",
+      "title": "Week-Over-Week Job Comparison",
+      "category": "Added",
+      "summary": "The Weekly Review now shows how each job's key metrics have changed since last week.",
+      "whyItMatters": "Trends matter more than point-in-time numbers. Now you can quickly see which jobs are improving, which are getting worse, and which need immediate attention - all at a glance during your weekly review.",
+      "actionRequired": "None",
+      "releaseDate": "2024-11-28",
+      "isPublic": true,
+      "isInAppVisible": true,
+      "tags": ["Reports", "Weekly Review"]
+    },
+    {
+      "id": "2024-11-20-export-improvements",
+      "version": "2.0.3",
+      "title": "Improved Excel Export",
+      "category": "Improved",
+      "summary": "Excel exports now include all cost categories and formatting that matches the on-screen display.",
+      "whyItMatters": "Easier to share WIP reports with your CPA, banker, or bonding agent. The exported file now looks professional and includes all the detail they need for financial reviews.",
+      "actionRequired": "None",
+      "releaseDate": "2024-11-20",
+      "isPublic": true,
+      "isInAppVisible": false,
+      "tags": ["Reports", "Export"]
+    },
+    {
+      "id": "2024-11-15-tm-billing-calculation",
+      "version": "2.0.2",
+      "title": "T&M Billing Calculation Fix",
+      "category": "Fixed",
+      "summary": "Time & Material jobs now correctly calculate earned revenue when using the markup method.",
+      "whyItMatters": "If you have T&M jobs with cost-plus markup billing, your earned revenue figures are now accurate. This was causing some T&M jobs to show incorrect billing positions.",
+      "actionRequired": "None",
+      "releaseDate": "2024-11-15",
+      "isPublic": true,
+      "isInAppVisible": false,
+      "tags": ["T&M", "Bug Fix"]
+    },
+    {
+      "id": "2024-11-10-company-view-launch",
+      "version": "2.0.0",
+      "title": "Company View Dashboard",
+      "category": "Added",
+      "summary": "New Company View shows portfolio-level metrics including total backlog, net billing position, and aggregate margin trends.",
+      "whyItMatters": "See the big picture. Instead of reviewing jobs one-by-one, you can now see your entire portfolio's health at a glance. Identify patterns across jobs and prioritize where to focus your attention.",
+      "actionRequired": "None",
+      "releaseDate": "2024-11-10",
+      "isPublic": true,
+      "isInAppVisible": false,
+      "tags": ["Dashboard", "New Feature"]
+    }
+  ]
+}
+

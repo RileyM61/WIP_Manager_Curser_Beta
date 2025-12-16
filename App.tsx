@@ -23,6 +23,9 @@ import TermsOfService from './pages/legal/TermsOfService';
 import PrivacyPolicy from './pages/legal/PrivacyPolicy';
 import AcceptableUsePolicy from './pages/legal/AcceptableUsePolicy';
 import CookiePolicy from './pages/legal/CookiePolicy';
+
+// Change Log
+import ChangeLogPage from './pages/ChangeLogPage';
 import { OnboardingWizardModal } from './components/onboarding/OnboardingWizardModal';
 import ResetOnboarding from './components/debug/ResetOnboarding';
 
@@ -86,6 +89,9 @@ function App() {
               <Route path="/legal/privacy" element={<PrivacyPolicy />} />
               <Route path="/legal/acceptable-use" element={<AcceptableUsePolicy />} />
               <Route path="/legal/cookies" element={<CookiePolicy />} />
+
+              {/* Change Log - Public */}
+              <Route path="/changelog" element={<ChangeLogPage />} />
 
               {/* Debug Tools */}
               <Route path="/debug/reset" element={<ResetOnboarding />} />

@@ -35,6 +35,7 @@ import UpgradeModal from './components/modals/UpgradeModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
+import { WhatsNewDrawer } from './components/changelog';
 import { ReportsView } from './components/reports';
 import { OnboardingWidget } from './components/onboarding/OnboardingWidget';
 import { tourSteps, markTourCompleted, hasCompletedTour } from './lib/tourSteps';
@@ -139,6 +140,7 @@ function App() {
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showWorkflows, setShowWorkflows] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   // Auto-start tour for new users (if level is set)
   useEffect(() => {
@@ -875,6 +877,7 @@ function App() {
         onStartTour={() => setIsTourOpen(true)}
         onOpenGlossary={() => setShowGlossary(true)}
         onOpenWorkflows={() => setShowWorkflows(true)}
+        onOpenWhatsNew={() => setShowWhatsNew(true)}
       />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">
@@ -1049,6 +1052,12 @@ function App() {
           <WorkflowsPage onBack={() => setShowWorkflows(false)} />
         </div>
       )}
+
+      {/* What's New Drawer */}
+      <WhatsNewDrawer
+        isOpen={showWhatsNew}
+        onClose={() => setShowWhatsNew(false)}
+      />
 
       {/* Job Limit Modal for Free Users */}
       <JobLimitModal
