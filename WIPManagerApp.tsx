@@ -35,6 +35,7 @@ import UpgradeModal from './components/modals/UpgradeModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
+import ActivityLogPage from './pages/ActivityLogPage';
 import { WhatsNewDrawer } from './components/changelog';
 import { ReportsView } from './components/reports';
 import { OnboardingWidget } from './components/onboarding/OnboardingWidget';
@@ -141,6 +142,7 @@ function App() {
   const [showGlossary, setShowGlossary] = useState(false);
   const [showWorkflows, setShowWorkflows] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [showActivityLog, setShowActivityLog] = useState(false);
 
   // Auto-start tour for new users (if level is set)
   useEffect(() => {
@@ -878,6 +880,7 @@ function App() {
         onOpenGlossary={() => setShowGlossary(true)}
         onOpenWorkflows={() => setShowWorkflows(true)}
         onOpenWhatsNew={() => setShowWhatsNew(true)}
+        onOpenActivityLog={() => setShowActivityLog(true)}
       />
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="space-y-6">
@@ -1050,6 +1053,13 @@ function App() {
       {showWorkflows && (
         <div className="fixed inset-0 z-[100] bg-gray-50 dark:bg-gray-900 overflow-y-auto">
           <WorkflowsPage onBack={() => setShowWorkflows(false)} />
+        </div>
+      )}
+
+      {/* Activity Log Page (full-screen overlay) */}
+      {showActivityLog && (
+        <div className="fixed inset-0 z-[100] bg-gray-50 dark:bg-gray-900 overflow-y-auto">
+          <ActivityLogPage onClose={() => setShowActivityLog(false)} />
         </div>
       )}
 

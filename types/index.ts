@@ -8,6 +8,9 @@
 // Re-export module system types
 export * from './modules';
 
+// Re-export audit trail types
+export * from './audit';
+
 // ============================================================================
 // Job Status & Enums
 // ============================================================================

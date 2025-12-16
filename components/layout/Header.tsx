@@ -28,6 +28,7 @@ interface HeaderProps {
   onOpenWorkflows?: () => void;
   onStartTour?: () => void;
   onOpenWhatsNew?: () => void;
+  onOpenActivityLog?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -52,6 +53,7 @@ const Header: React.FC<HeaderProps> = ({
   onOpenWorkflows,
   onStartTour,
   onOpenWhatsNew,
+  onOpenActivityLog,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [helpMenuOpen, setHelpMenuOpen] = useState(false);
@@ -344,6 +346,19 @@ const Header: React.FC<HeaderProps> = ({
                           <div className="text-left">
                             <div className="font-medium">Workflows</div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">Step-by-step guides</div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setHelpMenuOpen(false);
+                            onOpenActivityLog?.();
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors border-t border-gray-100 dark:border-gray-700 mt-1"
+                        >
+                          <span className="text-lg">📋</span>
+                          <div className="text-left">
+                            <div className="font-medium">Activity Log</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Track all changes</div>
                           </div>
                         </button>
                         <button

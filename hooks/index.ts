@@ -11,4 +11,5 @@ export { useWeeklySnapshots, useMonthlySnapshots, getWeekInfo, getMonthInfo } fr
 export { useJobFinancialSnapshots } from './useJobFinancialSnapshots';
 export { useTierFeatures, FREE_TIER_LIMITS, getFreeTierFeatures, getProTierFeatures } from './useTierFeatures';
 export type { TierFeatures } from './useTierFeatures';
+export { useAuditLog } from './useAuditLog';
 
