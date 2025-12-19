@@ -82,6 +82,10 @@ export const AUDIT_FIELD_LABELS: Record<string, string> = {
   product_type: 'Product Type',
   job_complexity: 'Job Complexity',
   
+  // Bond fields
+  has_bond: 'Has Bond',
+  bond_amount: 'Bond Amount',
+  
   // Change Order fields
   co_number: 'CO Number',
   description: 'Description',

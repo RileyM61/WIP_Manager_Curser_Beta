@@ -785,9 +785,18 @@ const GanttView: React.FC<GanttViewProps> = ({
                         />
 
                         {/* Bar content */}
-                        <div className="flex-1 px-3 truncate text-white text-xs font-medium">
+                        <div className="flex-1 px-3 truncate text-white text-xs font-medium flex items-center gap-1">
                           {barStyle.width > 60 && (
                             <span>{activeMobs.length > 1 ? `P${phase.id}` : job.jobNo}</span>
+                          )}
+                          {/* Bond indicator */}
+                          {job.hasBond && (
+                            <span
+                              className="ml-1"
+                              title={`Bond: $${(job.bondAmount || 0).toLocaleString()}`}
+                            >
+                              🛡️
+                            </span>
                           )}
                           {/* Show labor hours for this phase */}
                           {barStyle.width > 80 && (() => {

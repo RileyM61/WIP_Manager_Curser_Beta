@@ -71,6 +71,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
       jobType: 'fixed-price',
       mobilizations: getDefaultMobilizations(),
       asOfDate: new Date().toISOString().split('T')[0], // Default to today
+      hasBond: false,
+      bondAmount: undefined,
     };
 
     if (jobToEdit) {
@@ -620,6 +622,65 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                         <option value="5">5 - Highly Complex</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+
+                {/* Bond Tracking */}
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                    Bond Requirement
+                  </h3>
+                  <div className="space-y-4">
+                    {/* Bond Toggle */}
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="hasBond" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Bond Required?
+                      </label>
+                      <div className="flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setJob(prev => ({
+                              ...prev,
+                              hasBond: !prev.hasBond,
+                              bondAmount: !prev.hasBond ? (prev.bondAmount || 0) : undefined,
+                            }));
+                          }}
+                          disabled={isEstimatorWithRestrictedAccess}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            job.hasBond ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'
+                          }`}
+                          role="switch"
+                          aria-checked={job.hasBond}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              job.hasBond ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                        <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                          {job.hasBond ? 'Yes' : 'No'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bond Amount (shown when hasBond is true) */}
+                    {job.hasBond && (
+                      <div>
+                        <label htmlFor="bondAmount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Bond Amount
+                        </label>
+                        <CurrencyInput
+                          id="bondAmount"
+                          name="bondAmount"
+                          value={job.bondAmount || 0}
+                          onChange={(value) => handleCurrencyChange('bondAmount', value)}
+                          disabled={isEstimatorWithRestrictedAccess}
+                        />
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total bond commitment amount for this job</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

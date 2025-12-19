@@ -86,6 +86,10 @@ export function dbJobToAppJob(dbJob: any): Job {
     jobCategory: dbJob.job_category as JobCategory || undefined,
     productType: dbJob.product_type as ProductType || undefined,
     jobComplexity: dbJob.job_complexity ? (Number(dbJob.job_complexity) as JobComplexity) : undefined,
+
+    // Bond Tracking
+    hasBond: dbJob.has_bond || false,
+    bondAmount: dbJob.bond_amount ? Number(dbJob.bond_amount) : undefined,
   };
 }
 
@@ -148,6 +152,10 @@ export function appJobToDbJob(job: Job): any {
     job_category: job.jobCategory || null,
     product_type: job.productType || null,
     job_complexity: job.jobComplexity || null,
+
+    // Bond Tracking
+    has_bond: job.hasBond || false,
+    bond_amount: job.bondAmount || null,
   };
 }
 

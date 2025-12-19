@@ -150,6 +150,10 @@ export interface Job {
   jobCategory?: JobCategory;    // Commercial, Government, Residential
   productType?: ProductType;    // Chain Link, Ornamental, Field Fencing, Vinyl, Wood, Other
   jobComplexity?: JobComplexity; // 1-5 complexity rating
+
+  // Bond Tracking
+  hasBond?: boolean;      // Whether job requires a bond (default: false)
+  bondAmount?: number;    // Bond amount in dollars (only relevant if hasBond is true)
 }
 
 export interface JobsSnapshot {
