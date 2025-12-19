@@ -155,7 +155,13 @@ export function appJobToDbJob(job: Job): any {
 
     // Bond Tracking
     has_bond: job.hasBond || false,
-    bond_amount: job.bondAmount || null,
+    bond_amount: (() => {
+      if (!job.hasBond) return null;
+      const amount = job.bondAmount;
+      if (amount === undefined || amount === null) return null;
+      const numValue = Number(amount);
+      return isNaN(numValue) ? null : numValue;
+    })(),
   };
 }
 
