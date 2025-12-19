@@ -669,6 +669,14 @@ function App() {
     });
   }, [jobs, filter, sortKey, sortDirection, searchQuery, pmFilter, focusMode, userRole, activeEstimator]);
 
+  const timelineJobs = useMemo(() => {
+    return jobs.filter(job => 
+      job.status === JobStatus.Future || 
+      job.status === JobStatus.Active || 
+      job.status === JobStatus.OnHold
+    );
+  }, [jobs]);
+
   const weeklyEligibleJobs = useMemo(() => {
     return sortedAndFilteredJobs.filter(job => job.status === JobStatus.Active || job.status === JobStatus.OnHold);
   }, [sortedAndFilteredJobs]);
@@ -730,7 +738,7 @@ function App() {
       return (
         <>
           <GanttView
-            jobs={sortedAndFilteredJobs}
+            jobs={timelineJobs}
             onUpdateJob={handleSaveJob}
             onEditJob={handleEditJobClick}
             capacityPlan={settings?.capacityPlan}
@@ -739,7 +747,7 @@ function App() {
             laborCapacityEnabled={hasLaborCapacityAccess && !!laborCapacity}
           />
           <BondExposureChart
-            jobs={sortedAndFilteredJobs}
+            jobs={timelineJobs}
           />
         </>
       );
