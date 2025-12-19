@@ -20,6 +20,7 @@ import JobTable from './modules/wip/components/JobTable';
 import NeedsAttentionQueue from './modules/wip/components/NeedsAttentionQueue';
 import PortfolioHealthScore from './modules/wip/components/PortfolioHealthScore';
 import GanttView from './components/views/GanttView';
+import BondExposureChart from './components/views/BondExposureChart';
 import JobFormModal from './components/modals/JobFormModal';
 import CompanyView from './components/views/CompanyView';
 import ForecastView from './components/views/ForecastView';
@@ -727,15 +728,20 @@ function App() {
     }
     if (viewMode === 'gantt') {
       return (
-        <GanttView
-          jobs={sortedAndFilteredJobs}
-          onUpdateJob={handleSaveJob}
-          onEditJob={handleEditJobClick}
-          capacityPlan={settings?.capacityPlan}
-          capacityEnabled={settings?.capacityEnabled}
-          laborCapacityHours={laborCapacity?.weeklyProductiveHours}
-          laborCapacityEnabled={hasLaborCapacityAccess && !!laborCapacity}
-        />
+        <>
+          <GanttView
+            jobs={sortedAndFilteredJobs}
+            onUpdateJob={handleSaveJob}
+            onEditJob={handleEditJobClick}
+            capacityPlan={settings?.capacityPlan}
+            capacityEnabled={settings?.capacityEnabled}
+            laborCapacityHours={laborCapacity?.weeklyProductiveHours}
+            laborCapacityEnabled={hasLaborCapacityAccess && !!laborCapacity}
+          />
+          <BondExposureChart
+            jobs={sortedAndFilteredJobs}
+          />
+        </>
       );
     }
     if (viewMode === 'grid') {
