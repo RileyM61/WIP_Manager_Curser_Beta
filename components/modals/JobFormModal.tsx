@@ -675,7 +675,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                           id="bondAmount"
                           name="bondAmount"
                           value={job.bondAmount || 0}
-                          onChange={(value) => handleCurrencyChange('bondAmount', value)}
+                          onChange={(name, value) => handleCurrencyChange('bondAmount', value)}
                           disabled={isEstimatorWithRestrictedAccess}
                         />
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Total bond commitment amount for this job</p>
