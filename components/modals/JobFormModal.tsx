@@ -287,7 +287,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
     }
 
     const isNewJob = !jobToEdit;
-    const finalCostToComplete = isNewJob ? job.budget : job.costToComplete;
+    const userEnteredCTC = job.costToComplete.labor > 0 || job.costToComplete.material > 0 || job.costToComplete.other > 0;
+    const finalCostToComplete = (isNewJob && !userEnteredCTC) ? job.budget : job.costToComplete;
 
     const jobToSave: Job = {
       ...job,
@@ -314,7 +315,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
     }
 
     const isNewJob = !jobToEdit;
-    const finalCostToComplete = isNewJob ? job.budget : job.costToComplete;
+    const userEnteredCTC = job.costToComplete.labor > 0 || job.costToComplete.material > 0 || job.costToComplete.other > 0;
+    const finalCostToComplete = (isNewJob && !userEnteredCTC) ? job.budget : job.costToComplete;
 
     const jobToSave: Job = {
       ...job,
