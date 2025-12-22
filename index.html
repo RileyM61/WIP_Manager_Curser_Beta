@@ -5,6 +5,10 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WIP Insights</title>
+    <!-- Google Font: DM Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       // Prevents FOUC (Flash of Unstyled Content) for dark mode
@@ -23,6 +27,19 @@
               'brand-light-blue': '#3b82f6',
               'brand-gray': '#f3f4f6',
               'brand-dark-gray': '#4b5563',
+              // Warm tan/stone color palette
+              'wip-dark': '#e8e2d9',
+              'wip-navy': '#d9d2c6',
+              'wip-card': '#f7f5f1',
+              'wip-border': '#b8ad9a',
+              'wip-heading': '#262320',
+              'wip-gold': '#a6863f',
+              'wip-gold-dark': '#8a6f32',
+              'wip-text': '#363330',
+              'wip-muted': '#6b655a',
+            },
+            fontFamily: {
+              sans: ['DM Sans', 'system-ui', 'sans-serif'],
             },
           },
         },
@@ -42,14 +59,48 @@
     scroll-behavior: smooth;
   }
   
-  /* Graph paper background pattern */
+  /* Warm tan/stone color palette CSS variables */
   :root {
-    --grid-color: rgba(59, 130, 246, 0.15);
+    /* Background: Warm tan - stable ground */
+    --wip-dark: #e8e2d9;
+    --wip-navy: #d9d2c6;
+    --wip-card: #f7f5f1;
+    
+    /* Borders: Structural clarity */
+    --wip-border: #b8ad9a;
+    
+    /* Text: Charcoal/graphite for authority */
+    --wip-heading: #262320;
+    --wip-text: #363330;
+    --wip-muted: #6b655a;
+    
+    /* Accent: Gold - deliberate, grounded */
+    --wip-gold: #a6863f;
+    --wip-gold-dark: #8a6f32;
+    
+    /* Graph paper pattern */
+    --grid-color: rgba(166, 134, 63, 0.12);
     --grid-size: 12px;
   }
   
   .dark {
     --grid-color: rgba(100, 150, 200, 0.12);
+  }
+  
+  /* Body base styling */
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background-color: var(--wip-dark);
+    color: var(--wip-text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Selection styling */
+  ::selection {
+    background: var(--wip-gold);
+    color: var(--wip-text);
   }
   
   .bg-graph-paper {
@@ -74,7 +125,7 @@
   }
 </style>
 </head>
-  <body class="bg-brand-gray dark:bg-gray-900">
+  <body class="bg-wip-dark dark:bg-gray-900">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

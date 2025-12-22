@@ -8,6 +8,33 @@ export const FREE_TIER_LIMITS = {
     maxActiveJobs: 5,
 };
 
+// Helper functions for tier features
+export function getFreeTierFeatures(): Omit<TierFeatures, 'getUpgradeMessage'> {
+    return {
+        canUseTimeAndMaterial: false,
+        canUseMobilization: false,
+        canUseAIInsights: false,
+        canUseTableView: true,
+        canUseGanttView: true,
+        canUseReportsView: false,
+        isPro: false,
+        canAddMoreJobs: (currentCount: number) => currentCount < FREE_TIER_LIMITS.maxActiveJobs,
+    };
+}
+
+export function getProTierFeatures(): Omit<TierFeatures, 'getUpgradeMessage'> {
+    return {
+        canUseTimeAndMaterial: true,
+        canUseMobilization: true,
+        canUseAIInsights: true,
+        canUseTableView: true,
+        canUseGanttView: true,
+        canUseReportsView: true,
+        isPro: true,
+        canAddMoreJobs: () => true,
+    };
+}
+
 export interface TierFeatures {
     canUseTimeAndMaterial: boolean;
     canUseMobilization: boolean;

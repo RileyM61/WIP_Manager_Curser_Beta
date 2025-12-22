@@ -33,7 +33,7 @@ const RotatingText: React.FC = () => {
   return (
     <div className="h-20 sm:h-16 relative flex items-center justify-center lg:justify-start">
       <p
-        className={`text-xl text-slate-300 transition-all duration-500 transform absolute w-full ${fade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+        className={`text-xl text-wip-text transition-all duration-500 transform absolute w-full ${fade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
       >
         {statements[index]}
@@ -82,7 +82,7 @@ const SampleProjectTile: React.FC<{
 
     return (
       <div
-        className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+        className="bg-wip-card/90 backdrop-blur-md border border-wip-border rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
         style={{
           animation: `fadeSlideUp 0.6s ease-out ${delay}ms both`,
         }}
@@ -91,29 +91,29 @@ const SampleProjectTile: React.FC<{
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-mono text-orange-300 bg-orange-500/20 px-2 py-0.5 rounded">
+              <span className="text-xs font-mono text-wip-gold bg-wip-gold/20 px-2 py-0.5 rounded">
                 {jobNumber}
               </span>
               <span className={`w-2 h-2 rounded-full ${statusColors[status]} animate-pulse`} />
             </div>
-            <h3 className="text-white font-semibold text-sm leading-tight">{jobName}</h3>
-            <p className="text-slate-400 text-xs mt-0.5">{client}</p>
+            <h3 className="text-wip-heading font-semibold text-sm leading-tight">{jobName}</h3>
+            <p className="text-wip-muted text-xs mt-0.5">{client}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-slate-400">PM</p>
-            <p className="text-xs text-white font-medium">{pm}</p>
+            <p className="text-xs text-wip-muted">PM</p>
+            <p className="text-xs text-wip-heading font-medium">{pm}</p>
           </div>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-4">
           <div className="flex justify-between text-xs mb-1">
-            <span className="text-slate-400">Progress</span>
-            <span className="text-white font-medium">{percentComplete}%</span>
+            <span className="text-wip-muted">Progress</span>
+            <span className="text-wip-heading font-medium">{percentComplete}%</span>
           </div>
-          <div className="h-2 bg-slate-700/50 rounded-full overflow-hidden">
+          <div className="h-2 bg-wip-navy rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-1000"
+              className="h-full bg-gradient-to-r from-wip-gold to-wip-gold-dark rounded-full transition-all duration-1000"
               style={{ width: `${percentComplete}%` }}
             />
           </div>
@@ -121,36 +121,36 @@ const SampleProjectTile: React.FC<{
 
         {/* Financial Grid */}
         <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="bg-slate-800/50 rounded-lg p-2">
-            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Contract</p>
-            <p className="text-sm text-white font-semibold">
+          <div className="bg-wip-navy/70 rounded-lg p-2">
+            <p className="text-[10px] text-wip-muted uppercase tracking-wide">Contract</p>
+            <p className="text-sm text-wip-heading font-semibold">
               ${(contractValue / 1000).toFixed(0)}K
             </p>
           </div>
-          <div className="bg-slate-800/50 rounded-lg p-2">
-            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Cost to Date</p>
-            <p className="text-sm text-white font-semibold">
+          <div className="bg-wip-navy/70 rounded-lg p-2">
+            <p className="text-[10px] text-wip-muted uppercase tracking-wide">Cost to Date</p>
+            <p className="text-sm text-wip-heading font-semibold">
               ${(costToDate / 1000).toFixed(0)}K
             </p>
           </div>
         </div>
 
         {/* Billing Status */}
-        <div className="flex items-center justify-between bg-slate-800/30 rounded-lg p-2">
+        <div className="flex items-center justify-between bg-wip-navy/50 rounded-lg p-2">
           <div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Billed</p>
-            <p className="text-sm text-white font-semibold">
+            <p className="text-[10px] text-wip-muted uppercase tracking-wide">Billed</p>
+            <p className="text-sm text-wip-heading font-semibold">
               ${(billedToDate / 1000).toFixed(0)}K
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-slate-400 uppercase tracking-wide">Proj. Margin</p>
+            <p className="text-[10px] text-wip-muted uppercase tracking-wide">Proj. Margin</p>
             <p
               className={`text-sm font-bold ${parseFloat(profitMargin) >= 15
-                ? 'text-emerald-400'
+                ? 'text-emerald-600'
                 : parseFloat(profitMargin) >= 10
-                  ? 'text-amber-400'
-                  : 'text-red-400'
+                  ? 'text-wip-gold'
+                  : 'text-red-500'
                 }`}
             >
               {profitMargin}%
@@ -159,8 +159,8 @@ const SampleProjectTile: React.FC<{
           {(isOverBilled || isUnderBilled) && (
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full ${isOverBilled
-                ? 'bg-emerald-500/20 text-emerald-300'
-                : 'bg-red-500/20 text-red-300'
+                ? 'bg-emerald-500/20 text-emerald-700'
+                : 'bg-red-500/20 text-red-600'
                 }`}
             >
               {isOverBilled ? 'Over-billed' : 'Under-billed'}
@@ -240,21 +240,21 @@ const VideoSection: React.FC<{
           {/* Content */}
           <div className="flex-1 max-w-xl">
             <div className="flex items-center gap-3 mb-4">
-              <span className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30">
+              <span className="w-12 h-12 rounded-full bg-gradient-to-br from-wip-gold to-wip-gold-dark flex items-center justify-center text-wip-card font-bold text-lg shadow-lg shadow-wip-gold/30">
                 {number}
               </span>
-              <span className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-500">
+              <span className="text-sm font-semibold uppercase tracking-[0.2em] text-wip-gold">
                 {subtitle}
               </span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">{title}</h2>
-            <p className="text-lg text-slate-600 leading-relaxed">{description}</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-wip-heading mb-4">{title}</h2>
+            <p className="text-lg text-wip-text leading-relaxed">{description}</p>
           </div>
 
           {/* Video Placeholder */}
           <div className="flex-1 w-full max-w-lg">
             <div
-              className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700 cursor-pointer group"
+              className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-wip-heading to-wip-text border border-wip-border cursor-pointer group"
               onClick={handlePlay}
             >
               {/* Audio Element */}
@@ -280,9 +280,9 @@ const VideoSection: React.FC<{
               {/* Play Button Overlay - Hide when playing */}
               {!isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/10 transition-colors">
-                  <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                  <div className="w-20 h-20 rounded-full bg-wip-card flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
                     <svg
-                      className="w-8 h-8 text-orange-500 ml-1"
+                      className="w-8 h-8 text-wip-gold ml-1"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
@@ -295,10 +295,10 @@ const VideoSection: React.FC<{
               {/* Pause Overlay - Show on hover when playing */}
               {isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors opacity-0 hover:opacity-100">
-                  <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-xl">
+                  <div className="w-16 h-16 rounded-full bg-wip-card flex items-center justify-center shadow-xl">
                     <div className="flex gap-1">
-                      <div className="w-2 h-6 bg-orange-500 rounded-sm"></div>
-                      <div className="w-2 h-6 bg-orange-500 rounded-sm"></div>
+                      <div className="w-2 h-6 bg-wip-gold rounded-sm"></div>
+                      <div className="w-2 h-6 bg-wip-gold rounded-sm"></div>
                     </div>
                   </div>
                 </div>
@@ -307,9 +307,9 @@ const VideoSection: React.FC<{
               {/* Placeholder Text - Hide when playing */}
               {!isPlaying && (
                 <div className="absolute bottom-4 left-4 right-4">
-                  <div className="bg-black/60 backdrop-blur-sm rounded-lg px-4 py-2">
-                    <p className="text-white text-sm font-medium">{videoPlaceholder}</p>
-                    <p className="text-slate-400 text-xs">Click to play narration</p>
+                  <div className="bg-wip-heading/80 backdrop-blur-sm rounded-lg px-4 py-2">
+                    <p className="text-wip-card text-sm font-medium">{videoPlaceholder}</p>
+                    <p className="text-wip-muted text-xs">Click to play narration</p>
                   </div>
                 </div>
               )}
@@ -339,14 +339,14 @@ const FeatureCard: React.FC<{
 }> = ({ icon, title, description, delay }) => {
   return (
     <div
-      className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-orange-200"
+      className="group flex flex-col rounded-2xl border border-wip-border bg-wip-card p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:border-wip-gold/40"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white mb-5 shadow-lg shadow-orange-500/20 group-hover:scale-110 transition-transform">
+      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-wip-gold to-wip-gold-dark flex items-center justify-center text-wip-card mb-5 shadow-lg shadow-wip-gold/20 group-hover:scale-110 transition-transform">
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
-      <p className="text-slate-600 leading-relaxed">{description}</p>
+      <h3 className="text-xl font-bold text-wip-heading mb-3">{title}</h3>
+      <p className="text-wip-text leading-relaxed">{description}</p>
     </div>
   );
 };
@@ -363,24 +363,24 @@ const TestimonialCard: React.FC<{
 }> = ({ quote, name, role, company, delay }) => {
   return (
     <div
-      className="bg-white rounded-2xl p-8 shadow-lg border border-slate-100 hover:shadow-xl transition-shadow"
+      className="bg-wip-card rounded-2xl p-8 shadow-lg border border-wip-border hover:shadow-xl transition-shadow"
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="flex gap-1 mb-4">
         {[...Array(5)].map((_, i) => (
-          <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+          <svg key={i} className="w-5 h-5 text-wip-gold" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ))}
       </div>
-      <p className="text-slate-700 text-lg mb-6 italic leading-relaxed">"{quote}"</p>
+      <p className="text-wip-text text-lg mb-6 italic leading-relaxed">"{quote}"</p>
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white font-bold">
+        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-wip-heading to-wip-text flex items-center justify-center text-wip-card font-bold">
           {name.charAt(0)}
         </div>
         <div>
-          <p className="font-semibold text-slate-900">{name}</p>
-          <p className="text-sm text-slate-500">
+          <p className="font-semibold text-wip-heading">{name}</p>
+          <p className="text-sm text-wip-muted">
             {role}, {company}
           </p>
         </div>
@@ -562,7 +562,7 @@ const WIPInsightsLanding: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white text-slate-900 overflow-hidden">
+    <div className="bg-wip-dark text-wip-text overflow-hidden font-sans">
       {/* Keyframe animations */}
       <style>{`
         @keyframes fadeSlideUp {
@@ -580,8 +580,8 @@ const WIPInsightsLanding: React.FC = () => {
           50% { transform: translateY(-10px); }
         }
         @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.3); }
-          50% { box-shadow: 0 0 40px rgba(249, 115, 22, 0.5); }
+          0%, 100% { box-shadow: 0 0 20px rgba(166, 134, 63, 0.3); }
+          50% { box-shadow: 0 0 40px rgba(166, 134, 63, 0.5); }
         }
       `}</style>
 
@@ -590,15 +590,15 @@ const WIPInsightsLanding: React.FC = () => {
       {/* ================================================================== */}
       <section className="relative overflow-hidden min-h-screen flex items-center">
         {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" />
-        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_20%_30%,_rgba(249,115,22,0.15),_transparent_50%)]" />
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_80%_70%,_rgba(30,64,175,0.2),_transparent_50%)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-wip-navy via-wip-dark to-wip-navy" />
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_30%,_rgba(166,134,63,0.2),_transparent_50%)]" />
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_80%_70%,_rgba(138,111,50,0.15),_transparent_50%)]" />
 
         {/* Grid pattern overlay */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.08]"
           style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(rgba(166,134,63,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(166,134,63,0.15) 1px, transparent 1px)`,
             backgroundSize: '50px 50px',
           }}
         />
@@ -617,7 +617,7 @@ const WIPInsightsLanding: React.FC = () => {
               {/* ChainLink CFO Suite Badge */}
               <a
                 href="/"
-                className="hidden sm:flex items-center gap-2 text-xs text-slate-400 hover:text-orange-400 transition-colors"
+                className="hidden sm:flex items-center gap-2 text-xs text-wip-muted hover:text-wip-gold transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -626,7 +626,7 @@ const WIPInsightsLanding: React.FC = () => {
               </a>
               <button
                 onClick={handleLogin}
-                className="text-slate-300 hover:text-white transition-colors font-medium"
+                className="text-wip-text hover:text-wip-heading transition-colors font-medium"
               >
                 Sign In →
               </button>
@@ -637,19 +637,19 @@ const WIPInsightsLanding: React.FC = () => {
             {/* Left: Copy */}
             <div className="flex-1 text-center lg:text-left">
               <div
-                className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 mb-6"
+                className="inline-flex items-center gap-2 bg-wip-gold/10 border border-wip-gold/30 rounded-full px-4 py-1.5 mb-6"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out' }}
               >
-                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                <span className="text-sm text-orange-300 font-medium">Beta Access - Limited Availability</span>
+                <span className="w-2 h-2 rounded-full bg-wip-gold animate-pulse" />
+                <span className="text-sm text-wip-gold font-medium">Beta Access - Limited Availability</span>
               </div>
 
               <h1
-                className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6"
+                className="text-4xl sm:text-5xl lg:text-6xl font-bold text-wip-heading leading-tight mb-6"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out 100ms both' }}
               >
                 Clarity, Control &{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-wip-gold to-wip-gold-dark">
                   Confidence
                 </span>{' '}
                 for Construction Leaders
@@ -668,7 +668,7 @@ const WIPInsightsLanding: React.FC = () => {
               >
                 <button
                   onClick={handleGetStarted}
-                  className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
+                  className="group relative px-8 py-4 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-wip-card font-semibold rounded-xl shadow-xl shadow-wip-gold/30 hover:shadow-wip-gold/50 transition-all hover:scale-105"
                   style={{ animation: 'pulse-glow 3s ease-in-out infinite' }}
                 >
                   Start Free — No Credit Card
@@ -676,7 +676,7 @@ const WIPInsightsLanding: React.FC = () => {
                 </button>
                 <a
                   href="#why"
-                  className="px-8 py-4 border-2 border-slate-600 text-slate-300 font-semibold rounded-xl hover:border-slate-400 hover:text-white transition-all"
+                  className="px-8 py-4 border-2 border-wip-border text-wip-text font-semibold rounded-xl hover:border-wip-gold hover:text-wip-heading transition-all"
                 >
                   See How It Works
                 </a>
@@ -684,11 +684,11 @@ const WIPInsightsLanding: React.FC = () => {
 
               {/* Trust badges */}
               <div
-                className="flex flex-wrap items-center gap-6 justify-center lg:justify-start text-slate-400 text-sm"
+                className="flex flex-wrap items-center gap-6 justify-center lg:justify-start text-wip-muted text-sm"
                 style={{ animation: 'fadeSlideUp 0.6s ease-out 400ms both' }}
               >
                 <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-wip-gold" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -698,7 +698,7 @@ const WIPInsightsLanding: React.FC = () => {
                   <span>Free plan available</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-wip-gold" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -708,7 +708,7 @@ const WIPInsightsLanding: React.FC = () => {
                   <span>Setup in 5 minutes</span>
                 </div>
                 <div className="flex items-center gap-2 group relative">
-                  <svg className="w-5 h-5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-wip-gold" fill="currentColor" viewBox="0 0 20 20">
                     <path
                       fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -716,17 +716,17 @@ const WIPInsightsLanding: React.FC = () => {
                     />
                   </svg>
                   <span>Bank-level security</span>
-                  <svg className="w-4 h-4 text-slate-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-wip-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-wip-heading text-wip-card text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
                     <div className="space-y-1">
                       <div>✓ SOC 2 Type II Certified</div>
                       <div>✓ AES-256 Encryption</div>
                       <div>✓ TLS 1.3 in Transit</div>
                     </div>
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-wip-heading" />
                   </div>
                 </div>
               </div>
@@ -743,7 +743,7 @@ const WIPInsightsLanding: React.FC = () => {
           </div>
 
           {/* Scroll indicator */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-500">
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-wip-muted">
             <span className="text-xs uppercase tracking-widest">Scroll to explore</span>
             <svg
               className="w-5 h-5 animate-bounce"
@@ -774,7 +774,7 @@ const WIPInsightsLanding: React.FC = () => {
           { start: 15, image: "/images/storyboards/storyboard_why_leaky_bucket_1764971303519.png" },
           { start: 30, image: "/images/storyboards/storyboard_why_solution_ui_1764971315679.png" }
         ]}
-        bgColor="bg-slate-50"
+        bgColor="bg-wip-card"
       />
 
       {/* ================================================================== */}
@@ -794,7 +794,7 @@ const WIPInsightsLanding: React.FC = () => {
           { start: 35, image: "/images/storyboards/storyboard_what_dashboard_benefit_1764971363539.png" }
         ]}
         reverse
-        bgColor="bg-white"
+        bgColor="bg-wip-dark"
       />
 
       {/* ================================================================== */}
@@ -813,22 +813,22 @@ const WIPInsightsLanding: React.FC = () => {
           { start: 18, image: "/images/ui_screens/scheduling.png" },
           { start: 28, image: "/images/ui_screens/financials.png" }
         ]}
-        bgColor="bg-slate-50"
+        bgColor="bg-wip-card"
       />
 
       {/* ================================================================== */}
       {/* FEATURES SECTION */}
       {/* ================================================================== */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-wip-dark">
         <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-orange-500">
+            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-wip-gold">
               Features
             </span>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-slate-900">
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-wip-heading">
               Everything You Need to Stay Profitable
             </h2>
-            <p className="mt-4 text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-wip-text max-w-2xl mx-auto">
               Built by contractors, for contractors. Every feature solves a real problem.
             </p>
           </div>
@@ -844,16 +844,16 @@ const WIPInsightsLanding: React.FC = () => {
       {/* ================================================================== */}
       {/* TESTIMONIALS SECTION */}
       {/* ================================================================== */}
-      <section className="py-24 bg-gradient-to-br from-slate-900 to-slate-950">
+      <section className="py-24 bg-wip-navy">
         <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-orange-400">
+            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-wip-gold">
               Testimonials
             </span>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-white">
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-wip-heading">
               Trusted by Construction Leaders
             </h2>
-            <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
+            <p className="mt-4 text-lg text-wip-muted max-w-2xl mx-auto">
               See what contractors are saying about WIP-Insights
             </p>
           </div>
@@ -869,23 +869,23 @@ const WIPInsightsLanding: React.FC = () => {
       {/* ================================================================== */}
       {/* PRICING SECTION */}
       {/* ================================================================== */}
-      <section id="pricing" className="py-24 bg-slate-50">
+      <section id="pricing" className="py-24 bg-wip-card">
         <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-orange-500">
+            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-wip-gold">
               Pricing
             </span>
-            <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-slate-900">
+            <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-wip-heading">
               Simple Pricing, Serious Results
             </h2>
-            <p className="mt-4 text-lg text-slate-600">
+            <p className="mt-4 text-lg text-wip-text">
               Start free, upgrade when you're ready. No credit card required.
             </p>
-            <div className="mt-6 inline-flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl px-6 py-3">
+            <div className="mt-6 inline-flex items-center gap-3 bg-wip-gold/10 border border-wip-gold/30 rounded-xl px-6 py-3">
               <span className="text-2xl">🚀</span>
               <div>
-                <p className="text-sm font-semibold text-slate-900">Free Forever Plan</p>
-                <p className="text-xs text-slate-600">Get started with 5 projects at no cost — upgrade to Pro for unlimited</p>
+                <p className="text-sm font-semibold text-wip-heading">Free Forever Plan</p>
+                <p className="text-xs text-wip-text">Get started with 5 projects at no cost — upgrade to Pro for unlimited</p>
               </div>
             </div>
           </div>
@@ -895,20 +895,20 @@ const WIPInsightsLanding: React.FC = () => {
               <div
                 key={plan.name}
                 className={`relative flex flex-col rounded-2xl p-8 ${plan.popular
-                  ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl scale-105 border-2 border-orange-500'
-                  : 'bg-white border border-slate-200 shadow-lg'
+                  ? 'bg-wip-heading text-wip-card shadow-2xl scale-105 border-2 border-wip-gold'
+                  : 'bg-wip-dark border border-wip-border shadow-lg'
                   }`}
               >
                 {plan.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-4 py-1 rounded-full shadow-lg">
+                    <span className="bg-gradient-to-r from-wip-gold to-wip-gold-dark text-wip-card text-sm font-semibold px-4 py-1 rounded-full shadow-lg">
                       {plan.badge}
                     </span>
                   </div>
                 )}
                 {plan.foundersRate && (
                   <div className="absolute -top-4 right-4">
-                    <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+                    <span className="bg-wip-gold text-wip-card text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
                       Founder's Rate
                     </span>
                   </div>
@@ -916,28 +916,28 @@ const WIPInsightsLanding: React.FC = () => {
 
                 <div className="mb-6">
                   <h3
-                    className={`text-2xl font-bold ${plan.popular ? 'text-white' : 'text-slate-900'}`}
+                    className={`text-2xl font-bold ${plan.popular ? 'text-wip-card' : 'text-wip-heading'}`}
                   >
                     {plan.name}
                   </h3>
                   <div className="mt-2 flex items-baseline gap-1">
                     <span
-                      className={`text-4xl font-bold ${plan.popular ? 'text-white' : 'text-slate-900'}`}
+                      className={`text-4xl font-bold ${plan.popular ? 'text-wip-card' : 'text-wip-heading'}`}
                     >
                       {plan.price}
                     </span>
                     {plan.period && (
-                      <span className={plan.popular ? 'text-slate-400' : 'text-slate-500'}>
+                      <span className={plan.popular ? 'text-wip-muted' : 'text-wip-muted'}>
                         {plan.period}
                       </span>
                     )}
                   </div>
                   {plan.foundersRate && (
-                    <p className={`mt-2 text-sm ${plan.popular ? 'text-orange-300' : 'text-emerald-600'} font-medium`}>
+                    <p className={`mt-2 text-sm ${plan.popular ? 'text-wip-gold' : 'text-wip-gold'} font-medium`}>
                       {plan.foundersRate}
                     </p>
                   )}
-                  <p className={`mt-2 ${plan.popular ? 'text-slate-300' : 'text-slate-600'}`}>
+                  <p className={`mt-2 ${plan.popular ? 'text-wip-muted' : 'text-wip-text'}`}>
                     {plan.description}
                   </p>
                 </div>
@@ -946,8 +946,7 @@ const WIPInsightsLanding: React.FC = () => {
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <svg
-                        className={`w-5 h-5 flex-shrink-0 ${plan.popular ? 'text-orange-400' : 'text-emerald-500'
-                          }`}
+                        className={`w-5 h-5 flex-shrink-0 text-wip-gold`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -957,7 +956,7 @@ const WIPInsightsLanding: React.FC = () => {
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span className={plan.popular ? 'text-slate-200' : 'text-slate-700'}>
+                      <span className={plan.popular ? 'text-wip-card/90' : 'text-wip-text'}>
                         {feature}
                       </span>
                     </li>
@@ -967,8 +966,8 @@ const WIPInsightsLanding: React.FC = () => {
                 <button
                   onClick={plan.cta === 'Contact Sales' ? () => window.location.href = 'mailto:support@wip-insights.com?subject=Controller Tier Inquiry' : handleGetStarted}
                   className={`w-full py-3 px-6 rounded-xl font-semibold transition-all ${plan.popular
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:shadow-lg hover:shadow-orange-500/30'
-                    : 'bg-slate-900 text-white hover:bg-slate-800'
+                    ? 'bg-gradient-to-r from-wip-gold to-wip-gold-dark text-wip-card hover:shadow-lg hover:shadow-wip-gold/30'
+                    : 'bg-wip-heading text-wip-card hover:bg-wip-text'
                     }`}
                 >
                   {plan.cta}
@@ -981,7 +980,7 @@ const WIPInsightsLanding: React.FC = () => {
           <div className="mt-12 text-center">
             <a
               href="/"
-              className="inline-flex items-center gap-2 text-slate-600 hover:text-orange-500 transition-colors"
+              className="inline-flex items-center gap-2 text-wip-muted hover:text-wip-gold transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -995,28 +994,28 @@ const WIPInsightsLanding: React.FC = () => {
       {/* ================================================================== */}
       {/* FINAL CTA SECTION */}
       {/* ================================================================== */}
-      <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_center,_rgba(249,115,22,0.2),_transparent_60%)]" />
+      <section className="py-24 bg-wip-navy relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_rgba(166,134,63,0.3),_transparent_60%)]" />
 
         <div className="relative mx-auto max-w-4xl px-6 sm:px-8 md:px-10 text-center">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-wip-heading mb-6">
             Your Competitors Are Already Tracking WIP
           </h2>
-          <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-wip-text mb-10 max-w-2xl mx-auto">
             Don't let another month close with surprises. Get the clarity you deserve—start today.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={handleGetStarted}
-              className="group relative px-10 py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-lg rounded-xl shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
+              className="group relative px-10 py-4 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-wip-card font-semibold text-lg rounded-xl shadow-xl shadow-wip-gold/30 hover:shadow-wip-gold/50 transition-all hover:scale-105"
             >
               Get Started Free
               <span className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           </div>
 
-          <p className="mt-6 text-slate-400 text-sm">
+          <p className="mt-6 text-wip-muted text-sm">
             Free forever plan • No credit card required • Upgrade anytime
           </p>
         </div>
@@ -1025,7 +1024,7 @@ const WIPInsightsLanding: React.FC = () => {
       {/* ================================================================== */}
       {/* FOOTER */}
       {/* ================================================================== */}
-      <footer className="bg-slate-950 text-slate-400 py-12">
+      <footer className="bg-wip-heading text-wip-muted py-12">
         <div className="mx-auto max-w-6xl px-6 sm:px-8 md:px-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -1036,7 +1035,7 @@ const WIPInsightsLanding: React.FC = () => {
               />
               <a
                 href="/"
-                className="flex items-center gap-2 text-xs text-slate-500 hover:text-orange-400 transition-colors border-l border-slate-700 pl-4"
+                className="flex items-center gap-2 text-xs text-wip-muted hover:text-wip-gold transition-colors border-l border-wip-border pl-4"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -1046,19 +1045,19 @@ const WIPInsightsLanding: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-8 text-sm">
-              <a href="#features" className="hover:text-white transition-colors">
+              <a href="#features" className="hover:text-wip-card transition-colors">
                 Features
               </a>
-              <a href="#pricing" className="hover:text-white transition-colors">
+              <a href="#pricing" className="hover:text-wip-card transition-colors">
                 Pricing
               </a>
-              <a href="/" className="hover:text-white transition-colors">
+              <a href="/" className="hover:text-wip-card transition-colors">
                 CFO Suite
               </a>
-              <Link to="/legal/privacy" className="hover:text-white transition-colors">
+              <Link to="/legal/privacy" className="hover:text-wip-card transition-colors">
                 Privacy
               </Link>
-              <Link to="/legal/terms" className="hover:text-white transition-colors">
+              <Link to="/legal/terms" className="hover:text-wip-card transition-colors">
                 Terms
               </Link>
             </div>

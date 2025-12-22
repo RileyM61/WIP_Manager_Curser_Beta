@@ -156,10 +156,10 @@ const AuthPage: React.FC = () => {
   // Show loading state while fetching invite info
   if (inviteLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-wip-dark text-wip-text flex flex-col items-center justify-center px-4 font-sans">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-slate-300">Verifying invitation...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wip-gold mx-auto mb-4"></div>
+          <p className="text-wip-text">Verifying invitation...</p>
         </div>
       </div>
     );
@@ -168,18 +168,18 @@ const AuthPage: React.FC = () => {
   // Show error if invite is invalid
   if (inviteToken && inviteInfo && !inviteInfo.valid) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-wip-dark text-wip-text flex flex-col items-center justify-center px-4 font-sans">
         <div className="w-full max-w-md rounded-3xl border border-red-500/30 bg-red-500/10 p-8 shadow-2xl backdrop-blur text-center">
           <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h1 className="text-2xl font-semibold text-red-300">Invalid Invitation</h1>
-          <p className="mt-2 text-sm text-red-200/80">{inviteInfo.error || 'This invitation link is invalid or has expired.'}</p>
+          <h1 className="text-2xl font-semibold text-red-600">Invalid Invitation</h1>
+          <p className="mt-2 text-sm text-red-600/80">{inviteInfo.error || 'This invitation link is invalid or has expired.'}</p>
           <button
             onClick={() => navigate('/auth')}
-            className="mt-6 px-6 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+            className="mt-6 px-6 py-2 rounded-full bg-wip-heading text-wip-card hover:bg-wip-text transition"
           >
             Go to Login
           </button>
@@ -191,10 +191,10 @@ const AuthPage: React.FC = () => {
   // Show accepting state
   if (acceptingInvite) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
+      <div className="min-h-screen bg-wip-dark text-wip-text flex flex-col items-center justify-center px-4 font-sans">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-slate-300">Joining {inviteInfo?.companyName}...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-wip-gold mx-auto mb-4"></div>
+          <p className="text-wip-text">Joining {inviteInfo?.companyName}...</p>
         </div>
       </div>
     );
@@ -203,19 +203,19 @@ const AuthPage: React.FC = () => {
   // Show error state if invite was attempted but failed
   if (inviteAttempted && !acceptingInvite && message) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-3xl border border-orange-500/30 bg-orange-500/10 p-8 shadow-2xl backdrop-blur text-center">
-          <div className="w-16 h-16 rounded-full bg-orange-500/20 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-wip-dark text-wip-text flex flex-col items-center justify-center px-4 font-sans">
+        <div className="w-full max-w-md rounded-3xl border border-wip-gold/30 bg-wip-gold/10 p-8 shadow-2xl backdrop-blur text-center">
+          <div className="w-16 h-16 rounded-full bg-wip-gold/20 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-wip-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-semibold text-orange-300">Could Not Join Team</h1>
-          <p className="mt-2 text-sm text-orange-200/80">{message}</p>
+          <h1 className="text-2xl font-semibold text-wip-gold">Could Not Join Team</h1>
+          <p className="mt-2 text-sm text-wip-text">{message}</p>
           <div className="mt-6 space-y-3">
             <button
               onClick={() => navigate('/app')}
-              className="w-full px-6 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition"
+              className="w-full px-6 py-2 rounded-full bg-wip-gold text-wip-card hover:bg-wip-gold-dark transition"
             >
               Go to App
             </button>
@@ -224,7 +224,7 @@ const AuthPage: React.FC = () => {
                 setInviteAttempted(false);
                 setMessage(null);
               }}
-              className="w-full px-6 py-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition"
+              className="w-full px-6 py-2 rounded-full bg-wip-heading text-wip-card hover:bg-wip-text transition"
             >
               Try Again
             </button>
@@ -235,8 +235,8 @@ const AuthPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
+    <div className="min-h-screen bg-wip-dark text-wip-text flex flex-col items-center justify-center px-4 font-sans">
+      <div className="w-full max-w-md rounded-3xl border border-wip-border bg-wip-card p-8 shadow-2xl">
         <div className="mb-8 text-center">
           {isFromWip ? (
             <img
@@ -251,30 +251,30 @@ const AuthPage: React.FC = () => {
               className="h-[512px] w-auto mx-auto mb-4"
             />
           )}
-          <h1 className="mt-4 text-3xl font-semibold">{headerCopy.title}</h1>
-          <p className="mt-2 text-sm text-slate-200">{headerCopy.subtitle}</p>
+          <h1 className="mt-4 text-3xl font-semibold text-wip-heading">{headerCopy.title}</h1>
+          <p className="mt-2 text-sm text-wip-muted">{headerCopy.subtitle}</p>
         </div>
 
         {/* Invitation Banner */}
         {inviteInfo?.valid && (
-          <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center">
-            <div className="flex items-center justify-center gap-2 text-green-300">
+          <div className="mb-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-emerald-600">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="font-medium">Valid Invitation</span>
             </div>
-            <p className="mt-1 text-xs text-green-200/80">
+            <p className="mt-1 text-xs text-emerald-700/80">
               Create an account or log in to join <strong>{inviteInfo.companyName}</strong>
             </p>
           </div>
         )}
 
-        <div className="mb-6 flex gap-3 rounded-full bg-white/10 p-1 text-sm font-semibold">
+        <div className="mb-6 flex gap-3 rounded-full bg-wip-navy p-1 text-sm font-semibold">
           <button
             type="button"
             onClick={() => setMode('login')}
-            className={`flex-1 rounded-full py-2 transition ${mode === 'login' ? 'bg-white text-slate-900' : 'text-white/70'
+            className={`flex-1 rounded-full py-2 transition ${mode === 'login' ? 'bg-wip-heading text-wip-card' : 'text-wip-muted'
               }`}
           >
             Log In
@@ -282,7 +282,7 @@ const AuthPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setMode('signup')}
-            className={`flex-1 rounded-full py-2 transition ${mode === 'signup' ? 'bg-white text-slate-900' : 'text-white/70'
+            className={`flex-1 rounded-full py-2 transition ${mode === 'signup' ? 'bg-wip-heading text-wip-card' : 'text-wip-muted'
               }`}
           >
             Sign Up
@@ -291,72 +291,72 @@ const AuthPage: React.FC = () => {
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-300">Email</label>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-wip-muted">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={inviteInfo?.valid && mode === 'signup'}
-              className={`mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none ${inviteInfo?.valid && mode === 'signup' ? 'opacity-70 cursor-not-allowed' : ''
+              className={`mt-2 w-full rounded-xl border border-wip-border bg-wip-dark px-4 py-3 text-wip-heading placeholder-wip-muted focus:border-wip-gold focus:outline-none ${inviteInfo?.valid && mode === 'signup' ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               placeholder="you@company.com"
             />
             {mode === 'signup' && !inviteInfo?.valid && (
-              <p className="mt-2 text-xs text-slate-400">
+              <p className="mt-2 text-xs text-wip-muted">
                 🔒 Beta access is currently invite-only. Contact support@wip-insights.com to request access.
               </p>
             )}
             {inviteInfo?.valid && mode === 'signup' && (
-              <p className="mt-2 text-xs text-green-400">
+              <p className="mt-2 text-xs text-emerald-600">
                 ✓ Email pre-filled from your invitation
               </p>
             )}
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wide text-slate-300">Password</label>
+            <label className="block text-xs font-semibold uppercase tracking-wide text-wip-muted">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none"
+              className="mt-2 w-full rounded-xl border border-wip-border bg-wip-dark px-4 py-3 text-wip-heading placeholder-wip-muted focus:border-wip-gold focus:outline-none"
               placeholder="Minimum 6 characters"
               minLength={6}
             />
           </div>
           {mode === 'signup' && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-300">Confirm Password</label>
+              <label className="block text-xs font-semibold uppercase tracking-wide text-wip-muted">Confirm Password</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-orange-400 focus:outline-none"
+                className="mt-2 w-full rounded-xl border border-wip-border bg-wip-dark px-4 py-3 text-wip-heading placeholder-wip-muted focus:border-wip-gold focus:outline-none"
                 placeholder="Re-enter your password"
                 minLength={6}
               />
             </div>
           )}
           {message && (
-            <div className="rounded-xl border border-orange-400/40 bg-orange-400/10 px-4 py-3 text-sm text-orange-200">
+            <div className="rounded-xl border border-wip-gold/40 bg-wip-gold/10 px-4 py-3 text-sm text-wip-text">
               {message}
             </div>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-orange-500 py-3 text-base font-semibold text-white shadow-lg shadow-orange-500/30 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-full bg-wip-gold py-3 text-base font-semibold text-wip-card shadow-lg shadow-wip-gold/30 transition hover:bg-wip-gold-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Please wait...' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>
-        <p className="mt-8 text-center text-xs text-white/60">
+        <p className="mt-8 text-center text-xs text-wip-muted">
           By continuing you agree to our{' '}
-          <Link to="/legal/terms" className="text-orange-400 hover:underline">Terms of Service</Link>
+          <Link to="/legal/terms" className="text-wip-gold hover:underline">Terms of Service</Link>
           {' '}and{' '}
-          <Link to="/legal/privacy" className="text-orange-400 hover:underline">Privacy Policy</Link>.
+          <Link to="/legal/privacy" className="text-wip-gold hover:underline">Privacy Policy</Link>.
         </p>
       </div>
     </div>
