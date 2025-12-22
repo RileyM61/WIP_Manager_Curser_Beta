@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Job, JobStatus } from '../../../types';
 import { calculateScheduleDrift, calculateMarginFade } from '../lib/smartEngines';
 import { calculateBillingDifference, calculateEarnedRevenue, sumBreakdown } from '../lib/jobCalculations';
+import InfoTooltip from '../../../components/help/InfoTooltip';
 
 interface NeedsAttentionQueueProps {
   jobs: Job[];
@@ -24,6 +25,40 @@ const currencyFormatter = new Intl.NumberFormat('en-US', {
   currency: 'USD',
   maximumFractionDigits: 0,
 });
+
+// Hook for managing cleared attention items
+const STORAGE_KEY = 'wipInsights_clearedAttentionItems';
+
+interface ClearedItems {
+  [jobId: string]: string; // jobId -> lastUpdated timestamp when cleared
+}
+
+const getClearedItems = (): ClearedItems => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
+
+const clearItem = (jobId: string, lastUpdated: string | undefined) => {
+  try {
+    const cleared = getClearedItems();
+    cleared[jobId] = lastUpdated || new Date().toISOString();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cleared));
+  } catch {
+    // Silently fail if localStorage is not available
+  }
+};
+
+const isClearedItem = (jobId: string, lastUpdated: string | undefined): boolean => {
+  const cleared = getClearedItems();
+  const clearedTimestamp = cleared[jobId];
+  if (!clearedTimestamp) return false;
+  // Item is cleared only if the lastUpdated hasn't changed since it was cleared
+  return lastUpdated === clearedTimestamp || (!lastUpdated && !!clearedTimestamp);
+};
 
 // Calculate underbilling percentage relative to earned revenue
 const calculateUnderbillingPercent = (job: Job): number => {
@@ -60,6 +95,12 @@ const calculateProfitVariance = (job: Job): number => {
 
 const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onReviewJob, isPro }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [clearTrigger, setClearTrigger] = useState(0); // Trigger re-render when items are cleared
+  
+  const handleClearItem = (jobId: string, lastUpdated: string | undefined) => {
+    clearItem(jobId, lastUpdated);
+    setClearTrigger(prev => prev + 1); // Trigger re-render
+  };
 
   // Find jobs that need attention
   const attentionItems = useMemo((): AttentionItem[] => {
@@ -71,6 +112,10 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
     const items: AttentionItem[] = [];
 
     for (const job of activeJobs) {
+      // Skip if this job was cleared and hasn't been updated since
+      if (isClearedItem(job.id, job.lastUpdated)) {
+        continue;
+      }
       const reasons: AttentionItem['reasons'] = [];
       const profitVariance = calculateProfitVariance(job);
 
@@ -117,7 +162,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
       if (!aHasHigh && bHasHigh) return 1;
       return b.reasons.length - a.reasons.length;
     });
-  }, [jobs]);
+  }, [jobs, clearTrigger]);
 
   // Don't render if no items need attention
   if (attentionItems.length === 0) {
@@ -252,7 +297,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                     </div>
                     
                     {/* Reason badges */}
-                    <div className="flex flex-wrap gap-1.5 mb-2">
+                    <div className="flex flex-wrap gap-1.5 mb-2 items-center">
                       {reasons.map((reason, idx) => (
                         <span
                           key={idx}
@@ -266,6 +311,17 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                           {reason.type === 'margin-fade' && '📉'}
                           {reason.type === 'schedule-drift' && '⏰'}
                           <span className="ml-1">{reason.message}</span>
+                          {reason.type === 'schedule-drift' && (
+                            <span className="ml-1">
+                              <InfoTooltip
+                                shortText="Job is falling behind based on financial progress vs time elapsed"
+                                detailedText="Schedule drift compares how much time has passed versus how much budget has been spent. If you're 50% through the project timeline but have only spent 25% of your budget, you're drifting behind schedule. This calculation helps predict when a job might finish later than expected based on current spending patterns."
+                                title="Behind Schedule"
+                                example="Example: If a 10-week job is 5 weeks in (50% of timeline) but only 25% of the budget has been spent, the schedule drift would be 2.5 weeks behind. This indicates the job is progressing slower financially than expected."
+                                size="sm"
+                              />
+                            </span>
+                          )}
                         </span>
                       ))}
                     </div>
@@ -288,17 +344,25 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                     </div>
                   </div>
 
-                  {/* Action button */}
-                  <button
-                    onClick={() => onReviewJob(job)}
-                    className={`flex-shrink-0 px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
-                      hasHighSeverity
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-amber-500 hover:bg-amber-600 text-white'
-                    }`}
-                  >
-                    Review
-                  </button>
+                  {/* Action buttons */}
+                  <div className="flex-shrink-0 flex flex-col gap-1.5">
+                    <button
+                      onClick={() => onReviewJob(job)}
+                      className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+                        hasHighSeverity
+                          ? 'bg-red-600 hover:bg-red-700 text-white'
+                          : 'bg-amber-500 hover:bg-amber-600 text-white'
+                      }`}
+                    >
+                      Review
+                    </button>
+                    <button
+                      onClick={() => handleClearItem(job.id, job.lastUpdated)}
+                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Cleared
+                    </button>
+                  </div>
                 </div>
               </div>
             );
