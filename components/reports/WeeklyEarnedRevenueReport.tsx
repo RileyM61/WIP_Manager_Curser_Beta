@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Job } from '../../types';
+import { Job, JobStatus } from '../../types';
 import { useWeeklySnapshots, WeeklyReportData, getWeekInfo } from '../../hooks/useWeeklySnapshots';
 
 // ============================================================================
@@ -132,15 +132,27 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
   // Generate report data
   const reportData = useMemo(() => generateWeeklyReport(5), [generateWeeklyReport]);
   
-  // Get current week info
-  const currentWeekInfo = useMemo(() => getWeekInfo(new Date()), []);
+  // Get the week info based on jobs' asOfDate (not today's date)
+  // This ensures the snapshot button reflects the week the data represents
+  const dataWeekInfo = useMemo(() => {
+    const asOfDates = jobs
+      .filter(j => j.status === JobStatus.Active)
+      .map(j => j.asOfDate)
+      .filter((d): d is string => !!d && d.trim() !== '');
+    
+    const snapshotDate = asOfDates.length > 0
+      ? new Date(asOfDates.sort().reverse()[0])  // Most recent asOfDate
+      : new Date();
+    
+    return getWeekInfo(snapshotDate);
+  }, [jobs]);
   
-  // Check if we need to create a snapshot for current week
-  const hasCurrentWeekSnapshot = useMemo(() => {
+  // Check if we already have a snapshot for the week the data represents
+  const hasDataWeekSnapshot = useMemo(() => {
     return weeklySnapshots.some(
-      s => s.weekNumber === currentWeekInfo.weekNumber && s.year === currentWeekInfo.year
+      s => s.weekNumber === dataWeekInfo.weekNumber && s.year === dataWeekInfo.year
     );
-  }, [weeklySnapshots, currentWeekInfo]);
+  }, [weeklySnapshots, dataWeekInfo]);
 
   // Handle creating snapshot for current week
   const handleCreateSnapshot = async () => {
@@ -179,29 +191,35 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
         </div>
         
         <div className="flex items-center gap-3">
-          {!hasCurrentWeekSnapshot && (
-            <button
-              onClick={handleCreateSnapshot}
-              disabled={isCreatingSnapshot}
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
-            >
-              {isCreatingSnapshot ? (
-                <>
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Save This Week
-                </>
-              )}
-            </button>
+          {!hasDataWeekSnapshot && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500 dark:text-slate-400">
+                Week {dataWeekInfo.weekNumber} ({formatWeekRange(dataWeekInfo.weekStart, dataWeekInfo.weekEnd)})
+              </span>
+              <button
+                onClick={handleCreateSnapshot}
+                disabled={isCreatingSnapshot}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                title={`Save snapshot for Week ${dataWeekInfo.weekNumber} based on your jobs' As Of Date`}
+              >
+                {isCreatingSnapshot ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Save Snapshot
+                  </>
+                )}
+              </button>
+            </div>
           )}
           
           {onExportPDF && (
@@ -230,7 +248,7 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
               >
                 <WeekSummaryCard
                   week={week}
-                  isCurrentWeek={week.weekNumber === currentWeekInfo.weekNumber && week.year === currentWeekInfo.year}
+                  isCurrentWeek={week.weekNumber === dataWeekInfo.weekNumber && week.year === dataWeekInfo.year}
                 />
               </div>
             ))}
@@ -362,14 +380,18 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
             No Weekly Data Yet
           </h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md mx-auto">
+          <p className="text-slate-500 dark:text-slate-400 mb-4 max-w-md mx-auto">
             Start tracking your weekly earned revenue by saving your first snapshot. 
             We'll track changes week over week automatically.
+          </p>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mb-6">
+            Based on your jobs' "As Of Date": <span className="font-medium text-slate-600 dark:text-slate-300">Week {dataWeekInfo.weekNumber} ({formatWeekRange(dataWeekInfo.weekStart, dataWeekInfo.weekEnd)})</span>
           </p>
           <button
             onClick={handleCreateSnapshot}
             disabled={isCreatingSnapshot}
             className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+            title={`Save snapshot for Week ${dataWeekInfo.weekNumber}`}
           >
             {isCreatingSnapshot ? 'Saving...' : 'Save First Snapshot'}
           </button>

@@ -281,12 +281,24 @@ export function useWeeklySnapshots(companyId?: string | null) {
 
   /**
    * Create a weekly snapshot from current job data
+   * Uses the asOfDate from jobs to determine which week the snapshot belongs to
    */
   const createWeeklySnapshot = useCallback(async (jobs: Job[]) => {
     if (!companyId || !isSupabaseConfigured()) return null;
 
     const activeJobs = jobs.filter(j => j.status === JobStatus.Active);
-    const weekInfo = getWeekInfo(new Date());
+    
+    // Find the most recent asOfDate from active jobs to determine the snapshot week
+    const asOfDates = activeJobs
+      .map(j => j.asOfDate)
+      .filter((d): d is string => !!d && d.trim() !== '');
+    
+    // Use the latest asOfDate, or fall back to today if none set
+    const snapshotDate = asOfDates.length > 0
+      ? new Date(asOfDates.sort().reverse()[0])  // Most recent asOfDate
+      : new Date();
+    
+    const weekInfo = getWeekInfo(snapshotDate);
     const metrics = calculateJobMetrics(activeJobs);
 
     try {
