@@ -77,9 +77,19 @@ const ChangeIndicator: React.FC<{ value: number; showPercent?: boolean }> = ({ v
 const WeekSummaryCard: React.FC<{
   week: WeeklyReportData;
   isCurrentWeek: boolean;
-}> = ({ week, isCurrentWeek }) => {
+  isSelected: boolean;
+}> = ({ week, isCurrentWeek, isSelected }) => {
   return (
-    <div className={`bg-white dark:bg-slate-800 rounded-xl border ${isCurrentWeek ? 'border-orange-500 shadow-lg shadow-orange-500/10' : 'border-slate-200 dark:border-slate-700'} p-4`}>
+    <div 
+      className={`
+        bg-white dark:bg-slate-800 rounded-xl border p-4 transition-all duration-200
+        ${isCurrentWeek 
+          ? 'border-orange-500 shadow-lg shadow-orange-500/20 ring-1 ring-orange-500/50' 
+          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+        }
+        ${isSelected && !isCurrentWeek ? 'ring-2 ring-orange-500 bg-orange-50/50 dark:bg-orange-900/10' : ''}
+      `}
+    >
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
@@ -90,13 +100,13 @@ const WeekSummaryCard: React.FC<{
           </p>
         </div>
         {isCurrentWeek && (
-          <span className="text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-full font-medium">
+          <span className="text-xs bg-orange-500 text-white px-2.5 py-1 rounded-full font-medium shadow-sm">
             Current
           </span>
         )}
       </div>
       
-      <div className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+      <div className={`text-2xl font-bold mb-2 ${isCurrentWeek ? 'text-orange-600 dark:text-orange-400' : 'text-slate-900 dark:text-white'}`}>
         {formatCurrency(week.totalEarnedRevenue)}
       </div>
       
@@ -128,6 +138,15 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
   
   const [selectedWeek, setSelectedWeek] = useState<number>(0);
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Auto-dismiss toast after 4 seconds
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   // Generate report data
   const reportData = useMemo(() => generateWeeklyReport(5), [generateWeeklyReport]);
@@ -159,8 +178,16 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
     setIsCreatingSnapshot(true);
     try {
       await createWeeklySnapshot(jobs);
+      setToast({ 
+        message: `Snapshot saved for Week ${dataWeekInfo.weekNumber} (${formatWeekRange(dataWeekInfo.weekStart, dataWeekInfo.weekEnd)})`, 
+        type: 'success' 
+      });
     } catch (err) {
       console.error('Failed to create snapshot:', err);
+      setToast({ 
+        message: 'Failed to save snapshot. Please try again.', 
+        type: 'error' 
+      });
     } finally {
       setIsCreatingSnapshot(false);
     }
@@ -179,8 +206,8 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
 
   return (
     <div className="space-y-6" id="weekly-earned-revenue-report">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Header - Clean title with demoted secondary action */}
+      <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             Weekly Earned Revenue
@@ -190,51 +217,63 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
           </p>
         </div>
         
-        <div className="flex items-center gap-3">
-          {!hasDataWeekSnapshot && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500 dark:text-slate-400">
-                Week {dataWeekInfo.weekNumber} ({formatWeekRange(dataWeekInfo.weekStart, dataWeekInfo.weekEnd)})
-              </span>
-              <button
-                onClick={handleCreateSnapshot}
-                disabled={isCreatingSnapshot}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
-                title={`Save snapshot for Week ${dataWeekInfo.weekNumber} based on your jobs' As Of Date`}
-              >
-                {isCreatingSnapshot ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Save Snapshot
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-          
-          {onExportPDF && (
-            <button
-              onClick={onExportPDF}
-              className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export PDF
-            </button>
-          )}
-        </div>
+        {/* Secondary action - demoted to icon-only */}
+        {onExportPDF && (
+          <button
+            onClick={onExportPDF}
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            title="Export PDF"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </button>
+        )}
       </div>
+
+      {/* Primary Action Banner - Contextual CTA when snapshot needed */}
+      {!hasDataWeekSnapshot && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800 flex items-center justify-center">
+              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-amber-800 dark:text-amber-200">
+                Ready to save Week {dataWeekInfo.weekNumber}
+              </p>
+              <p className="text-sm text-amber-600 dark:text-amber-400">
+                {formatWeekRange(dataWeekInfo.weekStart, dataWeekInfo.weekEnd)} • Based on your jobs' "As Of Date"
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleCreateSnapshot}
+            disabled={isCreatingSnapshot}
+            className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+            title={`Save snapshot for Week ${dataWeekInfo.weekNumber}`}
+          >
+            {isCreatingSnapshot ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Saving...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Save Snapshot
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Week Summary Cards */}
       {reportData.length > 0 ? (
@@ -244,18 +283,19 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
               <div
                 key={`${week.year}-${week.weekNumber}`}
                 onClick={() => setSelectedWeek(index)}
-                className={`cursor-pointer transition-transform hover:scale-[1.02] ${selectedWeek === index ? 'ring-2 ring-orange-500 rounded-xl' : ''}`}
+                className="cursor-pointer"
               >
                 <WeekSummaryCard
                   week={week}
                   isCurrentWeek={week.weekNumber === dataWeekInfo.weekNumber && week.year === dataWeekInfo.year}
+                  isSelected={selectedWeek === index}
                 />
               </div>
             ))}
           </div>
 
-          {/* Trend Chart (Simple Bar Visualization) */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+          {/* Trend Chart (Simple Bar Visualization) - Increased top margin for semantic separation */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 mt-2">
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
               5-Week Trend
             </h3>
@@ -292,9 +332,9 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
             </div>
           </div>
 
-          {/* Job Breakdown Table */}
+          {/* Job Breakdown Table - Increased top margin for semantic separation */}
           {selectedWeekData && (
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mt-2">
               <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                   Job Breakdown - Week {selectedWeekData.weekNumber}
@@ -390,10 +430,53 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
           <button
             onClick={handleCreateSnapshot}
             disabled={isCreatingSnapshot}
-            className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50"
+            className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
             title={`Save snapshot for Week ${dataWeekInfo.weekNumber}`}
           >
-            {isCreatingSnapshot ? 'Saving...' : 'Save First Snapshot'}
+            {isCreatingSnapshot ? (
+              <>
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Saving...
+              </>
+            ) : (
+              'Save First Snapshot'
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Toast Notification - Feedback Loop */}
+      {toast && (
+        <div
+          className={`
+            fixed bottom-6 right-6 px-5 py-3 rounded-xl shadow-lg text-sm font-medium
+            flex items-center gap-3 animate-in slide-in-from-bottom-4 fade-in duration-300
+            ${toast.type === 'success' 
+              ? 'bg-emerald-600 text-white' 
+              : 'bg-red-600 text-white'
+            }
+          `}
+        >
+          {toast.type === 'success' ? (
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          )}
+          {toast.message}
+          <button 
+            onClick={() => setToast(null)}
+            className="ml-2 hover:opacity-80 transition-opacity"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
       )}
