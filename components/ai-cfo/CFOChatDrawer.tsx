@@ -48,21 +48,24 @@ const CFOChatDrawer: React.FC<CFOChatDrawerProps> = ({
   const showWelcome = messages.length === 0;
 
   return (
-    <Transition show={isOpen} className="fixed inset-0 z-50">
+    <Transition show={isOpen} as="div" className="fixed inset-0 z-50">
       {/* Overlay */}
       <Transition.Child
+        as="div"
+        className="absolute inset-0 bg-black/40"
         enter="transition-opacity ease-out duration-150"
         enterFrom="opacity-0"
         enterTo="opacity-100"
         leave="transition-opacity ease-in duration-100"
         leaveFrom="opacity-100"
         leaveTo="opacity-0"
-      >
-        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      </Transition.Child>
+        onClick={onClose}
+      />
 
       {/* Drawer */}
       <Transition.Child
+        as="div"
+        className="absolute right-0 top-0 h-full w-full max-w-lg bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl flex flex-col"
         enter="transform transition ease-out duration-200"
         enterFrom="translate-x-full"
         enterTo="translate-x-0"
@@ -70,7 +73,6 @@ const CFOChatDrawer: React.FC<CFOChatDrawerProps> = ({
         leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
       >
-        <div className="absolute right-0 top-0 h-full w-full max-w-lg bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl flex flex-col">
           {/* Header */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
             <div className="flex items-center justify-between">
@@ -203,7 +205,6 @@ const CFOChatDrawer: React.FC<CFOChatDrawerProps> = ({
               disabled={isLoading}
             />
           </div>
-        </div>
       </Transition.Child>
     </Transition>
   );
