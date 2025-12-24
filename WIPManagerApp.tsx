@@ -597,7 +597,7 @@ function App() {
   };
 
   const sortedAndFilteredJobs = useMemo(() => {
-    if (filter === 'company' || filter === 'forecast' || filter === 'reports') {
+    if (filter === 'company' || filter === 'forecast' || filter === 'reports' || filter === 'timeline') {
       return [];
     }
 
@@ -734,6 +734,25 @@ function App() {
           weeklyUpdateMode={true}
           weeklyAsOfDate={weeklyAsOfDate}
         />
+      );
+    }
+    // Timeline tab - Gantt view with capacity planning
+    if (filter === 'timeline') {
+      return (
+        <>
+          <GanttView
+            jobs={timelineJobs}
+            onUpdateJob={handleSaveJob}
+            onEditJob={handleEditJobClick}
+            capacityPlan={settings?.capacityPlan}
+            capacityEnabled={settings?.capacityEnabled}
+            laborCapacityHours={laborCapacity?.weeklyProductiveHours}
+            laborCapacityEnabled={hasLaborCapacityAccess && !!laborCapacity}
+          />
+          <BondExposureChart
+            jobs={timelineJobs}
+          />
+        </>
       );
     }
     if (viewMode === 'gantt') {

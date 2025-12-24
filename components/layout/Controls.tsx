@@ -145,8 +145,8 @@ const Controls: React.FC<ControlsProps> = ({
     setSortDirection(direction);
   };
 
-  const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
-  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'weekly';
+  const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'timeline';
+  const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'weekly' && filter !== 'timeline';
   const isWeeklyView = filter === 'weekly';
 
   const showWeeklyReviewPanel = filter === 'weekly' || (viewMode === 'table' && weeklyUpdateMode);
@@ -201,6 +201,7 @@ const Controls: React.FC<ControlsProps> = ({
               <nav className="flex items-center gap-1">
                 {[
                   { key: 'jobs', label: 'Jobs', filter: JobStatus.Active, isActive: isJobsView },
+                  { key: 'timeline', label: 'Timeline', filter: 'timeline' as FilterType, isActive: filter === 'timeline' },
                   { key: 'company', label: 'Company', filter: 'company' as FilterType, isActive: filter === 'company' },
                   { key: 'forecast', label: 'Forecast', filter: 'forecast' as FilterType, isActive: filter === 'forecast' },
                   { key: 'weekly', label: 'Weekly Review', filter: 'weekly' as FilterType, isActive: filter === 'weekly' },
