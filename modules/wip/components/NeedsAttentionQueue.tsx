@@ -87,7 +87,7 @@ const calculateProfitVariance = (job: Job): number => {
   const forecastedProfit = totalContract - forecastedCost;
   
   // For T&M jobs, just return forecasted profit; for Fixed, return variance
-  if (job.jobType === 'tm') {
+  if (job.jobType === 'time-material') {
     return forecastedProfit;
   }
   return forecastedProfit - originalProfit;
@@ -285,7 +285,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
           {attentionItems.map(({ job, reasons, profitVariance }) => {
             const billingInfo = calculateBillingDifference(job);
             const hasHighSeverity = reasons.some(r => r.severity === 'high');
-            const isTM = job.jobType === 'tm';
+            const isTM = job.jobType === 'time-material';
 
             return (
               <div
