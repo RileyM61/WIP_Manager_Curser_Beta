@@ -284,7 +284,8 @@ const Controls: React.FC<ControlsProps> = ({
                         ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       } active:scale-95`}
-                      aria-label="Grid view"
+                      aria-label="Card view"
+                      title="Card View – Visual overview of jobs"
                     >
                       <GridIcon />
                     </button>
@@ -301,7 +302,7 @@ const Controls: React.FC<ControlsProps> = ({
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       } ${!tierFeatures.canUseTableView ? 'opacity-50' : ''} active:scale-95`}
                       aria-label="Table view"
-                      title={tierFeatures.canUseTableView ? 'Table view' : tierFeatures.getUpgradeMessage('canUseTableView')}
+                      title={tierFeatures.canUseTableView ? 'Table View – Spreadsheet for detailed editing' : tierFeatures.getUpgradeMessage('canUseTableView')}
                     >
                       <TableIcon />
                     </button>
