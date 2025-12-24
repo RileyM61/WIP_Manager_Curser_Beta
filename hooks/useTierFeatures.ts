@@ -17,6 +17,7 @@ export function getFreeTierFeatures(): Omit<TierFeatures, 'getUpgradeMessage'> {
         canUseTableView: true,
         canUseGanttView: true,
         canUseReportsView: false,
+        canUseChangeOrders: false,
         isPro: false,
         canAddMoreJobs: (currentCount: number) => currentCount < FREE_TIER_LIMITS.maxActiveJobs,
     };
@@ -30,6 +31,7 @@ export function getProTierFeatures(): Omit<TierFeatures, 'getUpgradeMessage'> {
         canUseTableView: true,
         canUseGanttView: true,
         canUseReportsView: true,
+        canUseChangeOrders: true,
         isPro: true,
         canAddMoreJobs: () => true,
     };
@@ -42,6 +44,7 @@ export interface TierFeatures {
     canUseTableView: boolean;
     canUseGanttView: boolean;
     canUseReportsView: boolean;
+    canUseChangeOrders: boolean;
     getUpgradeMessage: (feature: string) => string;
     isPro: boolean;
     canAddMoreJobs: (currentCount: number) => boolean;
@@ -60,6 +63,7 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
         let canUseTableView = true; // Available to all tiers
         let canUseGanttView = true; // Available to all tiers
         let canUseReportsView = false; // Professional+
+        let canUseChangeOrders = false; // Professional+
 
         // Helper to generate upgrade messages
         const getUpgradeMessage = (feature: string): string => {
@@ -72,6 +76,8 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
                     return 'Upgrade to Professional to unlock T&M billing';
                 case 'canUseMobilization':
                     return 'Upgrade to Professional to track mobilization phases';
+                case 'canUseChangeOrders':
+                    return 'Upgrade to Professional to manage Change Orders';
                 default:
                     return 'Upgrade to unlock this feature';
             }
@@ -86,6 +92,7 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
                 canUseTableView: true,
                 canUseGanttView: true,
                 canUseReportsView: true,
+                canUseChangeOrders: true,
                 getUpgradeMessage,
                 isPro: true,
                 canAddMoreJobs: () => true,
@@ -100,12 +107,14 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
                 canUseMobilization = true;
                 canUseAIInsights = true;
                 canUseReportsView = true;
+                canUseChangeOrders = true;
                 break;
             case 'professional':
                 canUseTimeAndMaterial = true;
                 canUseMobilization = true;
                 canUseAIInsights = false;
                 canUseReportsView = true;
+                canUseChangeOrders = true;
                 break;
             case 'starter':
             case 'trial':
@@ -114,6 +123,7 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
                 canUseMobilization = false;
                 canUseAIInsights = false;
                 canUseReportsView = false;
+                canUseChangeOrders = false;
                 break;
         }
 
@@ -124,6 +134,7 @@ export function useTierFeatures(): TierFeatures & { isLoading: boolean } {
             canUseTableView,
             canUseGanttView,
             canUseReportsView,
+            canUseChangeOrders,
             getUpgradeMessage,
             isPro: tier !== 'starter' && tier !== 'trial',
             canAddMoreJobs: (currentCount: number) => {
