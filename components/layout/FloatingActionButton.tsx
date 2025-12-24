@@ -68,9 +68,11 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 
   if (!show) return null;
 
-  const showMenu = hasChangeOrderFeature && onAddChangeOrder;
+  // Always show menu if onAddChangeOrder is provided
+  const showMenu = !!onAddChangeOrder;
 
   const handleMainClick = () => {
+    console.log('FAB clicked', { showMenu, hasChangeOrderFeature, isExpanded });
     if (showMenu) {
       setIsExpanded(!isExpanded);
     } else {
@@ -91,13 +93,14 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   return (
     <div ref={menuRef} className="fixed bottom-6 right-6 z-50 flex flex-col-reverse items-end gap-3">
       {/* Expanded Menu Items */}
-      <div 
-        className={`
-          flex flex-col items-end gap-2 
-          transition-all duration-200 ease-out
-          ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}
-        `}
-      >
+      {showMenu && (
+        <div 
+          className={`
+            flex flex-col items-end gap-2 
+            transition-all duration-200 ease-out
+            ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}
+          `}
+        >
         {/* Add Job Button */}
         <button
           onClick={handleAddJob}
@@ -149,7 +152,8 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
             <span>Add Change Order</span>
           </button>
         )}
-      </div>
+        </div>
+      )}
 
       {/* Main FAB Button with Tooltip */}
       <div className="flex items-center gap-2">
