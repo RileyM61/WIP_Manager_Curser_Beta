@@ -140,7 +140,7 @@ const CFOProApplicationForm: React.FC<CFOProApplicationFormProps> = ({ onClose }
           </p>
           <button
             onClick={onClose}
-            className="px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+            className="px-8 py-3 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white font-semibold rounded-xl hover:shadow-lg transition-all"
           >
             Got It
           </button>
@@ -328,7 +328,7 @@ const CFOProApplicationForm: React.FC<CFOProApplicationFormProps> = ({ onClose }
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-wip-gold/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">

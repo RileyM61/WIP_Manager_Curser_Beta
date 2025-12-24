@@ -28,7 +28,7 @@ const JobLimitModal: React.FC<JobLimitModalProps> = ({
             {/* Modal Content */}
             <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
                 {/* Header with gradient */}
-                <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-8 text-center">
+                <div className="bg-gradient-to-r from-wip-gold to-wip-gold-dark px-6 py-8 text-center">
                     <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -78,7 +78,7 @@ const JobLimitModal: React.FC<JobLimitModalProps> = ({
                     <div className="flex flex-col gap-3">
                         <button
                             onClick={onUpgrade}
-                            className="w-full py-3 px-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+                            className="w-full py-3 px-4 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
                         >
                             Upgrade to Pro
                         </button>

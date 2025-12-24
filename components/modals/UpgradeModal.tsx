@@ -115,7 +115,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
             {/* Modal Content */}
             <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
                 {/* Gradient Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-8 text-white text-center">
+                <div className="bg-gradient-to-r from-wip-gold to-wip-gold-dark px-6 py-8 text-white text-center">
                     <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <span className="text-3xl">💎</span>
                     </div>
@@ -186,7 +186,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     <button
                         onClick={handleUpgrade}
                         disabled={isLoading}
-                        className="w-full py-4 px-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-4 px-6 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:shadow-wip-gold/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? (
                             <span className="flex items-center justify-center gap-2">

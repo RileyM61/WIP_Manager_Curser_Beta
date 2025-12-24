@@ -35,7 +35,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
       className={`
         relative flex flex-col items-start p-6 rounded-2xl border-2 transition-all duration-300 text-left
         ${isClickable
-          ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-orange-500 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 cursor-pointer'
+          ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-orange-500 hover:shadow-xl hover:shadow-wip-gold/10 hover:-translate-y-1 cursor-pointer'
           : 'bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800 cursor-not-allowed opacity-60'
         }
       `}
@@ -63,7 +63,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({
       <div className={`
         w-14 h-14 rounded-xl flex items-center justify-center text-3xl mb-4
         ${isClickable
-          ? 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/20'
+          ? 'bg-gradient-to-br from-wip-gold to-wip-gold-dark shadow-lg shadow-wip-gold/20'
           : 'bg-gray-200 dark:bg-gray-700'
         }
       `}>
@@ -235,7 +235,7 @@ const ModuleDashboard: React.FC = () => {
 
         {/* Upgrade CTA (for direct companies without full access) */}
         {companyType === 'direct' && accessibleModules.length < ALL_MODULE_IDS.length && (
-          <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-8 text-white text-center">
+          <div className="bg-gradient-to-r from-wip-gold to-wip-gold-dark rounded-2xl p-8 text-white text-center">
             <h3 className="text-2xl font-bold mb-2">Unlock More Power</h3>
             <p className="text-white/80 mb-6 max-w-xl mx-auto">
               Upgrade your plan to access more financial tools and take complete control of your construction business.

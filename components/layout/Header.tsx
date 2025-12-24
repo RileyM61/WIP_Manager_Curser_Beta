@@ -99,7 +99,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo & Navigation */}
           <div className="flex items-center gap-4" data-tour="header-logo">
-            <DashboardNavButton className="text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors" />
+            <DashboardNavButton className="text-gray-500 dark:text-gray-400 hover:text-wip-gold dark:hover:text-wip-gold transition-colors" />
 
             <span className="text-gray-200 dark:text-gray-700 text-xl font-light">|</span>
 
@@ -166,7 +166,7 @@ const Header: React.FC<HeaderProps> = ({
                   id="header-pm-select"
                   value={activeProjectManager}
                   onChange={(e) => onActiveProjectManagerChange(e.target.value)}
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-wip-gold-dark dark:hover:text-wip-gold transition-colors"
                 >
                   <option value="">All PMs</option>
                   {projectManagers.map(pm => (
@@ -183,7 +183,7 @@ const Header: React.FC<HeaderProps> = ({
                   id="header-estimator-select"
                   value={activeEstimator}
                   onChange={(e) => onActiveEstimatorChange(e.target.value)}
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-wip-gold-dark dark:hover:text-wip-gold transition-colors"
                 >
                   <option value="">Select...</option>
                   {estimators.map(est => (
@@ -214,12 +214,12 @@ const Header: React.FC<HeaderProps> = ({
                 data-tour="settings-button"
               >
                 {/* User Avatar/Icon */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-wip-gold to-wip-gold-dark flex items-center justify-center text-white text-sm font-bold shadow-sm">
                   {companyName?.charAt(0).toUpperCase() || 'W'}
                 </div>
                 {/* Notification dot for unread items */}
                 {showUnreadBadge && (
-                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-gray-800" />
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-wip-gold rounded-full border-2 border-white dark:border-gray-800" />
                 )}
                 <svg className={`w-4 h-4 text-gray-400 transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -232,7 +232,7 @@ const Header: React.FC<HeaderProps> = ({
                   {/* User Info Section */}
                   <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-bold shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-wip-gold to-wip-gold-dark flex items-center justify-center text-white font-bold shadow-sm">
                         {companyName?.charAt(0).toUpperCase() || 'W'}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -258,7 +258,7 @@ const Header: React.FC<HeaderProps> = ({
                         onRoleChange(e.target.value as UserRole);
                         setProfileMenuOpen(false);
                       }}
-                      className="w-full text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      className="w-full text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-wip-gold"
                     >
                       <option value="owner">👑 Owner</option>
                       <option value="projectManager">🎯 Project Manager</option>
@@ -275,14 +275,14 @@ const Header: React.FC<HeaderProps> = ({
                         setShowUnreadBadge(false);
                         onOpenWhatsNew?.();
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-wip-card dark:hover:bg-wip-gold/20 transition-colors"
                     >
                       <span className="text-lg">📢</span>
                       <div className="text-left flex-1">
                         <div className="font-medium flex items-center gap-2">
                           What's New
                           {showUnreadBadge && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500 text-white rounded-full">NEW</span>
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-wip-gold text-white rounded-full">NEW</span>
                           )}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">Latest updates & features</div>

@@ -212,7 +212,7 @@ const AddClientCompanyModal: React.FC<AddClientCompanyModalProps> = ({
                             </span>
                           )}
                           {isComingSoon && (
-                            <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
+                            <span className="ml-2 text-xs text-wip-gold-dark dark:text-wip-gold">
                               Coming Soon
                             </span>
                           )}

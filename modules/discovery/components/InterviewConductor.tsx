@@ -254,7 +254,7 @@ export const InterviewConductor: React.FC<InterviewConductorProps> = ({
           {/* Progress bar */}
           <div className="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
+              className="h-full bg-gradient-to-r from-wip-gold to-wip-gold-dark transition-all duration-300"
               style={{ width: `${progress.percentComplete}%` }}
             />
           </div>
@@ -365,7 +365,7 @@ export const InterviewConductor: React.FC<InterviewConductorProps> = ({
               <button
                 onClick={goNext}
                 disabled={isSaving || (currentQuestion.required && currentAnswer === undefined)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-wip-gold to-wip-gold-dark hover:from-wip-gold-dark hover:to-wip-gold-dark text-white font-semibold rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 {isSaving ? (
                   <>

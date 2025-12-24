@@ -175,13 +175,13 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
       <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-wip-card to-wip-card dark:from-wip-gold/30 dark:to-wip-gold/30 flex items-center justify-center">
               <span className="text-2xl">🔒</span>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 {attentionItems.length} Job{attentionItems.length !== 1 ? 's' : ''} Need Attention
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">PRO</span>
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-wip-gold text-white rounded">PRO</span>
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 Upgrade to see which jobs need immediate action
@@ -190,7 +190,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
           </div>
           <button
             onClick={() => window.open('/upgrade', '_blank')}
-            className="px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all"
+            className="px-4 py-2 text-sm font-semibold text-wip-gold-dark dark:text-wip-gold hover:text-wip-gold-dark dark:hover:text-wip-gold border border-wip-border dark:border-wip-gold/50 rounded-lg hover:bg-wip-card dark:hover:bg-wip-gold/20 transition-all"
           >
             Learn More
           </button>
@@ -227,7 +227,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
             highSeverityCount > 0 
               ? 'bg-red-100 dark:bg-red-900/30' 
-              : 'bg-amber-100 dark:bg-amber-900/30'
+              : 'bg-wip-card dark:bg-wip-gold/30'
           }`}>
             <span className="text-2xl">{highSeverityCount > 0 ? '🚨' : '⚠️'}</span>
           </div>
@@ -237,7 +237,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
               <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
                 highSeverityCount > 0
                   ? 'bg-red-500 text-white'
-                  : 'bg-amber-500 text-white'
+                  : 'bg-wip-gold text-white'
               }`}>
                 {attentionItems.length}
               </span>
@@ -315,7 +315,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                           className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${
                             reason.severity === 'high'
                               ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                              : 'bg-wip-card text-wip-gold-dark dark:bg-wip-gold/40 dark:text-wip-gold'
                           }`}
                         >
                           {reason.type === 'underbilling' && '💰'}
@@ -363,7 +363,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                       className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 active:scale-95 ${
                         hasHighSeverity
                           ? 'bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow-md'
-                          : 'bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md'
+                          : 'bg-wip-gold hover:bg-wip-gold-dark text-white shadow-sm hover:shadow-md'
                       }`}
                     >
                       Review

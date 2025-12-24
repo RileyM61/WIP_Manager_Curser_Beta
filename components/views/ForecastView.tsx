@@ -129,7 +129,7 @@ const ForecastView: React.FC<ForecastViewProps> = ({ jobs }) => {
         <h2 className="text-xl font-bold text-brand-blue dark:text-brand-light-blue">Financial Forecast</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Projection based on active and future jobs, using estimated cost to complete.</p>
         {unscheduledJobs.length > 0 && (
-          <div className="mt-3 text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+          <div className="mt-3 text-xs text-wip-gold-dark dark:text-wip-gold bg-wip-card dark:bg-wip-gold/20 border border-wip-border dark:border-wip-gold/50 rounded-lg p-3">
             <div className="font-semibold">
               {unscheduledJobs.length} job{unscheduledJobs.length === 1 ? '' : 's'} missing an End Date / Target Date (TBD)
             </div>

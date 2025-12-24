@@ -206,7 +206,7 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId,
                   id="owner-pm-toggle"
                   type="button"
                   onClick={handleOwnerPmToggle}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${settings.ownerIsAlsoPm ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-600'
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${settings.ownerIsAlsoPm ? 'bg-wip-gold' : 'bg-gray-300 dark:bg-gray-600'
                     }`}
                 >
                   <span
@@ -227,7 +227,7 @@ const UsersSettings: React.FC<UsersSettingsProps> = ({ companyId, currentUserId,
                       id="owner-pm-name"
                       value={settings.ownerPmName || ''}
                       onChange={(e) => handleOwnerPmNameChange(e.target.value)}
-                      className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:bg-gray-700 dark:text-gray-200"
+                      className="block w-full border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-wip-gold focus:border-wip-gold dark:bg-gray-700 dark:text-gray-200"
                     >
                       <option value="">Select your PM name...</option>
                       {settings.projectManagers.map(pm => (

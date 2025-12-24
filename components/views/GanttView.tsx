@@ -97,7 +97,7 @@ const phaseColors = [
   { bg: 'bg-emerald-500 hover:bg-emerald-600', light: 'bg-emerald-400' },
   { bg: 'bg-blue-500 hover:bg-blue-600', light: 'bg-blue-400' },
   { bg: 'bg-purple-500 hover:bg-purple-600', light: 'bg-purple-400' },
-  { bg: 'bg-amber-500 hover:bg-amber-600', light: 'bg-amber-400' },
+  { bg: 'bg-wip-gold hover:bg-wip-gold-dark', light: 'bg-wip-gold' },
 ];
 
 const GanttView: React.FC<GanttViewProps> = ({
@@ -600,7 +600,7 @@ const GanttView: React.FC<GanttViewProps> = ({
               key={level}
               onClick={() => setZoomLevel(level)}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg transition ${zoomLevel === level
-                  ? 'bg-orange-500 text-white'
+                  ? 'bg-wip-gold text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                 }`}
             >
@@ -626,7 +626,7 @@ const GanttView: React.FC<GanttViewProps> = ({
           <span className="text-gray-600 dark:text-gray-400">Phase 3</span>
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-3 h-3 rounded bg-amber-500"></span>
+          <span className="w-3 h-3 rounded bg-wip-gold"></span>
           <span className="text-gray-600 dark:text-gray-400">Phase 4</span>
         </div>
         <span className="ml-4 text-gray-500 dark:text-gray-400">
@@ -761,7 +761,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                         className={`absolute top-2 bottom-2 rounded-lg shadow-md flex items-center transition-shadow ${hasWarning
                             ? 'bg-red-500 hover:bg-red-600 ring-2 ring-red-300 dark:ring-red-700'
                             : (phaseColors[colorIdx]?.bg || phaseColors[0].bg)
-                          } ${isDragging ? 'shadow-xl ring-2 ring-orange-400 z-20' : 'z-10'}`}
+                          } ${isDragging ? 'shadow-xl ring-2 ring-wip-gold z-20' : 'z-10'}`}
                         style={{
                           left: barStyle.left,
                           width: barStyle.width,
@@ -901,15 +901,15 @@ const GanttView: React.FC<GanttViewProps> = ({
                     if (capacityPercent !== null) {
                       // Capacity-based coloring
                       if (capacityPercent > 100) bgColor = 'bg-red-500'; // Over capacity
-                      else if (capacityPercent > 80) bgColor = 'bg-orange-500'; // Near capacity
-                      else if (capacityPercent > 60) bgColor = 'bg-amber-400'; // Healthy
+                      else if (capacityPercent > 80) bgColor = 'bg-wip-gold'; // Near capacity
+                      else if (capacityPercent > 60) bgColor = 'bg-wip-gold'; // Healthy
                       else if (capacityPercent > 40) bgColor = 'bg-blue-400'; // Available
                       else bgColor = 'bg-emerald-400'; // Underutilized
                     } else {
                       // Relative coloring (fallback)
                       if (intensity > 0.8) bgColor = 'bg-red-500';
-                      else if (intensity > 0.6) bgColor = 'bg-orange-500';
-                      else if (intensity > 0.4) bgColor = 'bg-amber-400';
+                      else if (intensity > 0.6) bgColor = 'bg-wip-gold';
+                      else if (intensity > 0.4) bgColor = 'bg-wip-gold';
                       else if (intensity > 0.2) bgColor = 'bg-blue-400';
                       else bgColor = 'bg-blue-300';
                     }
@@ -1005,10 +1005,10 @@ const GanttView: React.FC<GanttViewProps> = ({
                     <span className="w-3 h-3 rounded bg-blue-400" /> 40-60%
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded bg-amber-400" /> 60-80%
+                    <span className="w-3 h-3 rounded bg-wip-gold" /> 60-80%
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded bg-orange-500" /> 80-100%
+                    <span className="w-3 h-3 rounded bg-wip-gold" /> 80-100%
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-3 h-3 rounded bg-red-500" /> &gt;100%
@@ -1024,7 +1024,7 @@ const GanttView: React.FC<GanttViewProps> = ({
                     <span className="w-3 h-3 rounded bg-blue-300" /> Low
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="w-3 h-3 rounded bg-amber-400" /> Med
+                    <span className="w-3 h-3 rounded bg-wip-gold" /> Med
                   </span>
                   <span className="flex items-center gap-1">
                     <span className="w-3 h-3 rounded bg-red-500" /> High

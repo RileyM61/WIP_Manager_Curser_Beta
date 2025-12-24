@@ -115,7 +115,7 @@ export const EngagementDashboard: React.FC<EngagementDashboardProps> = ({
             
             <button
               onClick={() => setShowNewForm(true)}
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl shadow-lg transition-all"
+              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-wip-gold to-wip-gold-dark hover:from-wip-gold-dark hover:to-wip-gold-dark text-white font-semibold rounded-xl shadow-lg transition-all"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -189,7 +189,7 @@ export const EngagementDashboard: React.FC<EngagementDashboardProps> = ({
             </p>
             <button
               onClick={() => setShowNewForm(true)}
-              className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl"
+              className="px-6 py-3 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white font-semibold rounded-xl"
             >
               Start Your First Engagement
             </button>
@@ -351,7 +351,7 @@ export const EngagementDashboard: React.FC<EngagementDashboardProps> = ({
                                   ) : (
                                     <button
                                       onClick={() => onStartInterview(engagement, session)}
-                                      className="flex-1 px-3 py-2 text-sm bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-medium rounded-lg transition-colors"
+                                      className="flex-1 px-3 py-2 text-sm bg-gradient-to-r from-wip-gold to-wip-gold-dark hover:from-wip-gold-dark hover:to-wip-gold-dark text-white font-medium rounded-lg transition-colors"
                                     >
                                       {isInProgress ? 'Continue Interview' : 'Start Interview'}
                                     </button>

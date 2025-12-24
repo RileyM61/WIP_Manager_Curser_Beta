@@ -106,7 +106,7 @@ const TeamManagementModal: React.FC<TeamManagementModalProps> = ({
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'owner':
-        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
+        return 'bg-wip-card text-wip-gold-dark dark:bg-wip-gold/30 dark:text-wip-gold';
       case 'projectManager':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
       case 'estimator':
@@ -191,12 +191,12 @@ const TeamManagementModal: React.FC<TeamManagementModalProps> = ({
                 onChange={(e) => setNewEmail(e.target.value)}
                 placeholder="Email address"
                 required
-                className="flex-grow border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-gray-200"
+                className="flex-grow border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wip-gold dark:bg-gray-700 dark:text-gray-200"
               />
               <select
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value as UserRole)}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 dark:bg-gray-700 dark:text-gray-200"
+                className="border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wip-gold dark:bg-gray-700 dark:text-gray-200"
               >
                 <option value="projectManager">Project Manager</option>
                 <option value="estimator">Estimator</option>
@@ -205,7 +205,7 @@ const TeamManagementModal: React.FC<TeamManagementModalProps> = ({
               <button
                 type="submit"
                 disabled={sending || !newEmail.trim()}
-                className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-2 rounded-lg text-sm transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                className="bg-wip-gold hover:bg-wip-gold-dark text-white font-medium px-6 py-2 rounded-lg text-sm transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               >
                 {sending ? 'Sending...' : 'Send Invite'}
               </button>

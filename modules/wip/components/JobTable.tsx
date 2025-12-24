@@ -237,7 +237,7 @@ const JobTable: React.FC<JobTableProps> = ({ jobs, onEdit, onSave, onOpenNotes, 
             type="checkbox"
             checked={simpleInputs}
             onChange={(e) => setSimpleInputs(e.target.checked)}
-            className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
+            className="rounded border-gray-300 dark:border-gray-600 text-wip-gold-dark focus:ring-wip-gold"
           />
           Simple inputs
         </label>
@@ -337,7 +337,7 @@ OFF (unchecked): Always shows Labor, Material, and Other fields separately for p
                       <span
                         className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${hasCriticalWarning
                           ? 'bg-red-500 text-white'
-                          : 'bg-amber-400 text-amber-900'
+                          : 'bg-wip-gold text-wip-heading'
                           }`}
                         title={scheduleWarnings.map(w => w.message).join('\n')}
                       >
@@ -357,7 +357,7 @@ OFF (unchecked): Always shows Labor, Material, and Other fields separately for p
                     </span>
                     <span className={`px-2 inline-flex text-xs leading-5 font-medium rounded ${isTM
                       ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                      : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                      : 'bg-wip-card text-wip-gold-dark dark:bg-wip-gold/30 dark:text-wip-gold'
                       }`}>
                       {isTM ? 'T&M' : 'Fixed'}
                     </span>
@@ -516,12 +516,12 @@ OFF (unchecked): Always shows Labor, Material, and Other fields separately for p
                       )}
                       {/* As of Date */}
                       <div className="pt-2 border-t dark:border-gray-600">
-                        <label className="text-[10px] text-amber-600 dark:text-amber-400 uppercase font-semibold">As of Date</label>
+                        <label className="text-[10px] text-wip-gold-dark dark:text-wip-gold uppercase font-semibold">As of Date</label>
                         <input
                           type="date"
                           value={editData.asOfDate}
                           onChange={(e) => setEditData(prev => prev ? { ...prev, asOfDate: e.target.value } : null)}
-                          className="w-full px-1.5 py-0.5 text-xs border border-amber-300 dark:border-amber-600 rounded bg-amber-50 dark:bg-amber-900/30 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-amber-500"
+                          className="w-full px-1.5 py-0.5 text-xs border border-wip-border dark:border-wip-gold/50 rounded bg-wip-card dark:bg-wip-gold/30 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-wip-gold"
                         />
                         {weeklyUpdateMode && isMissingWeeklyAsOf && (
                           <div className="text-[10px] text-red-600 dark:text-red-400 mt-1 font-semibold">
@@ -529,7 +529,7 @@ OFF (unchecked): Always shows Labor, Material, and Other fields separately for p
                           </div>
                         )}
                         {weeklyUpdateMode && isAsOfMismatch && (
-                          <div className="text-[10px] text-amber-700 dark:text-amber-300 mt-1 font-semibold">
+                          <div className="text-[10px] text-wip-gold-dark dark:text-wip-gold mt-1 font-semibold">
                             Not aligned to weekly date
                           </div>
                         )}
@@ -559,7 +559,7 @@ OFF (unchecked): Always shows Labor, Material, and Other fields separately for p
                         </div>
                       )}
                       {!!displayAsOfDate && (
-                        <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
+                        <div className="text-[10px] text-wip-gold-dark dark:text-wip-gold mt-1">
                           As of: {new Date(displayAsOfDate).toLocaleDateString()}
                         </div>
                       )}

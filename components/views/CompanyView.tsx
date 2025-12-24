@@ -313,7 +313,7 @@ const CompanyView: React.FC<CompanyViewProps> = ({
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Job Types</p>
             <div className="flex items-center gap-3 mt-2">
               <div className="flex items-center gap-1">
-                <span className="px-2 py-0.5 text-xs font-medium rounded bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">Fixed</span>
+                <span className="px-2 py-0.5 text-xs font-medium rounded bg-wip-card text-wip-gold-dark dark:bg-wip-gold/30 dark:text-wip-gold">Fixed</span>
                 <span className="text-lg font-bold text-gray-700 dark:text-gray-200">{fixedJobCount}</span>
               </div>
               <div className="flex items-center gap-1">
@@ -619,7 +619,7 @@ const CompanyView: React.FC<CompanyViewProps> = ({
                           <span className={`px-2 py-0.5 text-xs font-medium rounded ${
                             job.isTM 
                               ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' 
-                              : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                              : 'bg-wip-card text-wip-gold-dark dark:bg-wip-gold/30 dark:text-wip-gold'
                           }`}>
                             {job.isTM ? 'T&M' : 'Fixed'}
                           </span>

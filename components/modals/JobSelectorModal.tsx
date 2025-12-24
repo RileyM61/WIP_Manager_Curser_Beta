@@ -102,7 +102,7 @@ const JobSelectorModal: React.FC<JobSelectorModalProps> = ({
                 placeholder="Search by job name, number, or PM..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-wip-gold/50 focus:border-wip-gold transition-all"
                 autoFocus
               />
             </div>
@@ -126,13 +126,13 @@ const JobSelectorModal: React.FC<JobSelectorModalProps> = ({
                     <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
                       job.status === JobStatus.Active 
                         ? 'bg-green-500' 
-                        : 'bg-amber-500'
+                        : 'bg-wip-gold'
                     }`} />
                     
                     {/* Job info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-wip-gold-dark dark:group-hover:text-wip-gold transition-colors">
                           {job.jobName}
                         </span>
                         <span className="text-xs font-mono text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
@@ -148,7 +148,7 @@ const JobSelectorModal: React.FC<JobSelectorModalProps> = ({
 
                     {/* Arrow */}
                     <svg 
-                      className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-orange-500 group-hover:translate-x-0.5 transition-all" 
+                      className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-wip-gold group-hover:translate-x-0.5 transition-all" 
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"

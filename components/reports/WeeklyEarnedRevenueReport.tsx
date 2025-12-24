@@ -85,10 +85,10 @@ const WeekSummaryCard: React.FC<{
       className={`
         bg-white dark:bg-slate-800 rounded-xl border p-4 transition-all duration-200
         ${isCurrentWeek 
-          ? 'border-orange-500 shadow-lg shadow-orange-500/20 ring-1 ring-orange-500/50' 
+          ? 'border-wip-gold shadow-lg shadow-wip-gold/20 ring-1 ring-wip-gold/50' 
           : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
         }
-        ${isSelected && !isCurrentWeek ? 'ring-2 ring-orange-500 bg-orange-50/50 dark:bg-orange-900/10' : ''}
+        ${isSelected && !isCurrentWeek ? 'ring-2 ring-wip-gold bg-wip-card/50 dark:bg-wip-gold/10' : ''}
       `}
     >
       <div className="flex items-center justify-between mb-3">
@@ -101,13 +101,13 @@ const WeekSummaryCard: React.FC<{
           </p>
         </div>
         {isCurrentWeek && (
-          <span className="text-xs bg-orange-500 text-white px-2.5 py-1 rounded-full font-medium shadow-sm">
+          <span className="text-xs bg-wip-gold text-white px-2.5 py-1 rounded-full font-medium shadow-sm">
             Current
           </span>
         )}
       </div>
       
-      <div className={`text-2xl font-bold mb-2 ${isCurrentWeek ? 'text-orange-600 dark:text-orange-400' : 'text-slate-900 dark:text-white'}`}>
+      <div className={`text-2xl font-bold mb-2 ${isCurrentWeek ? 'text-wip-gold-dark dark:text-wip-gold' : 'text-slate-900 dark:text-white'}`}>
         {formatCurrency(week.totalEarnedRevenue)}
       </div>
       
@@ -234,7 +234,7 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wip-gold" />
       </div>
     );
   }
@@ -268,18 +268,18 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
 
       {/* Primary Action Banner - Contextual CTA when snapshot needed */}
       {!hasDataWeekSnapshot && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-wip-card dark:bg-wip-gold/20 border border-wip-border dark:border-wip-gold/50 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800 flex items-center justify-center">
-              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-wip-card dark:bg-wip-gold-dark flex items-center justify-center">
+              <svg className="w-5 h-5 text-wip-gold-dark dark:text-wip-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-amber-800 dark:text-amber-200">
+              <p className="font-semibold text-wip-gold-dark dark:text-wip-gold">
                 Ready to save Week {dataWeekInfo.weekNumber}
               </p>
-              <p className="text-sm text-amber-600 dark:text-amber-400">
+              <p className="text-sm text-wip-gold-dark dark:text-wip-gold">
                 {formatWeekRange(dataWeekInfo.weekStart, dataWeekInfo.weekEnd)} • Based on your jobs' "As Of Date"
               </p>
             </div>
@@ -287,7 +287,7 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
           <button
             onClick={handleCreateSnapshot}
             disabled={isCreatingSnapshot}
-            className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+            className="px-6 py-3 bg-wip-gold hover:bg-wip-gold-dark text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
             title={`Save snapshot for Week ${dataWeekInfo.weekNumber}`}
           >
             {isCreatingSnapshot ? (
@@ -352,7 +352,7 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
                       <div
                         className={`w-full rounded-t-lg transition-all ${
                           isSelected
-                            ? 'bg-orange-500'
+                            ? 'bg-wip-gold'
                             : 'bg-slate-200 dark:bg-slate-600'
                         }`}
                         style={{ height: `${Math.max(heightPercent, 5)}%` }}
@@ -470,8 +470,8 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
       ) : (
         /* Empty State */
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-16 h-16 rounded-2xl bg-wip-card dark:bg-wip-gold/30 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-wip-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>

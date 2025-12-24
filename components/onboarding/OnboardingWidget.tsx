@@ -108,7 +108,7 @@ export const OnboardingWidget: React.FC<OnboardingWidgetProps> = ({ onAction }) 
     return (
         <div className="mb-8 w-full bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/10 dark:to-amber-900/10 border border-orange-100 dark:border-orange-900/20 rounded-2xl p-6 relative overflow-hidden">
             {/* Background Decor */}
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-orange-500/10 rounded-full blur-2xl"></div>
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-wip-gold/10 rounded-full blur-2xl"></div>
 
             <div className="flex justify-between items-start relative z-10">
                 <div>

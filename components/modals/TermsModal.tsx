@@ -52,7 +52,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ onAccept }) => {
                 {/* Footer */}
                 <div className="p-6 border-t border-white/10 bg-slate-900/50 flex flex-col gap-4 shrink-0 rounded-b-2xl">
                     {!canAccept && (
-                        <div className="text-amber-400 text-sm text-center animate-pulse">
+                        <div className="text-wip-gold text-sm text-center animate-pulse">
                             Please scroll to the bottom to accept
                         </div>
                     )}
@@ -62,7 +62,7 @@ const TermsModal: React.FC<TermsModalProps> = ({ onAccept }) => {
                         className={`
               w-full py-4 px-6 rounded-xl font-bold text-lg transition-all
               ${canAccept
-                                ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/20 transform hover:scale-[1.01]'
+                                ? 'bg-gradient-to-r from-wip-gold to-wip-gold-dark hover:from-wip-gold-dark hover:to-wip-gold-dark text-white shadow-lg shadow-wip-gold/20 transform hover:scale-[1.01]'
                                 : 'bg-white/5 text-white/40 cursor-not-allowed'
                             }
             `}

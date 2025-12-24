@@ -92,7 +92,7 @@ export const OnboardingWizardModal: React.FC = () => {
                                 {view === 'selection' ? (
                                     <>
                                         <div className="text-center mb-10">
-                                            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-orange-500/20 mb-6">
+                                            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-wip-gold to-wip-gold-dark rounded-2xl flex items-center justify-center text-3xl shadow-lg shadow-wip-gold/20 mb-6">
                                                 🚀
                                             </div>
                                             <Dialog.Title as="h3" className="text-3xl font-bold leading-6 text-gray-900 dark:text-white mb-3">
@@ -107,7 +107,7 @@ export const OnboardingWizardModal: React.FC = () => {
                                             {/* Newbie Card */}
                                             <button
                                                 onClick={() => handleSelect('newbie')}
-                                                className="group relative p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 bg-slate-50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all text-left hover:-translate-y-1 hover:shadow-xl"
+                                                className="group relative p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-wip-gold dark:hover:border-wip-gold bg-slate-50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 transition-all text-left hover:-translate-y-1 hover:shadow-xl"
                                             >
                                                 <div className="text-4xl mb-4 grayscale group-hover:grayscale-0 transition-all">🌱</div>
                                                 <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">I'm New to WIP</h4>

@@ -104,7 +104,7 @@ const StepCard: React.FC<{ step: WorkflowStep; stepNumber: number }> = ({ step, 
   return (
     <div className="flex gap-4">
       {/* Step number */}
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white font-bold text-sm">
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-wip-gold to-wip-gold-dark flex items-center justify-center text-white font-bold text-sm">
         {stepNumber}
       </div>
       
@@ -158,7 +158,7 @@ const WorkflowsPage: React.FC<WorkflowsPageProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+      <div className="bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">

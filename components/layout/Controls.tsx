@@ -219,7 +219,7 @@ const Controls: React.FC<ControlsProps> = ({
                       className={`
                         relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
                         ${tab.isActive 
-                          ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' 
+                          ? 'text-wip-gold-dark dark:text-wip-gold bg-wip-card dark:bg-wip-gold/20' 
                           : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                         }
                         ${tab.isPro ? 'opacity-75' : ''}
@@ -228,11 +228,11 @@ const Controls: React.FC<ControlsProps> = ({
                     >
                       {tab.label}
                       {tab.isPro && (
-                        <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">PRO</span>
+                        <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-wip-gold text-white rounded">PRO</span>
                       )}
                       {/* Active indicator line */}
                       {tab.isActive && (
-                        <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-orange-500 rounded-full" />
+                        <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-wip-gold rounded-full" />
                       )}
                     </button>
                     {tab.hasTooltip && (
@@ -262,7 +262,7 @@ const Controls: React.FC<ControlsProps> = ({
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setSearchFocused(true)}
                       onBlur={() => setSearchFocused(false)}
-                      className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
+                      className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-wip-gold/50 focus:border-wip-gold transition-all"
                     />
                     {searchQuery && (
                       <button
@@ -281,7 +281,7 @@ const Controls: React.FC<ControlsProps> = ({
                     <button
                       onClick={() => setViewMode('grid')}
                       className={`p-2 rounded-md transition-all duration-200 ${viewMode === 'grid'
-                        ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
+                        ? 'bg-white dark:bg-gray-600 text-wip-gold shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       } active:scale-95`}
                       aria-label="Card view"
@@ -298,7 +298,7 @@ const Controls: React.FC<ControlsProps> = ({
                         }
                       }}
                       className={`p-2 rounded-md transition-all duration-200 ${viewMode === 'table'
-                        ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
+                        ? 'bg-white dark:bg-gray-600 text-wip-gold shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       } ${!tierFeatures.canUseTableView ? 'opacity-50' : ''} active:scale-95`}
                       aria-label="Table view"
@@ -394,7 +394,7 @@ const Controls: React.FC<ControlsProps> = ({
                     id="pm-filter"
                     value={pmFilter}
                     onChange={(e) => setPmFilter(e.target.value)}
-                    className="text-sm text-gray-700 dark:text-gray-300 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                    className="text-sm text-gray-700 dark:text-gray-300 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer hover:text-wip-gold-dark dark:hover:text-wip-gold transition-colors"
                   >
                     {projectManagers.map(pm => (
                       <option key={pm} value={pm}>{pm === 'all' ? 'All' : pm}</option>
@@ -409,7 +409,7 @@ const Controls: React.FC<ControlsProps> = ({
                     id="sort"
                     value={`${sortKey}-${sortDirection}`}
                     onChange={handleSortChange}
-                    className="text-sm text-gray-700 dark:text-gray-300 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                    className="text-sm text-gray-700 dark:text-gray-300 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer hover:text-wip-gold-dark dark:hover:text-wip-gold transition-colors"
                   >
                     <option value="jobNo-asc">Job # ↑</option>
                     <option value="jobNo-desc">Job # ↓</option>
@@ -428,7 +428,7 @@ const Controls: React.FC<ControlsProps> = ({
                         type="checkbox"
                         checked={weeklyUpdateMode}
                         onChange={(e) => setWeeklyUpdateMode(e.target.checked)}
-                        className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 w-4 h-4"
+                        className="rounded border-gray-300 dark:border-gray-600 text-wip-gold-dark focus:ring-wip-gold w-4 h-4"
                       />
                       <span className="text-xs">Weekly Mode</span>
                     </label>
@@ -448,22 +448,22 @@ const Controls: React.FC<ControlsProps> = ({
 
         {/* Weekly Review As-Of Date (for weekly view or weekly mode) */}
         {(filter === 'weekly' || (viewMode === 'table' && weeklyUpdateMode)) && weeklyAsOfDate !== undefined && setWeeklyAsOfDate && (
-          <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700/50 bg-amber-50/50 dark:bg-amber-900/10">
+          <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700/50 bg-wip-card/50 dark:bg-wip-gold/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-medium text-amber-700 dark:text-amber-400">As-Of Date:</span>
+                <span className="text-xs font-medium text-wip-gold-dark dark:text-wip-gold">As-Of Date:</span>
                 <input
                   type="date"
                   value={weeklyAsOfDate}
                   onChange={(e) => setWeeklyAsOfDate(e.target.value)}
-                  className="text-sm border border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="text-sm border border-wip-border dark:border-wip-gold/50 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-wip-gold focus:border-transparent"
                 />
               </div>
               {typeof weeklyUpdatedCount === 'number' && typeof weeklyTotalCount === 'number' && (
                 <div className="flex items-center gap-2">
                   <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-wip-gold to-wip-gold-dark rounded-full transition-all duration-500"
                       style={{ width: `${weeklyTotalCount > 0 ? (weeklyUpdatedCount / weeklyTotalCount) * 100 : 0}%` }}
                     />
                   </div>
@@ -481,11 +481,11 @@ const Controls: React.FC<ControlsProps> = ({
       {/* Weekly WIP Review Panel (Collapsible) */}
       {/* ============================================ */}
       {showWeeklyReviewPanel && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800 rounded-xl overflow-hidden">
+        <div className="bg-gradient-to-r from-wip-card to-wip-card dark:from-wip-gold/10 dark:to-wip-gold/10 border border-wip-border dark:border-wip-gold/30 rounded-xl overflow-hidden">
           <button
             type="button"
             onClick={() => setIsWeeklyReviewOpen((v) => !v)}
-            className="w-full px-5 py-4 flex items-center justify-between hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-colors"
+            className="w-full px-5 py-4 flex items-center justify-between hover:bg-wip-card/50 dark:hover:bg-wip-gold/10 transition-colors"
           >
             <div className="text-left">
               <div className="flex items-center gap-2">
@@ -548,7 +548,7 @@ const Controls: React.FC<ControlsProps> = ({
                   </div>
                   <button
                     onClick={() => openKnowledge(item.learn)}
-                    className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+                    className="text-xs text-wip-gold-dark dark:text-wip-gold hover:underline"
                   >
                     Learn why
                   </button>
@@ -566,7 +566,7 @@ const Controls: React.FC<ControlsProps> = ({
                   </div>
                   <button
                     onClick={() => openKnowledge('05_Decision_Making/When_to_Push_Collections')}
-                    className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+                    className="text-xs text-wip-gold-dark dark:text-wip-gold hover:underline"
                   >
                     Learn why
                   </button>
@@ -584,7 +584,7 @@ const Controls: React.FC<ControlsProps> = ({
                           })
                         }
                         placeholder={`Action ${idx + 1}`}
-                        className="flex-1 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-wip-gold"
                       />
                       <input
                         value={a.owner}

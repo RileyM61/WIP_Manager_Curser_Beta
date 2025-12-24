@@ -405,7 +405,7 @@ const ChangeOrderFormModal: React.FC<ChangeOrderFormModalProps> = ({
                             <div className="grid grid-cols-4 gap-2 items-center">
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">CTC</span>
-                                    <span className="text-xs font-bold text-orange-600 dark:text-orange-400">{formatCurrency(costToCompleteTotal)}</span>
+                                    <span className="text-xs font-bold text-wip-gold-dark dark:text-wip-gold">{formatCurrency(costToCompleteTotal)}</span>
                                 </div>
                                 <CurrencyInput
                                     name="costToComplete.labor"

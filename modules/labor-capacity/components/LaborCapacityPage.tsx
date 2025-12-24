@@ -110,7 +110,7 @@ const LaborCapacityPage: React.FC = () => {
           <DashboardNavButton />
           <Link
             to={ROUTES.wip}
-            className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 shadow-sm hover:border-orange-400 hover:text-orange-500 dark:hover:text-orange-300 hover:shadow-lg hover:shadow-orange-500/10 transition-colors backdrop-blur"
+            className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 shadow-sm hover:border-wip-gold hover:text-wip-gold dark:hover:text-wip-gold hover:shadow-lg hover:shadow-wip-gold/10 transition-colors backdrop-blur"
             aria-label="Back to WIP"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@ const LaborCapacityPage: React.FC = () => {
         </div>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-12 h-12 border-4 border-wip-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-gray-600 dark:text-gray-400">Loading labor data...</p>
           </div>
         </div>
@@ -140,7 +140,7 @@ const LaborCapacityPage: React.FC = () => {
                 <DashboardNavButton />
                 <Link
                   to={ROUTES.wip}
-                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 shadow-sm hover:border-orange-400 hover:text-orange-500 dark:hover:text-orange-300 hover:shadow-lg hover:shadow-orange-500/10 transition-colors backdrop-blur"
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 shadow-sm hover:border-wip-gold hover:text-wip-gold dark:hover:text-wip-gold hover:shadow-lg hover:shadow-wip-gold/10 transition-colors backdrop-blur"
                   aria-label="Back to WIP"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +160,7 @@ const LaborCapacityPage: React.FC = () => {
             </div>
             <button
               onClick={handleAddEmployee}
-              className="px-4 py-2 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition flex items-center gap-2"
+              className="px-4 py-2 bg-wip-gold text-white font-medium rounded-lg hover:bg-wip-gold-dark transition flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -181,7 +181,7 @@ const LaborCapacityPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.id as TabId)}
                 className={`px-4 py-2 text-sm font-medium rounded-t-lg transition ${
                   activeTab === tab.id
-                    ? 'bg-gray-50 dark:bg-gray-900 text-orange-600 border-t-2 border-orange-500'
+                    ? 'bg-gray-50 dark:bg-gray-900 text-orange-600 border-t-2 border-wip-gold'
                     : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
@@ -287,7 +287,7 @@ const LaborCapacityPage: React.FC = () => {
                     onClick={() => setChartMode('cost')}
                     className={`px-3 py-1.5 text-sm rounded-lg transition ${
                       chartMode === 'cost'
-                        ? 'bg-orange-500 text-white'
+                        ? 'bg-wip-gold text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                     }`}
                   >
@@ -297,7 +297,7 @@ const LaborCapacityPage: React.FC = () => {
                     onClick={() => setChartMode('hours')}
                     className={`px-3 py-1.5 text-sm rounded-lg transition ${
                       chartMode === 'hours'
-                        ? 'bg-orange-500 text-white'
+                        ? 'bg-wip-gold text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                     }`}
                   >

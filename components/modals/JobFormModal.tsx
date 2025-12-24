@@ -389,7 +389,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{jobToEdit ? 'Edit Job' : 'Add New Job'}</h2>
               {hasDraft && !jobToEdit && (
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-wip-card text-wip-gold-dark dark:bg-wip-gold/30 dark:text-wip-gold">
                     <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
                     </svg>
@@ -416,7 +416,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               type="button"
               onClick={() => setActiveTab('details')}
               className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'details'
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                ? 'bg-gradient-to-r from-wip-gold to-wip-gold text-white shadow-md'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
@@ -426,7 +426,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               type="button"
               onClick={() => setActiveTab('scheduling')}
               className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'scheduling'
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                ? 'bg-gradient-to-r from-wip-gold to-wip-gold text-white shadow-md'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
@@ -436,7 +436,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
               type="button"
               onClick={() => setActiveTab('financials')}
               className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all ${activeTab === 'financials'
-                ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
+                ? 'bg-gradient-to-r from-wip-gold to-wip-gold text-white shadow-md'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
@@ -460,7 +460,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       onClick={() => handleJobTypeChange('fixed-price')}
                       disabled={isEstimatorWithRestrictedAccess}
                       className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all text-sm font-medium ${job.jobType === 'fixed-price'
-                        ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300'
+                        ? 'border-wip-gold bg-wip-card dark:bg-wip-gold/20 text-wip-gold-dark dark:text-wip-gold'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
@@ -485,7 +485,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       <div className="font-semibold">
                         Time & Material
                         {!tierFeatures.canUseTimeAndMaterial && (
-                          <span className="ml-2 text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full">Pro</span>
+                          <span className="ml-2 text-xs bg-wip-gold text-white px-1.5 py-0.5 rounded-full">Pro</span>
                         )}
                       </div>
                       <div className="text-xs mt-1 opacity-75">Cost plus markup</div>
@@ -649,8 +649,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                             }));
                           }}
                           disabled={isEstimatorWithRestrictedAccess}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                            job.hasBond ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-wip-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            job.hasBond ? 'bg-wip-gold' : 'bg-gray-300 dark:bg-gray-600'
                           }`}
                           role="switch"
                           aria-checked={job.hasBond}
@@ -929,13 +929,13 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                         'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20',
                         'border-blue-500 bg-blue-50 dark:bg-blue-900/20',
                         'border-purple-500 bg-purple-50 dark:bg-purple-900/20',
-                        'border-amber-500 bg-amber-50 dark:bg-amber-900/20',
+                        'border-wip-gold bg-wip-card dark:bg-wip-gold/20',
                       ];
                       const phaseAccentColors = [
                         'text-emerald-700 dark:text-emerald-300',
                         'text-blue-700 dark:text-blue-300',
                         'text-purple-700 dark:text-purple-300',
-                        'text-amber-700 dark:text-amber-300',
+                        'text-wip-gold-dark dark:text-wip-gold',
                       ];
 
                       return (
@@ -1092,7 +1092,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                             <span className="text-gray-500 dark:text-gray-400">Target vs Contract</span>
                             <p className={`font-semibold ${new Date(job.targetEndDate) <= new Date(job.endDate)
                               ? 'text-green-600 dark:text-green-400'
-                              : 'text-amber-600 dark:text-amber-400'
+                              : 'text-wip-gold-dark dark:text-wip-gold'
                               }`}>
                               {(() => {
                                 const target = new Date(job.targetEndDate);
@@ -1202,18 +1202,18 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                 </div>
 
                 {/* Financial Data As Of Date */}
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                <div className="bg-wip-card dark:bg-wip-gold/20 border border-wip-border dark:border-wip-gold-dark rounded-lg p-4">
                   <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-800 flex items-center justify-center">
-                      <svg className="w-4 h-4 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-wip-card dark:bg-wip-gold-dark flex items-center justify-center">
+                      <svg className="w-4 h-4 text-wip-gold-dark dark:text-wip-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <label htmlFor="asOfDate" className="block text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                      <label htmlFor="asOfDate" className="block text-sm font-semibold text-wip-gold-dark dark:text-wip-gold mb-1">
                         Financial Data As Of
                       </label>
-                      <p className="text-xs text-amber-600 dark:text-amber-400 mb-2">
+                      <p className="text-xs text-wip-gold-dark dark:text-wip-gold mb-2">
                         Set the date this cost/billing data represents (for accurate period reporting)
                       </p>
                       <input
@@ -1222,7 +1222,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                         name="asOfDate"
                         value={job.asOfDate || ''}
                         onChange={(e) => setJob(prev => ({ ...prev, asOfDate: e.target.value }))}
-                        className="w-48 px-3 py-2 border border-amber-300 dark:border-amber-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        className="w-48 px-3 py-2 border border-wip-gold dark:border-wip-gold-dark rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-wip-gold focus:border-wip-gold"
                         disabled={isEstimatorWithRestrictedAccess}
                       />
                     </div>
@@ -1335,8 +1335,8 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
 
             {/* Estimator Warning */}
             {isEstimatorWithRestrictedAccess && (
-              <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-                <p className="text-sm text-amber-800 dark:text-amber-200">
+              <div className="mt-4 bg-wip-card dark:bg-wip-gold/20 border border-wip-border dark:border-wip-gold-dark rounded-lg p-3">
+                <p className="text-sm text-wip-gold-dark dark:text-wip-border">
                   <strong>View Only:</strong> As an Estimator, you can only edit jobs with "Future" status. This job is currently "{jobToEdit?.status}".
                 </p>
               </div>
@@ -1372,7 +1372,7 @@ const JobFormModal: React.FC<JobFormModalProps> = ({ isOpen, onClose, onSave, on
                       Save as Draft
                     </button>
                   )}
-                  <button type="submit" className="bg-gradient-to-r from-orange-500 to-amber-500 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                  <button type="submit" className="bg-gradient-to-r from-wip-gold to-wip-gold py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:from-wip-gold-dark hover:to-wip-gold-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-wip-gold">
                     Save Job
                   </button>
                 </>

@@ -76,7 +76,7 @@ const ContextualUpgradePrompt: React.FC<ContextualUpgradePromptProps> = ({
 
   if (variant === 'banner') {
     return (
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between">
+      <div className="bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-xl">💎</span>
           <div>
@@ -109,7 +109,7 @@ const ContextualUpgradePrompt: React.FC<ContextualUpgradePromptProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white text-xl shadow-lg shadow-orange-500/20">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white text-xl shadow-lg shadow-wip-gold/20">
           💎
         </div>
         <div className="flex-1">
@@ -123,7 +123,7 @@ const ContextualUpgradePrompt: React.FC<ContextualUpgradePromptProps> = ({
             <button
               onClick={handleUpgrade}
               disabled={isUpgrading}
-              className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold rounded-lg hover:shadow-lg hover:shadow-orange-500/30 transition-all disabled:opacity-50"
+              className="px-4 py-2 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white text-sm font-semibold rounded-lg hover:shadow-lg hover:shadow-wip-gold/30 transition-all disabled:opacity-50"
             >
               {isUpgrading ? 'Loading...' : 'Upgrade to Pro - $99/mo'}
             </button>

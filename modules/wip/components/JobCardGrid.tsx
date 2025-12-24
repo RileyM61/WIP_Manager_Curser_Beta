@@ -187,7 +187,7 @@ const JobCard: React.FC<JobCardProps> = ({
               </span>
               <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${isTM
                 ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                : 'bg-wip-card text-wip-gold-dark dark:bg-wip-gold/30 dark:text-wip-gold'
                 }`}>
                 {isTM ? 'T&M' : 'Fixed'}
               </span>
@@ -244,7 +244,7 @@ const JobCard: React.FC<JobCardProps> = ({
               primaryAlert.severity === 'critical' 
                 ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300' 
                 : primaryAlert.severity === 'warning'
-                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+                  ? 'bg-wip-card text-wip-gold-dark dark:bg-wip-gold/50 dark:text-wip-gold'
                   : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
             }`}>
               <span>{primaryAlert.severity === 'critical' ? '🚨' : primaryAlert.severity === 'warning' ? '⚠️' : 'ℹ️'}</span>
@@ -282,10 +282,10 @@ const JobCard: React.FC<JobCardProps> = ({
               )}
             </button>
             {onOpenChangeOrders && (
-              <button onClick={() => onOpenChangeOrders(job)} className="relative text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition px-1" title="Change Orders">
+              <button onClick={() => onOpenChangeOrders(job)} className="relative text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-wip-gold-dark dark:hover:text-wip-gold transition px-1" title="Change Orders">
                 C/O
                 {coCount && coCount.total > 0 && (
-                  <span className={`absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[10px] font-bold text-white ${coCount.pending > 0 ? 'bg-amber-500' : 'bg-green-500'}`}>
+                  <span className={`absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[10px] font-bold text-white ${coCount.pending > 0 ? 'bg-wip-gold' : 'bg-green-500'}`}>
                     {coCount.total}
                   </span>
                 )}
@@ -380,7 +380,7 @@ const JobCard: React.FC<JobCardProps> = ({
               </span>
             )}
             {showMarginFade && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-wip-card text-wip-gold-dark dark:bg-wip-gold/50 dark:text-wip-gold">
                 <svg className="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
                 </svg>
@@ -392,14 +392,14 @@ const JobCard: React.FC<JobCardProps> = ({
 
         {/* Schedule Warning Banner */}
         {hasScheduleWarning && (
-          <div className={`mt-2 p-2 ${hasCriticalWarning ? 'bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500' : 'bg-amber-50 dark:bg-amber-900/50 border-l-4 border-amber-500'} rounded-r-md`}>
+          <div className={`mt-2 p-2 ${hasCriticalWarning ? 'bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500' : 'bg-wip-card dark:bg-wip-gold/50 border-l-4 border-wip-gold'} rounded-r-md`}>
             <div className="flex items-center gap-2">
-              <span className={`text-lg ${hasCriticalWarning ? 'text-red-600' : 'text-amber-600'}`}>⚠️</span>
+              <span className={`text-lg ${hasCriticalWarning ? 'text-red-600' : 'text-wip-gold-dark'}`}>⚠️</span>
               <div className="flex-1">
-                <p className={`text-xs font-semibold ${hasCriticalWarning ? 'text-red-700 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                <p className={`text-xs font-semibold ${hasCriticalWarning ? 'text-red-700 dark:text-red-300' : 'text-wip-gold-dark dark:text-wip-gold'}`}>
                   Behind Schedule
                 </p>
-                <p className={`text-xs ${hasCriticalWarning ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                <p className={`text-xs ${hasCriticalWarning ? 'text-red-600 dark:text-red-400' : 'text-wip-gold-dark dark:text-wip-gold'}`}>
                   {scheduleWarnings[0]?.message}
                   {scheduleWarnings.length > 1 && ` (+${scheduleWarnings.length - 1} more)`}
                 </p>
@@ -576,13 +576,13 @@ const JobCard: React.FC<JobCardProps> = ({
             </button>
           )}
           {onOpenChangeOrders && (
-            <button onClick={() => onOpenChangeOrders(job)} className="relative inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-amber-600 dark:hover:text-amber-400 transition" title="Manage Change Orders">
+            <button onClick={() => onOpenChangeOrders(job)} className="relative inline-flex items-center text-gray-500 dark:text-gray-400 hover:text-wip-gold-dark dark:hover:text-wip-gold transition" title="Manage Change Orders">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <span className="ml-1 text-sm">COs</span>
               {coCount && coCount.total > 0 && (
-                <span className={`absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full text-xs font-bold text-white ${coCount.pending > 0 ? 'bg-amber-500' : 'bg-green-500'
+                <span className={`absolute -top-1 -right-2 flex h-4 min-w-4 px-1 items-center justify-center rounded-full text-xs font-bold text-white ${coCount.pending > 0 ? 'bg-wip-gold' : 'bg-green-500'
                   }`}>
                   {coCount.total}
                 </span>

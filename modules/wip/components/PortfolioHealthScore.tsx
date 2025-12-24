@@ -103,8 +103,8 @@ const calculateHealthMetrics = (jobs: Job[]): HealthMetrics => {
 const gradeColors = {
   A: 'from-green-500 to-emerald-500 text-white',
   B: 'from-blue-500 to-cyan-500 text-white',
-  C: 'from-yellow-500 to-amber-500 text-white',
-  D: 'from-orange-500 to-red-400 text-white',
+  C: 'from-yellow-500 to-wip-gold text-white',
+  D: 'from-wip-gold to-red-400 text-white',
   F: 'from-red-600 to-red-700 text-white',
 };
 
@@ -112,7 +112,7 @@ const gradeBackgrounds = {
   A: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
   B: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
   C: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
-  D: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800',
+  D: 'bg-wip-card dark:bg-wip-gold/20 border-wip-border dark:border-wip-gold/50',
   F: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
 };
 
@@ -161,21 +161,21 @@ const PortfolioHealthScore: React.FC<PortfolioHealthScoreProps> = ({ jobs, userR
         {/* Quick Metrics */}
         <div className="flex items-center gap-8">
           <div className="text-center">
-            <p className={`text-xl font-bold ${metrics.underbilledPercent > 50 ? 'text-red-600 dark:text-red-400' : metrics.underbilledPercent > 25 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+            <p className={`text-xl font-bold ${metrics.underbilledPercent > 50 ? 'text-red-600 dark:text-red-400' : metrics.underbilledPercent > 25 ? 'text-wip-gold-dark dark:text-wip-gold' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {metrics.underbilledPercent.toFixed(0)}%
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Underbilled</p>
           </div>
           <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className={`text-xl font-bold ${metrics.avgMarginVariance < -5 ? 'text-red-600 dark:text-red-400' : metrics.avgMarginVariance < 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+            <p className={`text-xl font-bold ${metrics.avgMarginVariance < -5 ? 'text-red-600 dark:text-red-400' : metrics.avgMarginVariance < 0 ? 'text-wip-gold-dark dark:text-wip-gold' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {metrics.avgMarginVariance >= 0 ? '+' : ''}{metrics.avgMarginVariance.toFixed(1)}%
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Margin Var</p>
           </div>
           <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className={`text-xl font-bold ${metrics.behindSchedulePercent > 30 ? 'text-red-600 dark:text-red-400' : metrics.behindSchedulePercent > 10 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+            <p className={`text-xl font-bold ${metrics.behindSchedulePercent > 30 ? 'text-red-600 dark:text-red-400' : metrics.behindSchedulePercent > 10 ? 'text-wip-gold-dark dark:text-wip-gold' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {metrics.behindSchedulePercent.toFixed(0)}%
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Behind Sched</p>

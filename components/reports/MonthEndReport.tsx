@@ -60,7 +60,7 @@ const BillingStatusBadge: React.FC<{ isOverBilled: boolean; amount: number }> = 
   
   const colorClass = isOverBilled
     ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
-    : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400';
+    : 'bg-wip-card dark:bg-wip-gold/30 text-wip-gold-dark dark:text-wip-gold';
   
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
@@ -155,7 +155,7 @@ const MonthEndReport: React.FC<MonthEndReportProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wip-gold" />
       </div>
     );
   }
@@ -200,7 +200,7 @@ const MonthEndReport: React.FC<MonthEndReportProps> = ({
           <button
             onClick={handleSaveSnapshot}
             disabled={isCreatingSnapshot}
-            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-wip-gold hover:bg-wip-gold-dark text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isCreatingSnapshot ? (
               <>
@@ -256,7 +256,7 @@ const MonthEndReport: React.FC<MonthEndReportProps> = ({
           label="Net Billing Position"
           value={formatCurrency(reportData.netBillingPosition)}
           subValue={reportData.netBillingPosition >= 0 ? 'Net Over Billed' : 'Net Under Billed'}
-          colorClass={reportData.netBillingPosition >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}
+          colorClass={reportData.netBillingPosition >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-wip-gold-dark dark:text-wip-gold'}
           icon={
             <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
@@ -267,7 +267,7 @@ const MonthEndReport: React.FC<MonthEndReportProps> = ({
           label="Avg Profit Margin"
           value={formatPercent(avgProfitMargin)}
           subValue={avgProfitMargin >= 15 ? 'Healthy' : avgProfitMargin >= 10 ? 'Moderate' : 'Low'}
-          colorClass={avgProfitMargin >= 15 ? 'text-emerald-600 dark:text-emerald-400' : avgProfitMargin >= 10 ? 'text-blue-600 dark:text-blue-400' : 'text-amber-600 dark:text-amber-400'}
+          colorClass={avgProfitMargin >= 15 ? 'text-emerald-600 dark:text-emerald-400' : avgProfitMargin >= 10 ? 'text-blue-600 dark:text-blue-400' : 'text-wip-gold-dark dark:text-wip-gold'}
           icon={
             <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -290,14 +290,14 @@ const MonthEndReport: React.FC<MonthEndReportProps> = ({
           </div>
         </div>
         
-        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-5">
+        <div className="bg-wip-card dark:bg-wip-gold/20 rounded-xl border border-wip-border dark:border-wip-gold/50 p-5">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-amber-700 dark:text-amber-400">Under Billed</span>
-            <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-300 px-2 py-1 rounded-full">
+            <span className="text-sm text-wip-gold-dark dark:text-wip-gold">Under Billed</span>
+            <span className="text-xs bg-wip-border dark:bg-wip-gold-dark text-wip-gold-dark dark:text-wip-gold px-2 py-1 rounded-full">
               {underBilledJobs} jobs
             </span>
           </div>
-          <div className="text-2xl font-bold text-amber-700 dark:text-amber-400 mt-2">
+          <div className="text-2xl font-bold text-wip-gold-dark dark:text-wip-gold mt-2">
             {formatCurrency(reportData.totalUnderBilling)}
           </div>
         </div>
@@ -329,7 +329,7 @@ const MonthEndReport: React.FC<MonthEndReportProps> = ({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
-                    ? 'border-orange-500 text-orange-600 dark:text-orange-400'
+                    ? 'border-wip-gold text-wip-gold-dark dark:text-wip-gold'
                     : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               >

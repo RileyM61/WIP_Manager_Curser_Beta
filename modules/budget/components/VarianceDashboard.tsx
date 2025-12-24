@@ -247,7 +247,7 @@ const StatementCard: React.FC<{
       onClick={onFilter}
       className={`text-left rounded-2xl border px-5 py-4 transition-all ${
         active
-          ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-slate-900 dark:text-white'
+          ? 'border-wip-gold bg-wip-card dark:bg-wip-gold/20 text-slate-900 dark:text-white'
           : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'
       }`}
     >

@@ -29,7 +29,7 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetError, eventI
                 <div className="flex flex-col gap-3">
                     <button
                         onClick={resetError} // Helps recover from the error
-                        className="w-full px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-orange-500/30 transition-all active:scale-95"
+                        className="w-full px-6 py-3 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-wip-gold/30 transition-all active:scale-95"
                     >
                         Try Again
                     </button>

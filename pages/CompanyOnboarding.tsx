@@ -395,7 +395,7 @@ const CompanyOnboarding: React.FC = () => {
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl shadow-lg shadow-wip-gold/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continue
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -407,7 +407,7 @@ const CompanyOnboarding: React.FC = () => {
                 type="button"
                 onClick={handleSubmit}
                 disabled={!canProceed() || loading}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-wip-gold to-wip-gold-dark hover:from-wip-gold-dark hover:to-wip-gold-dark text-white font-semibold rounded-xl shadow-lg shadow-wip-gold/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>

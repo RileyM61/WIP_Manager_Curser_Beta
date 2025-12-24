@@ -78,7 +78,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               onClick={handleAddJob}
               className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium text-sm rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
             >
-              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-wip-card dark:bg-wip-gold/30 text-wip-gold-dark dark:text-wip-gold">
                 <PlusIcon className="w-3.5 h-3.5" />
               </span>
               <span>Add Job</span>
@@ -89,7 +89,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
               onClick={handleAddChangeOrder}
               className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium text-sm rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 hover:scale-105 active:scale-95 transition-all whitespace-nowrap"
             >
-              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
+              <span className="w-5 h-5 flex items-center justify-center rounded-full bg-wip-card dark:bg-wip-gold/30 text-wip-gold-dark dark:text-wip-gold">
                 <ChangeOrderIcon className="w-3.5 h-3.5" />
               </span>
               <span>Add Change Order</span>
@@ -101,7 +101,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
         <button
           type="button"
           onClick={handleMainClick}
-          className="flex items-center gap-2 px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-orange-500/30 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-2 px-5 py-3.5 bg-gradient-to-r from-wip-gold to-wip-gold-dark text-white font-semibold rounded-full shadow-lg shadow-wip-gold/30 hover:shadow-xl hover:shadow-wip-gold/40 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-wip-gold/30 active:scale-95 transition-all cursor-pointer"
           style={{ pointerEvents: 'auto' }}
           data-tour="add-job-button"
           title={hasMenu ? "Quick actions: Add Job or Change Order" : "Add a new job"}
