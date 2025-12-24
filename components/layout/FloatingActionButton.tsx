@@ -32,7 +32,6 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   const handleMainClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('FAB CLICKED!', { hasMenu, isExpanded });
     
     if (hasMenu) {
       setIsExpanded(!isExpanded);
@@ -44,7 +43,6 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   const handleAddJob = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Add Job clicked');
     setIsExpanded(false);
     onAddJob();
   };
@@ -52,7 +50,6 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   const handleAddChangeOrder = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Add Change Order clicked');
     setIsExpanded(false);
     onAddChangeOrder?.();
   };
@@ -107,6 +104,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           className="flex items-center gap-2 px-5 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-full shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-orange-500/30 active:scale-95 transition-all cursor-pointer"
           style={{ pointerEvents: 'auto' }}
           data-tour="add-job-button"
+          title={hasMenu ? "Quick actions: Add Job or Change Order" : "Add a new job"}
         >
           <span className={`transition-transform duration-300 ${isExpanded ? 'rotate-45' : ''}`}>
             <PlusIcon />
