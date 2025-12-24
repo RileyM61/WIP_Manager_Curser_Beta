@@ -201,40 +201,49 @@ const Controls: React.FC<ControlsProps> = ({
               <nav className="flex items-center gap-1">
                 {[
                   { key: 'jobs', label: 'Jobs', filter: JobStatus.Active, isActive: isJobsView },
-                  { key: 'timeline', label: 'Timeline', filter: 'timeline' as FilterType, isActive: filter === 'timeline' },
+                  { key: 'timeline', label: 'Timeline', filter: 'timeline' as FilterType, isActive: filter === 'timeline', hasTooltip: true },
                   { key: 'company', label: 'Company', filter: 'company' as FilterType, isActive: filter === 'company' },
                   { key: 'forecast', label: 'Forecast', filter: 'forecast' as FilterType, isActive: filter === 'forecast' },
                   { key: 'weekly', label: 'Weekly Review', filter: 'weekly' as FilterType, isActive: filter === 'weekly' },
                   { key: 'reports', label: 'Reports', filter: 'reports' as FilterType, isActive: filter === 'reports', isPro: !tierFeatures.canUseReportsView },
                 ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    onClick={() => {
-                      if (tab.isPro && onUpgradeRequest) {
-                        onUpgradeRequest('canUseReportsView');
-                      } else {
-                        setFilter(tab.filter);
-                      }
-                    }}
-                    className={`
-                      relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                      ${tab.isActive 
-                        ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' 
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                      }
-                      ${tab.isPro ? 'opacity-75' : ''}
-                      active:scale-95
-                    `}
-                  >
-                    {tab.label}
-                    {tab.isPro && (
-                      <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">PRO</span>
+                  <div key={tab.key} className="flex items-center">
+                    <button
+                      onClick={() => {
+                        if (tab.isPro && onUpgradeRequest) {
+                          onUpgradeRequest('canUseReportsView');
+                        } else {
+                          setFilter(tab.filter);
+                        }
+                      }}
+                      className={`
+                        relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                        ${tab.isActive 
+                          ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' 
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        }
+                        ${tab.isPro ? 'opacity-75' : ''}
+                        active:scale-95
+                      `}
+                    >
+                      {tab.label}
+                      {tab.isPro && (
+                        <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">PRO</span>
+                      )}
+                      {/* Active indicator line */}
+                      {tab.isActive && (
+                        <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-orange-500 rounded-full" />
+                      )}
+                    </button>
+                    {tab.hasTooltip && (
+                      <InfoTooltip
+                        shortText="Gantt chart showing project schedules, labor capacity heatmap, and bond exposure tracking."
+                        detailedText="The Timeline view displays a Gantt chart of all active jobs with their mobilization phases. It includes a capacity heatmap showing labor utilization across time periods, helping you identify resource constraints. Below the Gantt, the Bond Exposure Chart tracks your cumulative bonding capacity usage over time."
+                        title="Timeline View"
+                        size="sm"
+                      />
                     )}
-                    {/* Active indicator line */}
-                    {tab.isActive && (
-                      <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-orange-500 rounded-full" />
-                    )}
-                  </button>
+                  </div>
                 ))}
               </nav>
             </div>
