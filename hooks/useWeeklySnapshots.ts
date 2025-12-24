@@ -1,7 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Job, JobStatus } from '../types';
+import { Job, JobStatus, WeekDay } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { calculateEarnedRevenue, sumBreakdown, calculateBillingDifference } from '../modules/wip/lib/jobCalculations';
+
+// Map WeekDay strings to JS Date day numbers (0 = Sunday, 6 = Saturday)
+const WEEKDAY_TO_NUMBER: Record<WeekDay, number> = {
+  'Sunday': 0,
+  'Monday': 1,
+  'Tuesday': 2,
+  'Wednesday': 3,
+  'Thursday': 4,
+  'Friday': 5,
+  'Saturday': 6,
+};
 
 // ============================================================================
 // Types
@@ -98,32 +109,60 @@ export interface MonthEndReportData {
 // ============================================================================
 
 /**
- * Get ISO week info for a given date
+ * Get week info for a given date based on custom week-ending day
+ * 
+ * @param date - The date to get week info for
+ * @param weekEndDay - The day the week ends on (e.g., 'Friday' means Sat-Fri week)
+ *                     Defaults to 'Friday' if not provided
  */
-export const getWeekInfo = (date: Date) => {
+export const getWeekInfo = (date: Date, weekEndDay: WeekDay = 'Friday') => {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   
-  // Set to nearest Thursday (ISO week starts Monday, week 1 contains Jan 4)
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const weekEndDayNum = WEEKDAY_TO_NUMBER[weekEndDay];
+  const weekStartDayNum = (weekEndDayNum + 1) % 7; // Day after week end day
   
-  const yearStart = new Date(d.getFullYear(), 0, 1);
-  const weekNumber = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  // Calculate the week end date (the weekEndDay on or before the given date, or the next one if we're past it)
+  const currentDayNum = d.getDay();
   
-  // Get week start (Monday) and end (Sunday)
-  const weekStart = new Date(date);
-  const day = weekStart.getDay();
-  const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1);
-  weekStart.setDate(diff);
-  weekStart.setHours(0, 0, 0, 0);
+  // Calculate days until week end (could be 0 if today is the week end day)
+  let daysUntilWeekEnd = weekEndDayNum - currentDayNum;
+  if (daysUntilWeekEnd < 0) {
+    daysUntilWeekEnd += 7;
+  }
   
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
+  // Week end is the upcoming weekEndDay (or today if it matches)
+  const weekEnd = new Date(d);
+  weekEnd.setDate(d.getDate() + daysUntilWeekEnd);
   weekEnd.setHours(23, 59, 59, 999);
   
+  // Week start is 6 days before week end
+  const weekStart = new Date(weekEnd);
+  weekStart.setDate(weekEnd.getDate() - 6);
+  weekStart.setHours(0, 0, 0, 0);
+  
+  // Calculate week number based on the year of the week end date
+  // Week 1 is the first week that contains the week end day
+  const year = weekEnd.getFullYear();
+  const firstDayOfYear = new Date(year, 0, 1);
+  
+  // Find the first weekEndDay of the year
+  let firstWeekEndDay = new Date(year, 0, 1);
+  const firstDayNum = firstWeekEndDay.getDay();
+  let daysToFirstWeekEnd = weekEndDayNum - firstDayNum;
+  if (daysToFirstWeekEnd < 0) {
+    daysToFirstWeekEnd += 7;
+  }
+  firstWeekEndDay.setDate(1 + daysToFirstWeekEnd);
+  
+  // Calculate week number
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const daysSinceFirstWeekEnd = Math.floor((weekEnd.getTime() - firstWeekEndDay.getTime()) / msPerDay);
+  const weekNumber = Math.floor(daysSinceFirstWeekEnd / 7) + 1;
+  
   return {
-    weekNumber,
-    year: d.getFullYear(),
+    weekNumber: weekNumber > 0 ? weekNumber : 52 + weekNumber, // Handle weeks before first week end of year
+    year,
     weekStart: weekStart.toISOString().split('T')[0],
     weekEnd: weekEnd.toISOString().split('T')[0],
   };
@@ -228,7 +267,7 @@ const calculateJobMetrics = (jobs: Job[]) => {
 // Hook: useWeeklySnapshots
 // ============================================================================
 
-export function useWeeklySnapshots(companyId?: string | null) {
+export function useWeeklySnapshots(companyId?: string | null, weekEndDay: WeekDay = 'Friday') {
   const [weeklySnapshots, setWeeklySnapshots] = useState<WeeklySnapshot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -298,7 +337,7 @@ export function useWeeklySnapshots(companyId?: string | null) {
       ? new Date(asOfDates.sort().reverse()[0])  // Most recent asOfDate
       : new Date();
     
-    const weekInfo = getWeekInfo(snapshotDate);
+    const weekInfo = getWeekInfo(snapshotDate, weekEndDay);
     const metrics = calculateJobMetrics(activeJobs);
 
     try {
@@ -332,7 +371,7 @@ export function useWeeklySnapshots(companyId?: string | null) {
       console.error('Error creating weekly snapshot:', err);
       throw err;
     }
-  }, [companyId, loadWeeklySnapshots]);
+  }, [companyId, loadWeeklySnapshots, weekEndDay]);
 
   /**
    * Generate weekly report data with comparisons

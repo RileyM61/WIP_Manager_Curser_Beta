@@ -714,6 +714,7 @@ function App() {
           jobs={jobs}
           companyId={companyId!}
           companyName={settings?.companyName}
+          weekEndDay={settings?.weekEndDay}
         />
       );
     }

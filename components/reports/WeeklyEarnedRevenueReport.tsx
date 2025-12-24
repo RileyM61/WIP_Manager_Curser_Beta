@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Job, JobStatus } from '../../types';
+import { Job, JobStatus, WeekDay } from '../../types';
 import { useWeeklySnapshots, WeeklyReportData, getWeekInfo } from '../../hooks/useWeeklySnapshots';
 
 // ============================================================================
@@ -9,6 +9,7 @@ import { useWeeklySnapshots, WeeklyReportData, getWeekInfo } from '../../hooks/u
 interface WeeklyEarnedRevenueReportProps {
   jobs: Job[];
   companyId: string;
+  weekEndDay?: WeekDay;
   onExportPDF?: () => void;
 }
 
@@ -125,6 +126,7 @@ const WeekSummaryCard: React.FC<{
 const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
   jobs,
   companyId,
+  weekEndDay = 'Friday',
   onExportPDF,
 }) => {
   const {
@@ -134,7 +136,7 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
     createWeeklySnapshot,
     generateWeeklyReport,
     loadWeeklySnapshots,
-  } = useWeeklySnapshots(companyId);
+  } = useWeeklySnapshots(companyId, weekEndDay);
   
   const [selectedWeek, setSelectedWeek] = useState<number>(0);
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
@@ -163,8 +165,8 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
       ? new Date(asOfDates.sort().reverse()[0])  // Most recent asOfDate
       : new Date();
     
-    return getWeekInfo(snapshotDate);
-  }, [jobs]);
+    return getWeekInfo(snapshotDate, weekEndDay);
+  }, [jobs, weekEndDay]);
   
   // Check if we already have a snapshot for the week the data represents
   const hasDataWeekSnapshot = useMemo(() => {
