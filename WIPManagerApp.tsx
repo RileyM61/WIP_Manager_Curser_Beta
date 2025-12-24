@@ -33,6 +33,7 @@ import AddClientCompanyModal from './components/modals/AddClientCompanyModal';
 import SnapshotComparisonModal from './components/modals/SnapshotComparisonModal';
 import JobLimitModal from './components/modals/JobLimitModal';
 import UpgradeModal from './components/modals/UpgradeModal';
+import JobSelectorModal from './components/modals/JobSelectorModal';
 import GuidedTour from './components/help/GuidedTour';
 import GlossaryPage from './pages/GlossaryPage';
 import WorkflowsPage from './pages/WorkflowsPage';
@@ -176,6 +177,9 @@ function App() {
   // Upgrade modal state
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState<keyof TierFeatures | undefined>();
+
+  // Job selector modal state (for adding change orders)
+  const [isJobSelectorOpen, setIsJobSelectorOpen] = useState(false);
 
   // Handler for upgrade requests from child components
   const handleUpgradeRequest = useCallback((feature: keyof TierFeatures) => {
@@ -557,6 +561,17 @@ function App() {
     setJobForChangeOrders(null);
   };
 
+  // Handler for Add Change Order from FAB - opens job selector
+  const handleAddChangeOrderClick = () => {
+    setIsJobSelectorOpen(true);
+  };
+
+  // Handler when job is selected for change order
+  const handleJobSelectedForChangeOrder = (job: Job) => {
+    setIsJobSelectorOpen(false);
+    setJobForChangeOrders(job);
+  };
+
   // Use the job financial snapshots hook for quick snapshots
   const { createSnapshotFromJob } = useJobFinancialSnapshots(companyId || '');
 
@@ -920,11 +935,12 @@ function App() {
         onOpenActivityLog={() => setShowActivityLog(true)}
       />
       
-      {/* Floating Action Button for Add Job */}
+      {/* Floating Action Button Menu */}
       <FloatingActionButton
-        onClick={handleAddJobClick}
-        label="Add Job"
+        onAddJob={handleAddJobClick}
+        onAddChangeOrder={handleAddChangeOrderClick}
         show={showFab}
+        hasChangeOrderFeature={tierFeatures.canUseChangeOrders}
       />
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1159,6 +1175,16 @@ function App() {
           setUpgradeFeature(undefined);
         }}
         feature={upgradeFeature}
+      />
+
+      {/* Job Selector Modal for Add Change Order */}
+      <JobSelectorModal
+        isOpen={isJobSelectorOpen}
+        onClose={() => setIsJobSelectorOpen(false)}
+        onSelectJob={handleJobSelectedForChangeOrder}
+        jobs={jobs}
+        title="Add Change Order"
+        description="Select the job you want to add a change order to."
       />
     </div>
   );
