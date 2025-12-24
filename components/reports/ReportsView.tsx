@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Job } from '../../types';
+import { Job, WeekDay } from '../../types';
 import WeeklyEarnedRevenueReport from './WeeklyEarnedRevenueReport';
 import MonthEndReport from './MonthEndReport';
 import { exportWeeklyReportToPDF, exportMonthEndReportToPDF } from '../../lib/reportPdf';
@@ -13,6 +13,7 @@ interface ReportsViewProps {
   jobs: Job[];
   companyId: string;
   companyName?: string;
+  weekEndDay?: WeekDay;
 }
 
 type ReportTab = 'weekly' | 'monthend';
@@ -25,6 +26,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
   jobs,
   companyId,
   companyName,
+  weekEndDay = 'Friday',
 }) => {
   const [activeTab, setActiveTab] = useState<ReportTab>('weekly');
   const [isExporting, setIsExporting] = useState(false);
@@ -108,6 +110,7 @@ const ReportsView: React.FC<ReportsViewProps> = ({
         <WeeklyEarnedRevenueReport
           jobs={jobs}
           companyId={companyId}
+          weekEndDay={weekEndDay}
           onExportPDF={handleExportWeeklyPDF}
         />
       ) : (

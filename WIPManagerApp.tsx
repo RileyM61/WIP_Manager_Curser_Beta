@@ -40,6 +40,7 @@ import ActivityLogPage from './pages/ActivityLogPage';
 import { WhatsNewDrawer } from './components/changelog';
 import { ReportsView } from './components/reports';
 import { OnboardingWidget } from './components/onboarding/OnboardingWidget';
+import FloatingActionButton from './components/layout/FloatingActionButton';
 import { tourSteps, markTourCompleted, hasCompletedTour } from './lib/tourSteps';
 import { hasScheduleWarnings } from './modules/wip/lib/jobCalculations';
 import { useOnboarding } from './hooks/useOnboarding';
@@ -714,6 +715,7 @@ function App() {
           jobs={jobs}
           companyId={companyId!}
           companyName={settings?.companyName}
+          weekEndDay={settings?.weekEndDay}
         />
       );
     }
@@ -868,13 +870,15 @@ function App() {
 
 
 
+  // Determine if FAB should show (only on Jobs views, not on Company/Forecast/Reports)
+  const showFab = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
+
   return (
-    <div className="min-h-screen bg-brand-gray dark:bg-gray-900 text-brand-dark-gray dark:text-gray-300 bg-graph-paper">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header
         companyName={settings.companyName}
         companyLogo={settings.companyLogo}
         aiEnabled={Boolean(settings.aiEnabled)}
-        onAddJob={handleAddJobClick}
         onOpenSettings={() => {
           setSettingsInitialSection('company');
           setIsSettingsModalOpen(true);
@@ -896,8 +900,16 @@ function App() {
         onOpenWhatsNew={() => setShowWhatsNew(true)}
         onOpenActivityLog={() => setShowActivityLog(true)}
       />
-      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="space-y-6">
+      
+      {/* Floating Action Button for Add Job */}
+      <FloatingActionButton
+        onClick={handleAddJobClick}
+        label="Add Job"
+        show={showFab}
+      />
+      
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
           <OnboardingWidget onAction={handleOnboardingAction} />
 
           <Controls
@@ -934,7 +946,8 @@ function App() {
             ownerPmName={settings.ownerPmName}
           />
 
-          <div>
+          {/* Main Content Area - with generous spacing */}
+          <div className="mt-2">
             {renderContent()}
           </div>
         </div>
