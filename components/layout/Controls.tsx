@@ -4,6 +4,7 @@ import { useTierFeatures, TierFeatures } from '../../hooks/useTierFeatures';
 import { GridIcon, TableIcon } from '../shared/icons';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { KnowledgeDrawer } from '../knowledge/KnowledgeDrawer';
+import InfoTooltip from '../help/InfoTooltip';
 
 // Search icon component
 const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
@@ -410,15 +411,24 @@ const Controls: React.FC<ControlsProps> = ({
 
                 {/* Weekly Update Mode toggle */}
                 {viewMode === 'table' && setWeeklyUpdateMode && (
-                  <label className="hidden lg:inline-flex items-center gap-2 cursor-pointer select-none text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={weeklyUpdateMode}
-                      onChange={(e) => setWeeklyUpdateMode(e.target.checked)}
-                      className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 w-4 h-4"
+                  <div className="hidden lg:flex items-center gap-1.5">
+                    <label className="inline-flex items-center gap-2 cursor-pointer select-none text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={weeklyUpdateMode}
+                        onChange={(e) => setWeeklyUpdateMode(e.target.checked)}
+                        className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 w-4 h-4"
+                      />
+                      <span className="text-xs">Weekly Mode</span>
+                    </label>
+                    <InfoTooltip
+                      shortText="Enable Weekly Mode to batch-update job costs with a consistent As-Of date for accurate WIP reporting."
+                      detailedText="Weekly Mode streamlines your weekly WIP update workflow. When enabled, it displays an As-Of date picker that applies to all jobs you update in this session. This ensures all your job data reflects the same point in time, which is critical for accurate earned revenue calculations and week-over-week comparisons. Best practice is to update all active jobs with the same As-Of date (typically your week-end date) before saving a weekly snapshot."
+                      title="Weekly Update Mode"
+                      example="Example: Set As-Of Date to Friday Dec 20. Then update Costs, Cost-to-Complete, and Invoiced amounts for each active job. All jobs will be stamped with Dec 20, making your weekly snapshot accurate and comparable to prior weeks."
+                      size="sm"
                     />
-                    <span className="text-xs">Weekly Mode</span>
-                  </label>
+                  </div>
                 )}
               </div>
             </div>
