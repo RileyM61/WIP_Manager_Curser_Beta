@@ -130,49 +130,62 @@ const PortfolioHealthScore: React.FC<PortfolioHealthScoreProps> = ({ jobs, userR
   }
 
   return (
-    <div className={`mb-6 rounded-xl border p-4 ${gradeBackgrounds[metrics.grade]}`}>
-      <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
+      <div className="flex items-center justify-between flex-wrap gap-6">
         {/* Grade Badge */}
-        <div className="flex items-center gap-4">
-          <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${gradeColors[metrics.grade]} flex items-center justify-center shadow-lg`}>
+        <div className="flex items-center gap-5">
+          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradeColors[metrics.grade]} flex items-center justify-center shadow-lg`}>
             <span className="text-3xl font-bold">{metrics.grade}</span>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-              Portfolio Health Score
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Portfolio Health
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {metrics.score}/100 across {metrics.totalActiveJobs} active job{metrics.totalActiveJobs !== 1 ? 's' : ''}
+            <div className="flex items-center gap-2 mt-1">
+              <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full bg-gradient-to-r ${gradeColors[metrics.grade]}`}
+                  style={{ width: `${metrics.score}%` }}
+                />
+              </div>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {metrics.score}/100
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              {metrics.totalActiveJobs} active job{metrics.totalActiveJobs !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
 
         {/* Quick Metrics */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-8">
           <div className="text-center">
-            <p className={`text-lg font-bold ${metrics.underbilledPercent > 50 ? 'text-red-600 dark:text-red-400' : metrics.underbilledPercent > 25 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
+            <p className={`text-xl font-bold ${metrics.underbilledPercent > 50 ? 'text-red-600 dark:text-red-400' : metrics.underbilledPercent > 25 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {metrics.underbilledPercent.toFixed(0)}%
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Underbilled</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Underbilled</p>
           </div>
+          <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className={`text-lg font-bold ${metrics.avgMarginVariance < -5 ? 'text-red-600 dark:text-red-400' : metrics.avgMarginVariance < 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
+            <p className={`text-xl font-bold ${metrics.avgMarginVariance < -5 ? 'text-red-600 dark:text-red-400' : metrics.avgMarginVariance < 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {metrics.avgMarginVariance >= 0 ? '+' : ''}{metrics.avgMarginVariance.toFixed(1)}%
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Margin Var</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Margin Var</p>
           </div>
+          <div className="w-px h-10 bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className={`text-lg font-bold ${metrics.behindSchedulePercent > 30 ? 'text-red-600 dark:text-red-400' : metrics.behindSchedulePercent > 10 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
+            <p className={`text-xl font-bold ${metrics.behindSchedulePercent > 30 ? 'text-red-600 dark:text-red-400' : metrics.behindSchedulePercent > 10 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {metrics.behindSchedulePercent.toFixed(0)}%
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Behind Sched</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Behind Sched</p>
           </div>
         </div>
       </div>
 
       {/* Health Insights */}
       {metrics.grade !== 'A' && (
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/50">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {metrics.grade === 'B' && '👍 Good performance. Focus on the few jobs that need attention.'}
             {metrics.grade === 'C' && '⚠️ Some concerns. Review underbilled jobs and margin drift this week.'}

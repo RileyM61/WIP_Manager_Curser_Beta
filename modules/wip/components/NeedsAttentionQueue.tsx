@@ -172,24 +172,28 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
   // For non-Pro users, show a teaser
   if (!isPro) {
     return (
-      <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+      <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-              <span className="text-xl">🔒</span>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
+              <span className="text-2xl">🔒</span>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">
+              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                 {attentionItems.length} Job{attentionItems.length !== 1 ? 's' : ''} Need Attention
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">PRO</span>
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Upgrade to Pro to see which jobs need action
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                Upgrade to see which jobs need immediate action
               </p>
             </div>
           </div>
-          <span className="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full">
-            Pro
-          </span>
+          <button
+            onClick={() => window.open('/upgrade', '_blank')}
+            className="px-4 py-2 text-sm font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all"
+          >
+            Learn More
+          </button>
         </div>
       </div>
     );
@@ -213,19 +217,19 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
   }, [attentionItems]);
 
   return (
-    <div className="mb-6 bg-gradient-to-r from-red-50 to-amber-50 dark:from-red-900/20 dark:to-amber-900/20 border border-red-200 dark:border-red-800 rounded-xl overflow-hidden">
+    <div className="mb-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
       {/* Header - Always visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors"
+        className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
       >
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
             highSeverityCount > 0 
-              ? 'bg-red-100 dark:bg-red-900/50' 
-              : 'bg-amber-100 dark:bg-amber-900/50'
+              ? 'bg-red-100 dark:bg-red-900/30' 
+              : 'bg-amber-100 dark:bg-amber-900/30'
           }`}>
-            <span className="text-xl">{highSeverityCount > 0 ? '🚨' : '⚠️'}</span>
+            <span className="text-2xl">{highSeverityCount > 0 ? '🚨' : '⚠️'}</span>
           </div>
           <div className="text-left">
             <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
@@ -238,7 +242,7 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                 {attentionItems.length}
               </span>
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               {highSeverityCount > 0 
                 ? `${highSeverityCount} critical issue${highSeverityCount !== 1 ? 's' : ''} requiring immediate action`
                 : 'Jobs with billing, margin, or schedule concerns'
@@ -246,8 +250,8 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
             </p>
             {/* PM Aggregation Summary */}
             {pmBreakdown.length > 0 && (
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                <span className="font-semibold">By PM:</span>{' '}
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+                <span className="font-medium">By PM:</span>{' '}
                 {pmBreakdown.map(([pm, count], idx) => (
                   <span key={pm}>
                     {pm} ({count})
@@ -258,19 +262,26 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
             )}
           </div>
         </div>
-        <svg 
-          className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-          fill="none" 
-          viewBox="0 0 24 24" 
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <div className="flex items-center gap-3">
+          {highSeverityCount > 0 && (
+            <span className="hidden sm:inline-flex items-center px-3 py-1 text-xs font-semibold text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/30 rounded-full">
+              Action Required
+            </span>
+          )}
+          <svg 
+            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </button>
 
       {/* Expandable job list */}
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-2">
+        <div className="px-5 pb-5 space-y-3 border-t border-gray-100 dark:border-gray-700/50 pt-4">
           {attentionItems.map(({ job, reasons, profitVariance }) => {
             const billingInfo = calculateBillingDifference(job);
             const hasHighSeverity = reasons.some(r => r.severity === 'high');
@@ -279,38 +290,38 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
             return (
               <div
                 key={job.id}
-                className={`bg-white dark:bg-gray-800 rounded-lg border ${
+                className={`bg-gray-50 dark:bg-gray-700/30 rounded-xl border ${
                   hasHighSeverity 
-                    ? 'border-red-300 dark:border-red-700' 
-                    : 'border-amber-200 dark:border-amber-800'
-                } p-3 hover:shadow-md transition-shadow`}
+                    ? 'border-red-200 dark:border-red-800/50' 
+                    : 'border-gray-200 dark:border-gray-600/50'
+                } p-4 hover:shadow-md hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200`}
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-semibold text-gray-900 dark:text-white truncate">
                         {job.jobName}
                       </h4>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">
                         #{job.jobNo}
                       </span>
                     </div>
                     
                     {/* Reason badges */}
-                    <div className="flex flex-wrap gap-1.5 mb-2 items-center">
+                    <div className="flex flex-wrap gap-2 mb-3 items-center">
                       {reasons.map((reason, idx) => (
                         <span
                           key={idx}
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                          className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${
                             reason.severity === 'high'
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+                              ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
                           }`}
                         >
                           {reason.type === 'underbilling' && '💰'}
                           {reason.type === 'margin-fade' && '📉'}
                           {reason.type === 'schedule-drift' && '⏰'}
-                          <span className="ml-1">{reason.message}</span>
+                          <span className="ml-1.5">{reason.message}</span>
                           {reason.type === 'schedule-drift' && (
                             <span className="ml-1">
                               <InfoTooltip
@@ -327,40 +338,41 @@ const NeedsAttentionQueue: React.FC<NeedsAttentionQueueProps> = ({ jobs, onRevie
                     </div>
 
                     {/* Quick stats */}
-                    <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                       <span>
-                        {isTM ? 'Profit' : 'Profit Var'}: <span className={profitVariance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                        {isTM ? 'Profit' : 'Variance'}: <span className={`font-semibold ${profitVariance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                           {profitVariance >= 0 ? '+' : ''}{currencyFormatter.format(profitVariance)}
                         </span>
                       </span>
                       {billingInfo.difference !== 0 && (
                         <span>
-                          {billingInfo.isOverBilled ? 'Over' : 'Under'}: <span className={billingInfo.isOverBilled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                          {billingInfo.isOverBilled ? 'Over' : 'Under'}: <span className={`font-semibold ${billingInfo.isOverBilled ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                             {currencyFormatter.format(Math.abs(billingInfo.difference))}
                           </span>
                         </span>
                       )}
-                      <span>PM: {job.projectManager}</span>
+                      <span className="text-gray-400">•</span>
+                      <span>PM: <span className="font-medium text-gray-700 dark:text-gray-300">{job.projectManager}</span></span>
                     </div>
                   </div>
 
                   {/* Action buttons */}
-                  <div className="flex-shrink-0 flex flex-col gap-1.5">
+                  <div className="flex-shrink-0 flex flex-col gap-2">
                     <button
                       onClick={() => onReviewJob(job)}
-                      className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition-colors ${
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 active:scale-95 ${
                         hasHighSeverity
-                          ? 'bg-red-600 hover:bg-red-700 text-white'
-                          : 'bg-amber-500 hover:bg-amber-600 text-white'
+                          ? 'bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow-md'
+                          : 'bg-orange-500 hover:bg-orange-600 text-white shadow-sm hover:shadow-md'
                       }`}
                     >
                       Review
                     </button>
                     <button
                       onClick={() => handleClearItem(job.id, job.lastUpdated)}
-                      className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                      className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 hover:text-gray-900 dark:hover:text-gray-200 transition-all duration-200 active:scale-95"
                     >
-                      Cleared
+                      Dismiss
                     </button>
                   </div>
                 </div>

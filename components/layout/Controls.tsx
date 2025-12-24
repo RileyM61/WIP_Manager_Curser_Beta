@@ -5,14 +5,6 @@ import { GridIcon, TableIcon } from '../shared/icons';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { KnowledgeDrawer } from '../knowledge/KnowledgeDrawer';
 
-// Gantt chart icon
-const GanttIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h3M9 16h6" />
-  </svg>
-);
-
 // Search icon component
 const SearchIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,21 +23,6 @@ const DownloadIcon: React.FC<{ className?: string }> = ({ className = "w-5 h-5" 
 const ChevronDownIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-// CSV icon
-const CSVIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
-// PDF icon
-const PDFIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h2m-2 3h4" />
   </svg>
 );
 
@@ -72,7 +49,7 @@ interface ControlsProps {
   onExportPDF?: () => void;
   jobCount?: number;
   onUpgradeRequest?: (feature: keyof TierFeatures) => void;
-  // Weekly Update Mode (table view ergonomics)
+  // Weekly Update Mode
   weeklyUpdateMode?: boolean;
   setWeeklyUpdateMode?: (enabled: boolean) => void;
   weeklyAsOfDate?: string;
@@ -123,6 +100,7 @@ const Controls: React.FC<ControlsProps> = ({
   ownerPmName,
 }) => {
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const exportDropdownRef = useRef<HTMLDivElement>(null);
   const tierFeatures = useTierFeatures();
   const [isWeeklyReviewOpen, setIsWeeklyReviewOpen] = useState(true);
@@ -157,9 +135,8 @@ const Controls: React.FC<ControlsProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
   const statusOptions: JobStatus[] = [JobStatus.Draft, JobStatus.Future, JobStatus.Active, JobStatus.OnHold, JobStatus.Completed, JobStatus.Archived];
-  const activePmForFilter = activeProjectManager || 'all';
-  const pmRoster = projectManagers.filter(pm => pm !== 'all');
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const [key, direction] = e.target.value.split('-') as [SortKey, SortDirection];
@@ -170,13 +147,6 @@ const Controls: React.FC<ControlsProps> = ({
   const showJobControls = filter !== 'company' && filter !== 'forecast' && filter !== 'reports';
   const isJobsView = filter !== 'company' && filter !== 'forecast' && filter !== 'reports' && filter !== 'weekly';
   const isWeeklyView = filter === 'weekly';
-
-  // PM quick filter states work for both PM role and Owner-as-PM
-  const isPmOrOwnerAsPm = userRole === 'projectManager' || (userRole === 'owner' && ownerIsAlsoPm && ownerPmName);
-  const activePmNameForOwner = userRole === 'owner' && ownerIsAlsoPm ? ownerPmName : activePmForFilter;
-  const pmMyJobsActive = isPmOrOwnerAsPm && focusMode === 'default' && filter === JobStatus.Active && pmFilter === activePmNameForOwner;
-  const pmAtRiskActive = isPmOrOwnerAsPm && focusMode === 'pm-at-risk';
-  const pmLateActive = isPmOrOwnerAsPm && focusMode === 'pm-late';
 
   const showWeeklyReviewPanel = filter === 'weekly' || (viewMode === 'table' && weeklyUpdateMode);
   const isAsOfSet = !!weeklyAsOfDate;
@@ -193,758 +163,450 @@ const Controls: React.FC<ControlsProps> = ({
     }
   }, [weeklyReviewAutoOpen, showWeeklyReviewPanel, onWeeklyReviewAutoOpenConsumed]);
 
+  // Get status color classes with improved hierarchy
+  const getStatusClasses = (status: JobStatus, isActive: boolean) => {
+    if (!isActive) {
+      return 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600';
+    }
+    
+    switch (status) {
+      case JobStatus.Draft:
+        return 'border-slate-400 bg-slate-50 dark:bg-slate-900/50 text-slate-700 dark:text-slate-300';
+      case JobStatus.Future:
+        return 'border-purple-400 bg-purple-50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300';
+      case JobStatus.Active:
+        return 'border-blue-400 bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300';
+      case JobStatus.OnHold:
+        return 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300';
+      case JobStatus.Completed:
+        return 'border-green-400 bg-green-50 dark:bg-green-900/50 text-green-700 dark:text-green-300';
+      case JobStatus.Archived:
+        return 'border-gray-400 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400';
+      default:
+        return '';
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="space-y-4">
       {/* ============================================ */}
       {/* ROW 1: Primary Navigation - Views & Search */}
       {/* ============================================ */}
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Left: View Tabs */}
-          <div className="flex items-center gap-2" data-tour="view-tabs">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mr-2">View:</span>
-            <div className="flex items-center bg-white dark:bg-gray-700 rounded-lg p-1 shadow-sm border border-gray-200 dark:border-gray-600">
-              <button
-                onClick={() => setFilter(JobStatus.Active)}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${isJobsView
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  }`}
-              >
-                Jobs
-              </button>
-              <button
-                onClick={() => setFilter('company')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'company'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  }`}
-              >
-                Company
-              </button>
-              <button
-                onClick={() => setFilter('forecast')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'forecast'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  }`}
-              >
-                Forecast
-              </button>
-              <button
-                onClick={() => setFilter('weekly')}
-                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'weekly'
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  }`}
-              >
-                Weekly Review
-              </button>
-              <button
-                onClick={() => {
-                  if (tierFeatures.canUseReportsView) {
-                    setFilter('reports');
-                  } else if (onUpgradeRequest) {
-                    onUpgradeRequest('canUseReportsView');
-                  }
-                }}
-                className={`relative px-4 py-2 text-sm font-medium rounded-md transition-all ${filter === 'reports'
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  } ${!tierFeatures.canUseReportsView ? 'opacity-75' : ''}`}
-              >
-                Reports
-                {!tierFeatures.canUseReportsView && (
-                  <span className="ml-1 text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full">Pro</span>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Right: Search & View Toggle */}
-          <div className="flex items-center gap-3">
-            {showJobControls && (
-              <>
-                {/* Search */}
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    id="search"
-                    placeholder="Search jobs..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 pr-4 py-2 w-48 lg:w-64 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  />
-                </div>
-
-                {/* View Toggle */}
-                <div className="flex items-center bg-gray-100 dark:bg-gray-700 p-1 rounded-lg" data-tour="view-toggle">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="px-4 py-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            {/* Left: View Tabs - Clean underline style */}
+            <div className="flex items-center" data-tour="view-tabs">
+              <nav className="flex items-center gap-1">
+                {[
+                  { key: 'jobs', label: 'Jobs', filter: JobStatus.Active, isActive: isJobsView },
+                  { key: 'company', label: 'Company', filter: 'company' as FilterType, isActive: filter === 'company' },
+                  { key: 'forecast', label: 'Forecast', filter: 'forecast' as FilterType, isActive: filter === 'forecast' },
+                  { key: 'weekly', label: 'Weekly Review', filter: 'weekly' as FilterType, isActive: filter === 'weekly' },
+                  { key: 'reports', label: 'Reports', filter: 'reports' as FilterType, isActive: filter === 'reports', isPro: !tierFeatures.canUseReportsView },
+                ].map((tab) => (
                   <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-md transition-all ${viewMode === 'grid'
-                      ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                      }`}
-                    aria-label="Grid view"
-                  >
-                    <GridIcon />
-                  </button>
-                  <button
+                    key={tab.key}
                     onClick={() => {
-                      if (tierFeatures.canUseTableView) {
-                        setViewMode('table');
-                      } else if (onUpgradeRequest) {
-                        onUpgradeRequest('canUseTableView');
+                      if (tab.isPro && onUpgradeRequest) {
+                        onUpgradeRequest('canUseReportsView');
+                      } else {
+                        setFilter(tab.filter);
                       }
                     }}
-                    className={`p-2 rounded-md transition-all ${viewMode === 'table'
-                      ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                      } ${!tierFeatures.canUseTableView ? 'opacity-50' : ''}`}
-                    aria-label="Table view"
-                    title={tierFeatures.canUseTableView ? 'Table view' : tierFeatures.getUpgradeMessage('canUseTableView')}
+                    className={`
+                      relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200
+                      ${tab.isActive 
+                        ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20' 
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                      }
+                      ${tab.isPro ? 'opacity-75' : ''}
+                      active:scale-95
+                    `}
                   >
-                    <TableIcon />
-                    {!tierFeatures.canUseTableView && <span className="sr-only">Pro only</span>}
-                  </button>
-                </div>
-
-                {/* Export Dropdown */}
-                {(onExportCSV || onExportPDF) && (
-                  <div className="relative" ref={exportDropdownRef} data-tour="export-button">
-                    <button
-                      onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
-                      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-green-400 hover:text-green-600 dark:hover:text-green-400 transition-all"
-                      title={`Export ${jobCount} jobs`}
-                    >
-                      <DownloadIcon className="w-4 h-4" />
-                      <span className="hidden sm:inline">Export</span>
-                      {jobCount > 0 && (
-                        <span className="hidden lg:inline text-xs text-gray-500 dark:text-gray-400">({jobCount})</span>
-                      )}
-                      <ChevronDownIcon className={`w-3 h-3 transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Dropdown Menu */}
-                    {exportDropdownOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                        {onExportCSV && (
-                          <button
-                            onClick={() => {
-                              onExportCSV();
-                              setExportDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                          >
-                            <CSVIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            <div className="text-left">
-                              <div className="font-medium">Export to CSV</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">Spreadsheet format</div>
-                            </div>
-                          </button>
-                        )}
-                        {onExportPDF && (
-                          <button
-                            onClick={() => {
-                              onExportPDF();
-                              setExportDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                          >
-                            <PDFIcon className="w-5 h-5 text-red-600 dark:text-red-400" />
-                            <div className="text-left">
-                              <div className="font-medium">Export to PDF</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">Printable report</div>
-                            </div>
-                          </button>
-                        )}
-                      </div>
+                    {tab.label}
+                    {tab.isPro && (
+                      <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded">PRO</span>
                     )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ============================================ */}
-      {/* ROW 2: Status Filters (Only for Jobs View) */}
-      {/* ============================================ */}
-      {isJobsView && (
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            {/* Status Pills */}
-            <div className="flex items-center gap-2 flex-wrap" data-tour="status-pills">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mr-1">Status:</span>
-              {statusOptions.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilter(status)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all ${filter === status
-                    ? status === JobStatus.Draft ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 ring-2 ring-slate-400 border-dashed' :
-                      status === JobStatus.Future ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 ring-2 ring-purple-400' :
-                        status === JobStatus.Active ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 ring-2 ring-blue-400' :
-                          status === JobStatus.OnHold ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 ring-2 ring-yellow-400' :
-                            status === JobStatus.Completed ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 ring-2 ring-green-400' :
-                              'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300 ring-2 ring-gray-400'
-                    : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                >
-                  {status}
-                </button>
-              ))}
+                    {/* Active indicator line */}
+                    {tab.isActive && (
+                      <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-orange-500 rounded-full" />
+                    )}
+                  </button>
+                ))}
+              </nav>
             </div>
 
-            {/* Filters & Sort */}
+            {/* Right: Search & View Toggle */}
             <div className="flex items-center gap-3">
-              {/* PM Filter */}
-              <div className="flex items-center gap-2">
-                <label htmlFor="pm-filter" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">PM:</label>
-                <select
-                  id="pm-filter"
-                  value={pmFilter}
-                  onChange={(e) => setPmFilter(e.target.value)}
-                  className="text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
-                >
-                  {projectManagers.map(pm => (
-                    <option key={pm} value={pm}>{pm === 'all' ? 'All PMs' : pm}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sort */}
-              <div className="hidden sm:flex items-center gap-2">
-                <label htmlFor="sort" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sort:</label>
-                <select
-                  id="sort"
-                  value={`${sortKey}-${sortDirection}`}
-                  onChange={handleSortChange}
-                  className="text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent cursor-pointer"
-                >
-                  <option value="jobNo-asc">Job # (Asc)</option>
-                  <option value="jobNo-desc">Job # (Desc)</option>
-                  <option value="jobName-asc">Name (A-Z)</option>
-                  <option value="jobName-desc">Name (Z-A)</option>
-                  <option value="startDate-desc">Newest</option>
-                  <option value="startDate-asc">Oldest</option>
-                </select>
-              </div>
-
-              {/* Weekly Review Tab - As-Of Date Controls (always visible on weekly tab) */}
-              {filter === 'weekly' && weeklyAsOfDate !== undefined && setWeeklyAsOfDate && (
-                <div className="hidden lg:flex items-center gap-3 pl-3 ml-3 border-l border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="weekly-asof" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                      As Of:
-                    </label>
+              {showJobControls && (
+                <>
+                  {/* Search - Expandable on focus */}
+                  <div className={`relative transition-all duration-200 ${searchFocused ? 'w-64' : 'w-48'}`}>
+                    <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
-                      id="weekly-asof"
-                      type="date"
-                      value={weeklyAsOfDate}
-                      onChange={(e) => setWeeklyAsOfDate(e.target.value)}
-                      className="text-sm border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      type="text"
+                      placeholder="Search jobs..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => setSearchFocused(true)}
+                      onBlur={() => setSearchFocused(false)}
+                      className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
                     />
-                    {typeof weeklyUpdatedCount === 'number' && typeof weeklyTotalCount === 'number' && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Updated: <span className="font-semibold text-gray-700 dark:text-gray-200">{weeklyUpdatedCount}</span>/{weeklyTotalCount}
-                      </span>
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
                     )}
                   </div>
-                </div>
-              )}
 
-              {/* Weekly Update Mode toggle (table view only, not needed on Weekly Review tab) */}
-              {filter !== 'weekly' && viewMode === 'table' && setWeeklyUpdateMode && (
-                <div className="hidden lg:flex items-center gap-3 pl-3 ml-3 border-l border-gray-200 dark:border-gray-700">
-                  <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                  {/* View Toggle - Subtle buttons */}
+                  <div className="flex items-center bg-gray-100 dark:bg-gray-700 p-1 rounded-lg" data-tour="view-toggle">
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-2 rounded-md transition-all duration-200 ${viewMode === 'grid'
+                        ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      } active:scale-95`}
+                      aria-label="Grid view"
+                    >
+                      <GridIcon />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (tierFeatures.canUseTableView) {
+                          setViewMode('table');
+                        } else if (onUpgradeRequest) {
+                          onUpgradeRequest('canUseTableView');
+                        }
+                      }}
+                      className={`p-2 rounded-md transition-all duration-200 ${viewMode === 'table'
+                        ? 'bg-white dark:bg-gray-600 text-orange-500 shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                      } ${!tierFeatures.canUseTableView ? 'opacity-50' : ''} active:scale-95`}
+                      aria-label="Table view"
+                      title={tierFeatures.canUseTableView ? 'Table view' : tierFeatures.getUpgradeMessage('canUseTableView')}
+                    >
+                      <TableIcon />
+                    </button>
+                  </div>
+
+                  {/* Export - Ghost button style */}
+                  {(onExportCSV || onExportPDF) && (
+                    <div className="relative" ref={exportDropdownRef} data-tour="export-button">
+                      <button
+                        onClick={() => setExportDropdownOpen(!exportDropdownOpen)}
+                        className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all active:scale-95"
+                        title={`Export ${jobCount} jobs`}
+                      >
+                        <DownloadIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">Export</span>
+                        <ChevronDownIcon className={`w-3 h-3 transition-transform ${exportDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {exportDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                          {onExportCSV && (
+                            <button
+                              onClick={() => {
+                                onExportCSV();
+                                setExportDropdownOpen(false);
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <span>Export to CSV</span>
+                            </button>
+                          )}
+                          {onExportPDF && (
+                            <button
+                              onClick={() => {
+                                onExportPDF();
+                                setExportDropdownOpen(false);
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            >
+                              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
+                              <span>Export to PDF</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================ */}
+        {/* ROW 2: Contextual Filters (Jobs View Only) */}
+        {/* ============================================ */}
+        {isJobsView && (
+          <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/50 dark:bg-gray-800/30">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              {/* Status Pills - Subtle outline style */}
+              <div className="flex items-center gap-1.5 flex-wrap" data-tour="status-pills">
+                {statusOptions.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setFilter(status)}
+                    className={`
+                      px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200
+                      ${getStatusClasses(status, filter === status)}
+                      active:scale-95
+                    `}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+
+              {/* Secondary Controls - Even more subtle */}
+              <div className="flex items-center gap-4 text-sm">
+                {/* PM Filter */}
+                <div className="flex items-center gap-2">
+                  <label htmlFor="pm-filter" className="text-xs text-gray-500 dark:text-gray-400">PM:</label>
+                  <select
+                    id="pm-filter"
+                    value={pmFilter}
+                    onChange={(e) => setPmFilter(e.target.value)}
+                    className="text-sm text-gray-700 dark:text-gray-300 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                  >
+                    {projectManagers.map(pm => (
+                      <option key={pm} value={pm}>{pm === 'all' ? 'All' : pm}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sort - Hidden on mobile */}
+                <div className="hidden sm:flex items-center gap-2">
+                  <label htmlFor="sort" className="text-xs text-gray-500 dark:text-gray-400">Sort:</label>
+                  <select
+                    id="sort"
+                    value={`${sortKey}-${sortDirection}`}
+                    onChange={handleSortChange}
+                    className="text-sm text-gray-700 dark:text-gray-300 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                  >
+                    <option value="jobNo-asc">Job # ↑</option>
+                    <option value="jobNo-desc">Job # ↓</option>
+                    <option value="jobName-asc">Name A-Z</option>
+                    <option value="jobName-desc">Name Z-A</option>
+                    <option value="startDate-desc">Newest</option>
+                    <option value="startDate-asc">Oldest</option>
+                  </select>
+                </div>
+
+                {/* Weekly Update Mode toggle */}
+                {viewMode === 'table' && setWeeklyUpdateMode && (
+                  <label className="hidden lg:inline-flex items-center gap-2 cursor-pointer select-none text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                     <input
                       type="checkbox"
                       checked={weeklyUpdateMode}
                       onChange={(e) => setWeeklyUpdateMode(e.target.checked)}
-                      className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500"
+                      className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 w-4 h-4"
                     />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                      Weekly Update Mode
-                    </span>
+                    <span className="text-xs">Weekly Mode</span>
                   </label>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
-                  {weeklyUpdateMode && weeklyAsOfDate !== undefined && setWeeklyAsOfDate && (
-                    <div className="flex items-center gap-2">
-                      <label htmlFor="weekly-asof-table" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                        As Of:
-                      </label>
-                      <input
-                        id="weekly-asof-table"
-                        type="date"
-                        value={weeklyAsOfDate}
-                        onChange={(e) => setWeeklyAsOfDate(e.target.value)}
-                        className="text-sm border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                      {typeof weeklyUpdatedCount === 'number' && typeof weeklyTotalCount === 'number' && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          Updated: <span className="font-semibold text-gray-700 dark:text-gray-200">{weeklyUpdatedCount}</span>/{weeklyTotalCount}
-                        </span>
-                      )}
-                    </div>
-                  )}
+        {/* Weekly Review As-Of Date (for weekly view or weekly mode) */}
+        {(filter === 'weekly' || (viewMode === 'table' && weeklyUpdateMode)) && weeklyAsOfDate !== undefined && setWeeklyAsOfDate && (
+          <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700/50 bg-amber-50/50 dark:bg-amber-900/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-amber-700 dark:text-amber-400">As-Of Date:</span>
+                <input
+                  type="date"
+                  value={weeklyAsOfDate}
+                  onChange={(e) => setWeeklyAsOfDate(e.target.value)}
+                  className="text-sm border border-amber-200 dark:border-amber-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+              {typeof weeklyUpdatedCount === 'number' && typeof weeklyTotalCount === 'number' && (
+                <div className="flex items-center gap-2">
+                  <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                      style={{ width: `${weeklyTotalCount > 0 ? (weeklyUpdatedCount / weeklyTotalCount) * 100 : 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    <span className="font-semibold text-gray-900 dark:text-white">{weeklyUpdatedCount}</span>/{weeklyTotalCount}
+                  </span>
                 </div>
               )}
             </div>
           </div>
+        )}
+      </div>
 
-          {/* Weekly WIP Review (List View + Weekly Update Mode only) */}
-          {showWeeklyReviewPanel && (
-            <div className="mt-4">
-              <div className="bg-amber-50/70 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setIsWeeklyReviewOpen((v) => !v)}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-                >
-                  <div className="text-left">
-                    <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">
-                      Weekly WIP Review
-                    </div>
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                      A 5-step weekly routine to protect margin and cash
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Educational guidance only. Verify with your CPA/legal counsel before relying on this for reporting, tax, or contract decisions.
-                    </div>
-                  </div>
-                  <div className="text-xs font-semibold text-amber-700 dark:text-amber-300">
-                    {isWeeklyInputsComplete ? 'Ready' : 'In progress'}
-                  </div>
-                </button>
-
-                {isWeeklyReviewOpen && (
-                  <div className="px-4 pb-4 space-y-3">
-                    {/* Owner's Weekly Agenda */}
-                    {userRole === 'owner' && (
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800 p-3 mb-2">
-                        <div className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
-                            <span className="text-lg">👑</span>
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                              Owner's Weekly Agenda
-                            </div>
-                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
-                              <p>✓ <strong>Review PM Scorecard</strong> in Company view - identify who needs support</p>
-                              <p>✓ <strong>Check Needs Attention queue</strong> - which PMs have the most troubled jobs?</p>
-                              <p>✓ <strong>Spot patterns</strong> - chronic underbilling? Margin fade across multiple PMs?</p>
-                              <p>✓ <strong>Schedule 1:1s</strong> - meet with PMs who have 2+ jobs needing attention</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Step 1 */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            Step 1
-                          </div>
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Confirm your As-Of date
-                            {isAsOfSet ? (
-                              <span className="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Complete</span>
-                            ) : (
-                              <span className="ml-2 text-xs font-semibold text-red-600 dark:text-red-400">Missing</span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            WIP is point-in-time. The As-Of date is the anchor for weekly reporting and comparisons.
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => openKnowledge('01_Foundations/What_WIP_Is')}
-                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
-                        >
-                          Learn why
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Step 2 */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            Step 2
-                          </div>
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Update weekly inputs (Costs + CTC + Invoiced)
-                            {isWeeklyInputsComplete ? (
-                              <span className="ml-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Complete</span>
-                            ) : (
-                              <span className="ml-2 text-xs font-semibold text-amber-700 dark:text-amber-300">Work the list</span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Keep updates small and weekly. Big month-end swings are usually stale forecasts.
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => openKnowledge('02_Mechanics/Cost_to_Complete')}
-                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
-                        >
-                          Learn why
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Step 3 */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            Step 3
-                          </div>
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Billing position quick check (cash risk)
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Watch for chronic underbilling, or overbilling that is growing while production slows.
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => openKnowledge('02_Mechanics/Overbilling_Underbilling')}
-                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
-                        >
-                          Learn why
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Step 4 */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            Step 4
-                          </div>
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Margin drift / warning signs quick check
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            Identify which jobs need action this week before margin loss becomes irreversible.
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => openKnowledge('03_Reading_the_WIP/Warning_Signs')}
-                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
-                        >
-                          Learn why
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Step 5 */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-amber-100 dark:border-amber-900/30 p-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                            Step 5
-                          </div>
-                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                            Set your Top 3 actions (owner + due date)
-                          </div>
-                          <div className="mt-2 space-y-2">
-                            {weeklyActions.map((a, idx) => (
-                              <div key={idx} className="grid grid-cols-1 lg:grid-cols-6 gap-2">
-                                <input
-                                  value={a.text}
-                                  onChange={(e) =>
-                                    setWeeklyActions((prev) => {
-                                      const next = [...prev];
-                                      next[idx] = { ...next[idx], text: e.target.value };
-                                      return next;
-                                    })
-                                  }
-                                  placeholder={`Action ${idx + 1} (what will change?)`}
-                                  className="lg:col-span-3 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                />
-                                <input
-                                  value={a.owner}
-                                  onChange={(e) =>
-                                    setWeeklyActions((prev) => {
-                                      const next = [...prev];
-                                      next[idx] = { ...next[idx], owner: e.target.value };
-                                      return next;
-                                    })
-                                  }
-                                  placeholder="Owner"
-                                  className="lg:col-span-2 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                />
-                                <input
-                                  type="date"
-                                  value={a.dueDate}
-                                  onChange={(e) =>
-                                    setWeeklyActions((prev) => {
-                                      const next = [...prev];
-                                      next[idx] = { ...next[idx], dueDate: e.target.value };
-                                      return next;
-                                    })
-                                  }
-                                  className="lg:col-span-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => openKnowledge('05_Decision_Making/When_to_Push_Collections')}
-                          className="text-xs font-semibold text-amber-700 dark:text-amber-300 hover:underline"
-                        >
-                          Learn why
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+      {/* ============================================ */}
+      {/* Weekly WIP Review Panel (Collapsible) */}
+      {/* ============================================ */}
+      {showWeeklyReviewPanel && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 border border-amber-200 dark:border-amber-800 rounded-xl overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsWeeklyReviewOpen((v) => !v)}
+            className="w-full px-5 py-4 flex items-center justify-between hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-colors"
+          >
+            <div className="text-left">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📋</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">Weekly WIP Review Checklist</span>
+                {isWeeklyInputsComplete && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-500 text-white rounded-full">COMPLETE</span>
                 )}
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-7">
+                5-step routine to protect margin and cash
+              </p>
+            </div>
+            <svg 
+              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isWeeklyReviewOpen ? 'rotate-180' : ''}`} 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-              <KnowledgeDrawer
-                isOpen={knowledgeOpen}
-                onClose={() => setKnowledgeOpen(false)}
-                initialDocId={knowledgeDocId}
-              />
+          {isWeeklyReviewOpen && (
+            <div className="px-5 pb-5 space-y-3">
+              {/* Owner's Quick Tips */}
+              {userRole === 'owner' && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span>👑</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">Owner Focus</span>
+                  </div>
+                  <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1 ml-6">
+                    <li>• Review PM Scorecard in Company view</li>
+                    <li>• Check who has the most troubled jobs</li>
+                    <li>• Schedule 1:1s with PMs needing support</li>
+                  </ul>
+                </div>
+              )}
+
+              {/* Checklist Steps */}
+              {[
+                { step: 1, title: 'Confirm As-Of date', done: isAsOfSet, learn: '01_Foundations/What_WIP_Is' },
+                { step: 2, title: 'Update Costs + CTC + Invoiced', done: isWeeklyInputsComplete, learn: '02_Mechanics/Cost_to_Complete' },
+                { step: 3, title: 'Check billing position (cash risk)', done: false, learn: '02_Mechanics/Overbilling_Underbilling' },
+                { step: 4, title: 'Spot margin drift & warnings', done: false, learn: '03_Reading_the_WIP/Warning_Signs' },
+              ].map((item) => (
+                <div key={item.step} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      item.done 
+                        ? 'bg-emerald-500 text-white' 
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {item.done ? '✓' : item.step}
+                    </div>
+                    <span className={`text-sm ${item.done ? 'text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}>
+                      {item.title}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => openKnowledge(item.learn)}
+                    className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+                  >
+                    Learn why
+                  </button>
+                </div>
+              ))}
+
+              {/* Step 5: Action Items */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400">
+                      5
+                    </div>
+                    <span className="text-sm text-gray-900 dark:text-white">Set Top 3 Actions</span>
+                  </div>
+                  <button
+                    onClick={() => openKnowledge('05_Decision_Making/When_to_Push_Collections')}
+                    className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
+                  >
+                    Learn why
+                  </button>
+                </div>
+                <div className="space-y-2 ml-9">
+                  {weeklyActions.map((a, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <input
+                        value={a.text}
+                        onChange={(e) =>
+                          setWeeklyActions((prev) => {
+                            const next = [...prev];
+                            next[idx] = { ...next[idx], text: e.target.value };
+                            return next;
+                          })
+                        }
+                        placeholder={`Action ${idx + 1}`}
+                        className="flex-1 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                      <input
+                        value={a.owner}
+                        onChange={(e) =>
+                          setWeeklyActions((prev) => {
+                            const next = [...prev];
+                            next[idx] = { ...next[idx], owner: e.target.value };
+                            return next;
+                          })
+                        }
+                        placeholder="Owner"
+                        className="w-24 px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                      <input
+                        type="date"
+                        value={a.dueDate}
+                        onChange={(e) =>
+                          setWeeklyActions((prev) => {
+                            const next = [...prev];
+                            next[idx] = { ...next[idx], dueDate: e.target.value };
+                            return next;
+                          })
+                        }
+                        className="w-32 px-2 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center mt-2">
+                Educational guidance only. Verify with your CPA/legal counsel before relying on this for reporting decisions.
+              </p>
             </div>
           )}
         </div>
       )}
 
-      {/* ============================================ */}
-      {/* ROW 3: Quick Actions (Role-specific) */}
-      {/* ============================================ */}
-      {(userRole === 'owner' || userRole === 'projectManager' || userRole === 'estimator') && (
-        <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Quick Actions:</span>
-
-            {userRole === 'owner' && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                {/* Owner Quick Actions */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={() => onQuickFilterSelect('owner-troubled-jobs')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      filter === JobStatus.Active && viewMode === 'grid' && focusMode === 'default'
-                        ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600 dark:hover:text-red-400'
-                    }`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Troubled Jobs
-                  </button>
-                  <button
-                    onClick={() => onQuickFilterSelect('owner-weekly-revenue')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      filter === 'company'
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md'
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-green-400 hover:text-green-600 dark:hover:text-green-400'
-                    }`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Weekly Revenue
-                  </button>
-                  <button
-                    onClick={() => onQuickFilterSelect('owner-pm-review')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      filter === 'company'
-                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400'
-                    }`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    PM Review
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (tierFeatures.canUseGanttView) {
-                        setViewMode('gantt');
-                      } else if (onUpgradeRequest) {
-                        onUpgradeRequest('canUseGanttView');
-                      }
-                    }}
-                    disabled={!tierFeatures.canUseGanttView}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      viewMode === 'gantt'
-                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-orange-400 hover:text-orange-600 dark:hover:text-orange-400'
-                    } ${!tierFeatures.canUseGanttView ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <GanttIcon className="w-4 h-4" />
-                    Project Timeline
-                  </button>
-                </div>
-
-                {/* PM Actions for Owner-as-PM */}
-                {ownerIsAlsoPm && ownerPmName && (
-                  <>
-                    <div className="hidden sm:block w-px h-8 bg-gray-300 dark:bg-gray-600"></div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded">
-                        👑 + PM: {ownerPmName}
-                      </span>
-                      <button
-                        onClick={() => onQuickFilterSelect('pm-my-jobs')}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${pmMyJobsActive
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-amber-400 hover:text-amber-600'
-                        }`}
-                      >
-                        My Jobs
-                      </button>
-                      <button
-                        onClick={() => onQuickFilterSelect('pm-at-risk')}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmAtRiskActive
-                          ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600'
-                        }`}
-                      >
-                        <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                        At-Risk Margin
-                      </button>
-                      <button
-                        onClick={() => onQuickFilterSelect('pm-late')}
-                        className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmLateActive
-                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md'
-                          : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-yellow-400 hover:text-yellow-600'
-                        }`}
-                      >
-                        <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                        Behind Schedule
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {userRole === 'projectManager' && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                {/* PM Selector */}
-                <div className="flex items-center gap-2 bg-white dark:bg-gray-700 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600">
-                  <label htmlFor="pm-profile" className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Viewing as:</label>
-                  <select
-                    id="pm-profile"
-                    value={activeProjectManager}
-                    onChange={(e) => onActiveProjectManagerChange(e.target.value)}
-                    className="text-sm bg-transparent text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer font-medium"
-                  >
-                    <option value="">All PMs</option>
-                    {pmRoster.map(pm => (
-                      <option key={pm} value={pm}>{pm}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Quick Filters */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={() => onQuickFilterSelect('pm-my-jobs')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${pmMyJobsActive
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600'
-                      }`}
-                  >
-                    My Jobs
-                  </button>
-                  <button
-                    onClick={() => onQuickFilterSelect('pm-at-risk')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmAtRiskActive
-                      ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-red-400 hover:text-red-600'
-                      }`}
-                  >
-                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                    At-Risk Margin
-                  </button>
-                  <button
-                    onClick={() => onQuickFilterSelect('pm-late')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${pmLateActive
-                      ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white shadow-md'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-yellow-400 hover:text-yellow-600'
-                      }`}
-                  >
-                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                    Behind Schedule
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (tierFeatures.canUseGanttView) {
-                        setViewMode('gantt');
-                      } else if (onUpgradeRequest) {
-                        onUpgradeRequest('canUseGanttView');
-                      }
-                    }}
-                    disabled={!tierFeatures.canUseGanttView}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      viewMode === 'gantt'
-                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-orange-400 hover:text-orange-600 dark:hover:text-orange-400'
-                    } ${!tierFeatures.canUseGanttView ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <GanttIcon className="w-4 h-4" />
-                    Project Timeline
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {userRole === 'estimator' && (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <div className="flex items-center gap-2 bg-purple-50 dark:bg-purple-900/30 px-4 py-2 rounded-lg border border-purple-200 dark:border-purple-700">
-                  <svg className="w-4 h-4 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                  <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                    Viewing jobs where you are the assigned estimator
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={() => {
-                      if (tierFeatures.canUseGanttView) {
-                        setViewMode('gantt');
-                      } else if (onUpgradeRequest) {
-                        onUpgradeRequest('canUseGanttView');
-                      }
-                    }}
-                    disabled={!tierFeatures.canUseGanttView}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                      viewMode === 'gantt'
-                        ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md'
-                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-orange-400 hover:text-orange-600 dark:hover:text-orange-400'
-                    } ${!tierFeatures.canUseGanttView ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <GanttIcon className="w-4 h-4" />
-                    Project Timeline
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <KnowledgeDrawer
+        isOpen={knowledgeOpen}
+        onClose={() => setKnowledgeOpen(false)}
+        initialDocId={knowledgeDocId}
+      />
     </div>
   );
 };

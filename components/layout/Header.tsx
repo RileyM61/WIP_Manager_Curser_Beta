@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { PlusIcon, Cog6ToothIcon, SunIcon, MoonIcon } from '../shared/icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { SunIcon, MoonIcon } from '../shared/icons';
 import { UserRole } from '../../types';
 import DashboardNavButton from './DashboardNavButton';
-import { useSubscription } from '../../hooks/useSubscription';
-import { supabase } from '../../lib/supabase';
 import { hasUnread } from '../../lib/changelog';
 
 interface HeaderProps {
   companyName: string;
   companyLogo?: string;
   aiEnabled?: boolean;
-  onAddJob: () => void;
   onOpenSettings: () => void;
   onSignOut: () => void;
   theme: 'light' | 'dark';
@@ -23,10 +20,9 @@ interface HeaderProps {
   onActiveProjectManagerChange: (pm: string) => void;
   activeEstimator: string;
   onActiveEstimatorChange: (estimator: string) => void;
-  onOpenHelp?: () => void;
+  onStartTour?: () => void;
   onOpenGlossary?: () => void;
   onOpenWorkflows?: () => void;
-  onStartTour?: () => void;
   onOpenWhatsNew?: () => void;
   onOpenActivityLog?: () => void;
 }
@@ -35,7 +31,6 @@ const Header: React.FC<HeaderProps> = ({
   companyName,
   companyLogo,
   aiEnabled = false,
-  onAddJob,
   onOpenSettings,
   onSignOut,
   theme,
@@ -48,210 +43,132 @@ const Header: React.FC<HeaderProps> = ({
   onActiveProjectManagerChange,
   activeEstimator,
   onActiveEstimatorChange,
-  onOpenHelp,
+  onStartTour,
   onOpenGlossary,
   onOpenWorkflows,
-  onStartTour,
   onOpenWhatsNew,
   onOpenActivityLog,
 }) => {
   const [imageError, setImageError] = useState(false);
-  const [helpMenuOpen, setHelpMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [showUnreadBadge, setShowUnreadBadge] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Check for unread changelog entries
   useEffect(() => {
     setShowUnreadBadge(hasUnread());
   }, []);
-  const { isPro, isLoading: isSubscriptionLoading } = useSubscription();
-  const [isUpgrading, setIsUpgrading] = useState(false);
 
-  const handleUpgrade = async () => {
-    try {
-      setIsUpgrading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        alert('You must be logged in to upgrade.');
-        return;
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
       }
-
-      // Pro Plan Price ID ($99/month)
-      const PRICE_ID = 'price_1ScpqaAs5QaQtz7mJbECPkB5';
-
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          price_id: PRICE_ID,
-          return_url: window.location.href
-        })
-      });
-
-      const { url, error } = await response.json();
-      if (error) throw new Error(error);
-      if (url) window.location.href = url;
-    } catch (err: any) {
-      console.error('Upgrade failed:', err);
-      alert('Failed to start upgrade: ' + err.message);
-    } finally {
-      setIsUpgrading(false);
-    }
-  };
-
-  const handleManageSubscription = async () => {
-    try {
-      setIsUpgrading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) return;
-
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-portal-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          return_url: window.location.href
-        })
-      });
-
-      const { url, error } = await response.json();
-      if (error) throw new Error(error);
-      if (url) window.location.href = url;
-    } catch (err: any) {
-      console.error('Portal redirect failed:', err);
-      alert('Failed to redirect to portal: ' + err.message);
-    } finally {
-      setIsUpgrading(false);
-    }
-  };
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Reset image error when logo changes
   useEffect(() => {
     setImageError(false);
   }, [companyLogo]);
 
+  const getRoleIcon = (role: UserRole) => {
+    switch (role) {
+      case 'owner': return '👑';
+      case 'projectManager': return '🎯';
+      case 'estimator': return '📐';
+      default: return '👤';
+    }
+  };
+
+  const getRoleLabel = (role: UserRole) => {
+    switch (role) {
+      case 'owner': return 'Owner';
+      case 'projectManager': return 'PM';
+      case 'estimator': return 'Estimator';
+      default: return 'User';
+    }
+  };
+
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-md">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          {/* Left: Logo & Dashboard Link */}
+        <div className="flex items-center justify-between h-16">
+          {/* Left: Logo & Navigation */}
           <div className="flex items-center gap-4" data-tour="header-logo">
-            <DashboardNavButton className="text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-300" />
+            <DashboardNavButton className="text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-300 transition-colors" />
 
-            {/* Tier Badge & Upgrade Button */}
-            {!isSubscriptionLoading && (
-              <div className="hidden sm:flex items-center gap-2">
-                {isPro ? (
-                  <>
-                    {/* Pro Badge */}
-                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-sm">
-                      💎 Pro
-                    </span>
-                    {/* Manage Subscription Link */}
-                    <button
-                      onClick={handleManageSubscription}
-                      disabled={isUpgrading}
-                      className="text-xs text-gray-400 hover:text-purple-500 transition-colors disabled:opacity-50"
-                    >
-                      {isUpgrading ? '...' : 'Manage'}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {/* Free Badge */}
-                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-full">
-                      Free Plan
-                    </span>
-                    {/* Upgrade Button */}
-                    <button
-                      onClick={handleUpgrade}
-                      disabled={isUpgrading}
-                      className="inline-flex items-center px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 rounded-full shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all disabled:opacity-50"
-                    >
-                      {isUpgrading ? 'Loading...' : 'Upgrade →'}
-                    </button>
-                  </>
-                )}
-
-                {aiEnabled && (
-                  <span
-                    className="inline-flex items-center px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full shadow-sm"
-                    title="AI features are enabled by your workspace admin. Data sharing is controlled in Settings → Legal."
-                  >
-                    AI Enabled
-                  </span>
-                )}
-              </div>
-            )}
-
-            <span className="text-gray-300 dark:text-gray-600 text-xl font-light hidden sm:inline">|</span>
+            <span className="text-gray-200 dark:text-gray-700 text-xl font-light">|</span>
 
             {/* WIP Insights Logo */}
             <div className="flex items-center gap-3">
               <img
                 src="/images/wip-insights-logo.png"
                 alt="WIP-Insights"
-                className="h-24 w-auto"
+                className="h-10 w-auto"
               />
               {companyLogo && !imageError && (
                 <>
-                  <span className="text-gray-300 dark:text-gray-600 text-2xl font-light">|</span>
+                  <span className="text-gray-200 dark:text-gray-700 text-xl font-light hidden sm:inline">|</span>
                   <img
                     src={companyLogo}
                     alt={`${companyName} logo`}
-                    className="h-10 w-auto max-w-[150px] object-contain"
+                    className="h-8 w-auto max-w-[120px] object-contain hidden sm:block"
                     onError={() => setImageError(true)}
                   />
                 </>
               )}
+              {!companyLogo && companyName && companyName !== 'WIP Insights' && (
+                <span className="hidden sm:inline text-sm font-medium text-gray-600 dark:text-gray-400 max-w-[150px] truncate">
+                  {companyName}
+                </span>
+              )}
             </div>
-          </div>
 
-          {/* Center: Primary Action */}
-          <div className="hidden md:flex items-center" data-tour="add-job-button">
-            <button
-              onClick={onAddJob}
-              className="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg shadow-lg text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all hover:scale-105"
-            >
-              <PlusIcon />
-              <span className="ml-2">Add New Job</span>
-            </button>
-          </div>
-
-          {/* Right: Controls */}
-          <div className="flex items-center gap-3">
-            {/* Role Selector */}
-            <div className="hidden sm:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg" data-tour="role-selector">
-              <label htmlFor="role-select" className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Role</label>
-              <select
-                id="role-select"
-                value={userRole}
-                onChange={(e) => onRoleChange(e.target.value as UserRole)}
-                className="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer"
+            {/* AI Enabled Badge - subtle indicator */}
+            {aiEnabled && (
+              <span
+                className="hidden md:inline-flex items-center px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 rounded-full"
+                title="AI features are enabled"
               >
-                <option value="owner">Owner</option>
-                <option value="projectManager">Project Manager</option>
-                <option value="estimator">Estimator</option>
-              </select>
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1 animate-pulse" />
+                AI
+              </span>
+            )}
+          </div>
+
+          {/* Right: Role Selector & Profile Menu */}
+          <div className="flex items-center gap-2">
+            {/* Role Selector - Compact */}
+            <div className="hidden sm:flex items-center" data-tour="role-selector">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+                <span className="text-sm">{getRoleIcon(userRole)}</span>
+                <select
+                  id="role-select"
+                  value={userRole}
+                  onChange={(e) => onRoleChange(e.target.value as UserRole)}
+                  className="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer pr-1"
+                >
+                  <option value="owner">Owner</option>
+                  <option value="projectManager">PM</option>
+                  <option value="estimator">Estimator</option>
+                </select>
+              </div>
             </div>
 
             {/* PM Selector (only for PM role) */}
-            {userRole === 'projectManager' && (
-              <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                <label htmlFor="header-pm-select" className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">PM</label>
+            {userRole === 'projectManager' && projectManagers.length > 0 && (
+              <div className="hidden lg:flex items-center">
                 <select
                   id="header-pm-select"
                   value={activeProjectManager}
                   onChange={(e) => onActiveProjectManagerChange(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                 >
-                  <option value="">All</option>
+                  <option value="">All PMs</option>
                   {projectManagers.map(pm => (
                     <option key={pm} value={pm}>{pm}</option>
                   ))}
@@ -260,14 +177,13 @@ const Header: React.FC<HeaderProps> = ({
             )}
 
             {/* Estimator Selector (only for Estimator role) */}
-            {userRole === 'estimator' && (
-              <div className="hidden lg:flex items-center gap-2 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                <label htmlFor="header-estimator-select" className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Estimator</label>
+            {userRole === 'estimator' && estimators.length > 0 && (
+              <div className="hidden lg:flex items-center">
                 <select
                   id="header-estimator-select"
                   value={activeEstimator}
                   onChange={(e) => onActiveEstimatorChange(e.target.value)}
-                  className="bg-transparent text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none cursor-pointer"
+                  className="text-sm font-medium text-gray-600 dark:text-gray-300 bg-transparent focus:outline-none cursor-pointer hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                 >
                   <option value="">Select...</option>
                   {estimators.map(est => (
@@ -277,153 +193,186 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             )}
 
-            {/* Mobile Add Button */}
+            {/* Divider */}
+            <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-600 mx-1" />
+
+            {/* Theme Toggle */}
             <button
-              onClick={onAddJob}
-              className="md:hidden inline-flex items-center p-2 rounded-lg text-white bg-gradient-to-r from-orange-500 to-amber-500"
-              aria-label="Add New Job"
+              onClick={onToggleTheme}
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
+              aria-label="Toggle theme"
             >
-              <PlusIcon />
+              {theme === 'light' ? <MoonIcon /> : <SunIcon />}
             </button>
 
-            {/* Utility Buttons */}
-            <div className="flex items-center gap-1 border-l border-gray-200 dark:border-gray-600 pl-3">
-              {/* Help Button with Dropdown */}
-              <div className="relative" data-tour="help-button">
-                <button
-                  onClick={() => setHelpMenuOpen(!helpMenuOpen)}
-                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition"
-                  aria-label="Help"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
+            {/* Consolidated Profile/Settings Menu */}
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="flex items-center gap-2 p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all group"
+                aria-label="Menu"
+                data-tour="settings-button"
+              >
+                {/* User Avatar/Icon */}
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white text-sm font-bold shadow-sm">
+                  {companyName?.charAt(0).toUpperCase() || 'W'}
+                </div>
+                {/* Notification dot for unread items */}
+                {showUnreadBadge && (
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-gray-800" />
+                )}
+                <svg className={`w-4 h-4 text-gray-400 transition-transform ${profileMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
 
-                {/* Help Dropdown Menu */}
-                {helpMenuOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setHelpMenuOpen(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
-                      <div className="p-2">
-                        <button
-                          onClick={() => {
-                            setHelpMenuOpen(false);
-                            onStartTour?.();
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        >
-                          <span className="text-lg">🎯</span>
-                          <div className="text-left">
-                            <div className="font-medium">Start Tour</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Interactive walkthrough</div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setHelpMenuOpen(false);
-                            onOpenGlossary?.();
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        >
-                          <span className="text-lg">📚</span>
-                          <div className="text-left">
-                            <div className="font-medium">Glossary</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">WIP terminology explained</div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setHelpMenuOpen(false);
-                            onOpenWorkflows?.();
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        >
-                          <span className="text-lg">🔄</span>
-                          <div className="text-left">
-                            <div className="font-medium">Workflows</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Step-by-step guides</div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setHelpMenuOpen(false);
-                            onOpenActivityLog?.();
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors border-t border-gray-100 dark:border-gray-700 mt-1"
-                        >
-                          <span className="text-lg">📋</span>
-                          <div className="text-left">
-                            <div className="font-medium">Activity Log</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Track all changes</div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setHelpMenuOpen(false);
-                            window.location.href = '/debug/reset';
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors border-t border-gray-100 dark:border-gray-700 mt-1"
-                        >
-                          <span className="text-lg">🔄</span>
-                          <div className="text-left">
-                            <div className="font-medium">Reset Onboarding</div>
-                            <div className="text-xs opacity-75">Debug: Start fresh</div>
-                          </div>
-                        </button>
+              {/* Dropdown Menu */}
+              {profileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* User Info Section */}
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-bold shadow-sm">
+                        {companyName?.charAt(0).toUpperCase() || 'W'}
                       </div>
-                      <div className="border-t border-gray-100 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-800/50">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          💡 <strong>Tip:</strong> Look for <span className="inline-flex items-center justify-center w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded-full text-[10px] font-bold">i</span> icons for instant help
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                          {companyName || 'WIP Insights'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                          <span>{getRoleIcon(userRole)}</span>
+                          <span>{getRoleLabel(userRole)} View</span>
                         </p>
                       </div>
                     </div>
-                  </>
-                )}
-              </div>
+                  </div>
 
-              {/* What's New Button */}
-              <button
-                onClick={() => {
-                  setShowUnreadBadge(false);
-                  onOpenWhatsNew?.();
-                }}
-                className="relative p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition"
-                aria-label="What's New"
-                title="What's New"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                </svg>
-                {showUnreadBadge && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full" />
-                )}
-              </button>
+                  {/* Mobile Role Selector */}
+                  <div className="sm:hidden px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                    <label className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2 block">
+                      Switch Role
+                    </label>
+                    <select
+                      value={userRole}
+                      onChange={(e) => {
+                        onRoleChange(e.target.value as UserRole);
+                        setProfileMenuOpen(false);
+                      }}
+                      className="w-full text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    >
+                      <option value="owner">👑 Owner</option>
+                      <option value="projectManager">🎯 Project Manager</option>
+                      <option value="estimator">📐 Estimator</option>
+                    </select>
+                  </div>
 
-              <button
-                onClick={onToggleTheme}
-                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white transition"
-                aria-label="Toggle theme"
-              >
-                {theme === 'light' ? <MoonIcon /> : <SunIcon />}
-              </button>
-              <button
-                onClick={onOpenSettings}
-                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-white transition"
-                aria-label="Settings"
-                data-tour="settings-button"
-              >
-                <Cog6ToothIcon />
-              </button>
-              <button
-                onClick={onSignOut}
-                className="hidden sm:inline-flex items-center px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition"
-              >
-                Sign Out
-              </button>
+                  {/* Menu Items */}
+                  <div className="py-2">
+                    {/* What's New */}
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        setShowUnreadBadge(false);
+                        onOpenWhatsNew?.();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors"
+                    >
+                      <span className="text-lg">📢</span>
+                      <div className="text-left flex-1">
+                        <div className="font-medium flex items-center gap-2">
+                          What's New
+                          {showUnreadBadge && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500 text-white rounded-full">NEW</span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Latest updates & features</div>
+                      </div>
+                    </button>
+
+                    {/* Settings */}
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        onOpenSettings();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <span className="text-lg">⚙️</span>
+                      <div className="text-left">
+                        <div className="font-medium">Settings</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Company, users & preferences</div>
+                      </div>
+                    </button>
+
+                    <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
+
+                    {/* Help Section */}
+                    <div className="px-4 py-1">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Help & Learning</p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        onStartTour?.();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    >
+                      <span className="text-base">🎯</span>
+                      <span>Start Tour</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        onOpenGlossary?.();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    >
+                      <span className="text-base">📚</span>
+                      <span>Glossary</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        onOpenWorkflows?.();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    >
+                      <span className="text-base">🔄</span>
+                      <span>Workflows</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        onOpenActivityLog?.();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                    >
+                      <span className="text-base">📋</span>
+                      <span>Activity Log</span>
+                    </button>
+
+                    <div className="my-2 border-t border-gray-100 dark:border-gray-700" />
+
+                    {/* Sign Out */}
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        onSignOut();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span className="font-medium">Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
