@@ -134,12 +134,15 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
     loading,
     error,
     createWeeklySnapshot,
+    deleteWeeklySnapshot,
     generateWeeklyReport,
     loadWeeklySnapshots,
   } = useWeeklySnapshots(companyId, weekEndDay);
   
   const [selectedWeek, setSelectedWeek] = useState<number>(0);
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
+  const [isDeletingSnapshot, setIsDeletingSnapshot] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; weekNumber: number; year: number } | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Auto-dismiss toast after 4 seconds
@@ -193,6 +196,36 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
     } finally {
       setIsCreatingSnapshot(false);
     }
+  };
+
+  // Handle deleting a snapshot
+  const handleDeleteSnapshot = async () => {
+    if (!deleteConfirm) return;
+    
+    setIsDeletingSnapshot(true);
+    try {
+      await deleteWeeklySnapshot(deleteConfirm.id);
+      setToast({ 
+        message: `Snapshot for Week ${deleteConfirm.weekNumber} has been removed. You can now re-run the snapshot.`, 
+        type: 'success' 
+      });
+      setDeleteConfirm(null);
+      // Reset selected week if we deleted it
+      setSelectedWeek(0);
+    } catch (err) {
+      console.error('Failed to delete snapshot:', err);
+      setToast({ 
+        message: 'Failed to remove snapshot. Please try again.', 
+        type: 'error' 
+      });
+    } finally {
+      setIsDeletingSnapshot(false);
+    }
+  };
+
+  // Find snapshot ID for a given week
+  const getSnapshotId = (weekNumber: number, year: number): string | undefined => {
+    return weeklySnapshots.find(s => s.weekNumber === weekNumber && s.year === year)?.id;
   };
 
   // Selected week's job breakdown
@@ -337,13 +370,36 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
           {/* Job Breakdown Table - Increased top margin for semantic separation */}
           {selectedWeekData && (
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden mt-2">
-              <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  Job Breakdown - Week {selectedWeekData.weekNumber}
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {formatWeekRange(selectedWeekData.weekStart, selectedWeekData.weekEnd)}
-                </p>
+              <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-start justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    Job Breakdown - Week {selectedWeekData.weekNumber}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {formatWeekRange(selectedWeekData.weekStart, selectedWeekData.weekEnd)}
+                  </p>
+                </div>
+                {/* Remove Snapshot Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const snapshotId = getSnapshotId(selectedWeekData.weekNumber, selectedWeekData.year);
+                    if (snapshotId) {
+                      setDeleteConfirm({ 
+                        id: snapshotId, 
+                        weekNumber: selectedWeekData.weekNumber, 
+                        year: selectedWeekData.year 
+                      });
+                    }
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-500 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  title="Remove this snapshot to make corrections and re-run"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Remove
+                </button>
               </div>
               
               <div className="overflow-x-auto">
@@ -447,6 +503,60 @@ const WeeklyEarnedRevenueReport: React.FC<WeeklyEarnedRevenueReportProps> = ({
               'Save First Snapshot'
             )}
           </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  Remove Snapshot?
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Week {deleteConfirm.weekNumber}, {deleteConfirm.year}
+                </p>
+              </div>
+            </div>
+            
+            <p className="text-slate-600 dark:text-slate-300 mb-6">
+              This will remove the saved snapshot for this week. You can then make corrections to your jobs and save a new snapshot.
+            </p>
+            
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeletingSnapshot}
+                className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteSnapshot}
+                disabled={isDeletingSnapshot}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeletingSnapshot ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Removing...
+                  </>
+                ) : (
+                  'Remove Snapshot'
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

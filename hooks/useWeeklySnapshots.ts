@@ -424,6 +424,30 @@ export function useWeeklySnapshots(companyId?: string | null, weekEndDay: WeekDa
     return report;
   }, [weeklySnapshots]);
 
+  /**
+   * Delete a weekly snapshot by ID
+   * Allows user to correct job data and re-run the snapshot
+   */
+  const deleteWeeklySnapshot = useCallback(async (snapshotId: string) => {
+    if (!companyId || !isSupabaseConfigured()) return;
+
+    try {
+      const { error: deleteError } = await supabase!
+        .from('weekly_snapshots')
+        .delete()
+        .eq('id', snapshotId)
+        .eq('company_id', companyId); // Extra safety: ensure it belongs to this company
+
+      if (deleteError) throw deleteError;
+
+      // Reload snapshots
+      await loadWeeklySnapshots();
+    } catch (err: any) {
+      console.error('Error deleting weekly snapshot:', err);
+      throw err;
+    }
+  }, [companyId, loadWeeklySnapshots]);
+
   // Load snapshots on mount
   useEffect(() => {
     loadWeeklySnapshots();
@@ -435,6 +459,7 @@ export function useWeeklySnapshots(companyId?: string | null, weekEndDay: WeekDa
     error,
     loadWeeklySnapshots,
     createWeeklySnapshot,
+    deleteWeeklySnapshot,
     generateWeeklyReport,
   };
 }
