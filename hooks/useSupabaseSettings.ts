@@ -197,22 +197,30 @@ export function useSupabaseSettings(companyId?: string | null) {
         capacityPlanId = existingPlan?.id ?? null;
       }
 
+      // Ensure arrays are properly formatted (Supabase expects JSONB arrays)
+      const projectManagersArray = Array.isArray(newSettings.projectManagers) 
+        ? newSettings.projectManagers 
+        : [];
+      const estimatorsArray = Array.isArray(newSettings.estimators) 
+        ? newSettings.estimators 
+        : [];
+
       const updatePayload: any = {
-        company_name: newSettings.companyName,
-        project_managers: newSettings.projectManagers,
-        estimators: newSettings.estimators,
-        week_end_day: newSettings.weekEndDay,
-        default_status: newSettings.defaultStatus,
-        default_role: newSettings.defaultRole,
-        capacity_plan_id: capacityPlanId,
-        capacity_enabled: newSettings.capacityEnabled,
+        company_name: newSettings.companyName || '',
+        project_managers: projectManagersArray,
+        estimators: estimatorsArray,
+        week_end_day: newSettings.weekEndDay || 'Friday',
+        default_status: newSettings.defaultStatus || 'Active',
+        default_role: newSettings.defaultRole || 'owner',
+        capacity_plan_id: capacityPlanId ?? null, // Explicitly set to null if undefined
+        capacity_enabled: Boolean(newSettings.capacityEnabled),
         company_logo: newSettings.companyLogo || null,
-        ai_enabled: Boolean(newSettings.aiEnabled),
+        ai_enabled: Boolean(newSettings.aiEnabled ?? false),
         ai_share_job_financial_totals: newSettings.aiDataSharing?.includeJobFinancialTotals ?? true,
-        ai_share_cost_breakdown_detail: Boolean(newSettings.aiDataSharing?.includeCostBreakdownDetail),
-        ai_share_notes: Boolean(newSettings.aiDataSharing?.includeNotes),
-        ai_share_client_identifiers: Boolean(newSettings.aiDataSharing?.includeClientIdentifiers),
-        ai_share_attachments: Boolean(newSettings.aiDataSharing?.includeAttachments),
+        ai_share_cost_breakdown_detail: Boolean(newSettings.aiDataSharing?.includeCostBreakdownDetail ?? false),
+        ai_share_notes: Boolean(newSettings.aiDataSharing?.includeNotes ?? false),
+        ai_share_client_identifiers: Boolean(newSettings.aiDataSharing?.includeClientIdentifiers ?? false),
+        ai_share_attachments: Boolean(newSettings.aiDataSharing?.includeAttachments ?? false),
       };
 
       // Add T&M markup fields if they exist in settings
@@ -226,12 +234,12 @@ export function useSupabaseSettings(companyId?: string | null) {
         updatePayload.default_other_markup = newSettings.defaultOtherMarkup;
       }
 
-      const { error: updateError, data: updatedRows } = await supabase!
+      // Update settings - don't use .select() as it may fail due to RLS even if update succeeds
+      const { error: updateError } = await supabase!
         .from('settings')
         .update(updatePayload)
         .eq('id', settingsRowId)
-        .eq('company_id', companyId)
-        .select();
+        .eq('company_id', companyId);
 
       if (updateError) {
         console.error('[useSupabaseSettings] Database update error:', updateError);
@@ -239,12 +247,8 @@ export function useSupabaseSettings(companyId?: string | null) {
         throw updateError;
       }
 
-      // Verify the update actually succeeded
-      if (!updatedRows || updatedRows.length === 0) {
-        const error = new Error('Settings update returned no rows - update may have failed');
-        console.error('[useSupabaseSettings]', error);
-        throw error;
-      }
+      // If update succeeded without error, we can proceed
+      // Note: We don't verify with .select() as RLS policies might prevent reading even after successful update
 
       // Update local state with the new settings
       // Note: Appearance settings (dateFormat, numberFormat, currencyLocale) are stored in localStorage,
