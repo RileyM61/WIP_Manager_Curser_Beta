@@ -127,7 +127,9 @@ export function useSupabaseSettings(companyId?: string | null) {
   }, [loadSettings]);
 
   const updateSettings = useCallback(async (newSettings: Settings) => {
-    if (!companyId || !settingsRowId || !isSupabaseConfigured()) return;
+    if (!companyId || !settingsRowId || !isSupabaseConfigured()) {
+      throw new Error('Cannot update settings: missing companyId, settingsRowId, or Supabase not configured');
+    }
 
     try {
       let capacityPlanId: string | null = null;
@@ -153,16 +155,18 @@ export function useSupabaseSettings(companyId?: string | null) {
 
         if (existingPlan) {
           capacityPlanId = existingPlan.id;
-          await supabase!
+          const { error: planUpdateError } = await supabase!
             .from('capacity_plans')
             .update(planPayload)
             .eq('id', capacityPlanId);
+          if (planUpdateError) throw planUpdateError;
 
-          await supabase!
+          const { error: rowsDeleteError } = await supabase!
             .from('capacity_rows')
             .delete()
             .eq('plan_id', capacityPlanId)
             .eq('company_id', companyId);
+          if (rowsDeleteError) throw rowsDeleteError;
         } else {
           const { data: plan, error: planError } = await supabase!
             .from('capacity_plans')
@@ -193,25 +197,38 @@ export function useSupabaseSettings(companyId?: string | null) {
         capacityPlanId = existingPlan?.id ?? null;
       }
 
+      const updatePayload: any = {
+        company_name: newSettings.companyName,
+        project_managers: newSettings.projectManagers,
+        estimators: newSettings.estimators,
+        week_end_day: newSettings.weekEndDay,
+        default_status: newSettings.defaultStatus,
+        default_role: newSettings.defaultRole,
+        capacity_plan_id: capacityPlanId,
+        capacity_enabled: newSettings.capacityEnabled,
+        company_logo: newSettings.companyLogo || null,
+        ai_enabled: Boolean(newSettings.aiEnabled),
+        ai_share_job_financial_totals: newSettings.aiDataSharing?.includeJobFinancialTotals ?? true,
+        ai_share_cost_breakdown_detail: Boolean(newSettings.aiDataSharing?.includeCostBreakdownDetail),
+        ai_share_notes: Boolean(newSettings.aiDataSharing?.includeNotes),
+        ai_share_client_identifiers: Boolean(newSettings.aiDataSharing?.includeClientIdentifiers),
+        ai_share_attachments: Boolean(newSettings.aiDataSharing?.includeAttachments),
+      };
+
+      // Add T&M markup fields if they exist in settings
+      if (newSettings.defaultLaborBillRate !== undefined) {
+        updatePayload.default_labor_bill_rate = newSettings.defaultLaborBillRate;
+      }
+      if (newSettings.defaultMaterialMarkup !== undefined) {
+        updatePayload.default_material_markup = newSettings.defaultMaterialMarkup;
+      }
+      if (newSettings.defaultOtherMarkup !== undefined) {
+        updatePayload.default_other_markup = newSettings.defaultOtherMarkup;
+      }
+
       const { error: updateError } = await supabase!
         .from('settings')
-        .update({
-          company_name: newSettings.companyName,
-          project_managers: newSettings.projectManagers,
-          estimators: newSettings.estimators,
-          week_end_day: newSettings.weekEndDay,
-          default_status: newSettings.defaultStatus,
-          default_role: newSettings.defaultRole,
-          capacity_plan_id: capacityPlanId,
-          capacity_enabled: newSettings.capacityEnabled,
-          company_logo: newSettings.companyLogo || null,
-          ai_enabled: Boolean(newSettings.aiEnabled),
-          ai_share_job_financial_totals: newSettings.aiDataSharing?.includeJobFinancialTotals ?? true,
-          ai_share_cost_breakdown_detail: Boolean(newSettings.aiDataSharing?.includeCostBreakdownDetail),
-          ai_share_notes: Boolean(newSettings.aiDataSharing?.includeNotes),
-          ai_share_client_identifiers: Boolean(newSettings.aiDataSharing?.includeClientIdentifiers),
-          ai_share_attachments: Boolean(newSettings.aiDataSharing?.includeAttachments),
-        })
+        .update(updatePayload)
         .eq('id', settingsRowId)
         .eq('company_id', companyId);
 
