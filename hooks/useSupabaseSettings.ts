@@ -226,20 +226,43 @@ export function useSupabaseSettings(companyId?: string | null) {
         updatePayload.default_other_markup = newSettings.defaultOtherMarkup;
       }
 
-      const { error: updateError } = await supabase!
+      const { error: updateError, data: updatedRows } = await supabase!
         .from('settings')
         .update(updatePayload)
         .eq('id', settingsRowId)
-        .eq('company_id', companyId);
+        .eq('company_id', companyId)
+        .select();
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('[useSupabaseSettings] Database update error:', updateError);
+        console.error('[useSupabaseSettings] Update payload:', updatePayload);
+        throw updateError;
+      }
 
+      // Verify the update actually succeeded
+      if (!updatedRows || updatedRows.length === 0) {
+        const error = new Error('Settings update returned no rows - update may have failed');
+        console.error('[useSupabaseSettings]', error);
+        throw error;
+      }
+
+      // Update local state with the new settings
+      // Note: Appearance settings (dateFormat, numberFormat, currencyLocale) are stored in localStorage,
+      // not in the database, so we preserve them from newSettings
       setSettings({
         ...newSettings,
         capacityPlan: planForState ?? undefined,
       });
     } catch (err: any) {
       console.error('[useSupabaseSettings] Error updating settings', err);
+      console.error('[useSupabaseSettings] Error details:', {
+        message: err?.message,
+        code: err?.code,
+        details: err?.details,
+        hint: err?.hint,
+        companyId,
+        settingsRowId,
+      });
       throw err;
     }
   }, [companyId, settingsRowId]);
