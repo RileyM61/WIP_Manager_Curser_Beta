@@ -215,6 +215,7 @@ export function useSupabaseSettings(companyId?: string | null) {
         capacity_plan_id: capacityPlanId ?? null, // Explicitly set to null if undefined
         capacity_enabled: Boolean(newSettings.capacityEnabled),
         company_logo: newSettings.companyLogo || null,
+        // AI columns (requires migration 202512131900_ai_admin_data_sharing_controls.sql)
         ai_enabled: Boolean(newSettings.aiEnabled ?? false),
         ai_share_job_financial_totals: newSettings.aiDataSharing?.includeJobFinancialTotals ?? true,
         ai_share_cost_breakdown_detail: Boolean(newSettings.aiDataSharing?.includeCostBreakdownDetail ?? false),
