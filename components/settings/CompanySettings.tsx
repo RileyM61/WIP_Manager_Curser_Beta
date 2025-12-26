@@ -120,6 +120,18 @@ const CompanySettings: React.FC<CompanySettingsProps> = ({ settings, onChange, o
           </div>
         </div>
 
+        {/* Save Button */}
+        {hasChanges && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleSave}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              Save Changes
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Image Cropper Modal */}
