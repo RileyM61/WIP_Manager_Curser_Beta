@@ -57,16 +57,22 @@ export const OnboardingWidget: React.FC<OnboardingWidgetProps> = ({ onAction }) 
             action: () => navigate('/settings')
         },
         {
-            id: 'seed_jobs',
-            label: 'Add your initial Jobs (manual)',
-            cta: 'Go to Jobs',
-            action: () => navigate('/app/wip')
+            id: 'add_pm',
+            label: 'Add a Project Manager to your roster',
+            cta: 'Team Settings',
+            action: () => navigate('/settings')
         },
         {
             id: 'invite_team',
             label: 'Invite your Project Managers',
             cta: 'Users & Team',
             action: () => navigate('/settings')
+        },
+        {
+            id: 'seed_jobs',
+            label: 'Add your initial Jobs (manual)',
+            cta: 'Go to Jobs',
+            action: () => navigate('/app/wip')
         },
         {
             id: 'weekly_update',
