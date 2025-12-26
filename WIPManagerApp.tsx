@@ -227,6 +227,16 @@ function App() {
     }
   }, [settings, updateSettings]);
 
+  // Sync userRole from settings.defaultRole on first load
+  // This ensures new users (first in organization) get the correct 'owner' role
+  useEffect(() => {
+    if (settings?.defaultRole && userRole !== settings.defaultRole) {
+      // Only sync if the current role doesn't match the settings default
+      // This handles the case where localStorage has a stale value from previous testing
+      setUserRole(settings.defaultRole);
+    }
+  }, [settings?.defaultRole, userRole, setUserRole]);
+
   useEffect(() => {
     if (settings && activeProjectManager && !settings.projectManagers.includes(activeProjectManager)) {
       const fallback = settings.projectManagers[0] || '';
