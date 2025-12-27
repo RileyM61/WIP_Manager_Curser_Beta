@@ -44,10 +44,26 @@ interface ErrorResponse {
 // Configuration
 // ============================================================================
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Allowed origins for CORS - add your production domains here
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://wip-insights.com",
+  "https://www.wip-insights.com",
+  "https://chainlinkcfo.com",
+  "https://www.chainlinkcfo.com",
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
 // TODO: Add to Supabase secrets
 // const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
@@ -88,9 +104,11 @@ You are an educational tool. Users should verify with their CPA/legal counsel.`;
 // ============================================================================
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
@@ -99,7 +117,7 @@ Deno.serve(async (req: Request) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: { code: "UNAUTHORIZED", message: "Missing authorization" } }),
-        { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -115,7 +133,7 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: { code: "UNAUTHORIZED", message: "Invalid authentication" } }),
-        { status: 401, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -126,7 +144,7 @@ Deno.serve(async (req: Request) => {
     if (!message || message.trim().length === 0) {
       return new Response(
         JSON.stringify({ error: { code: "BAD_REQUEST", message: "Message is required" } }),
-        { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -197,7 +215,7 @@ For now, check out the **Knowledge** drawer (📚) in the top navigation - it ha
       JSON.stringify(scaffoldResponse),
       {
         status: 200,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
 
@@ -215,7 +233,7 @@ For now, check out the **Knowledge** drawer (📚) in the top navigation - it ha
       JSON.stringify(errorResponse),
       {
         status: 500,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
   }

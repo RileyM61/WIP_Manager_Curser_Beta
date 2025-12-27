@@ -1,12 +1,31 @@
 // Supabase Edge Function to create weekly job financial snapshots
-// Can be triggered via cron job or manual invocation
+// Can be triggered via cron job (with CRON_SECRET) or manual invocation (with user auth)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Secret for cron job authentication - set this in Supabase Dashboard > Edge Functions > Secrets
+const CRON_SECRET = Deno.env.get('CRON_SECRET');
+
+// Allowed origins for CORS - add your production domains here
+const ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://wip-insights.com",
+    "https://www.wip-insights.com",
+    "https://chainlinkcfo.com",
+    "https://www.chainlinkcfo.com",
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+    const origin = req.headers.get("Origin") || "";
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    
+    return {
+        'Access-Control-Allow-Origin': allowedOrigin,
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    };
+}
 
 interface Job {
     id: string;
@@ -36,37 +55,119 @@ interface Job {
 }
 
 Deno.serve(async (req) => {
+    const corsHeaders = getCorsHeaders(req);
+    
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders });
     }
 
     try {
-        // Create Supabase client with service role for admin access
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
         const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
+        // Parse request body for optional company filter and cron secret
+        let targetCompanyId: string | null = null;
+        let providedCronSecret: string | null = null;
+        try {
+            const body = await req.json();
+            targetCompanyId = body.companyId || null;
+            providedCronSecret = body.cronSecret || null;
+        } catch {
+            // No body or invalid JSON - will require auth
+        }
+
+        // ============================================================================
+        // AUTHORIZATION
+        // ============================================================================
+        // Two modes of operation:
+        // 1. Cron job mode: No companyId, requires CRON_SECRET - processes all companies
+        // 2. Manual mode: Has companyId, requires user auth - processes only user's company
+        
+        const authHeader = req.headers.get("Authorization");
+        let authorizedCompanyId: string | null = null;
+
+        if (!targetCompanyId) {
+            // Mode 1: Processing all companies - requires cron secret
+            if (!CRON_SECRET) {
+                return new Response(
+                    JSON.stringify({ success: false, error: 'CRON_SECRET not configured on server' }),
+                    { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+            if (providedCronSecret !== CRON_SECRET) {
+                return new Response(
+                    JSON.stringify({ success: false, error: 'Invalid or missing cron secret' }),
+                    { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+            // Cron job is authorized to process all companies
+            authorizedCompanyId = null;
+        } else {
+            // Mode 2: Processing specific company - requires user auth
+            if (!authHeader) {
+                return new Response(
+                    JSON.stringify({ success: false, error: 'Missing authorization header' }),
+                    { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+
+            // Create user-scoped client to verify auth
+            const userSupabase = createClient(supabaseUrl, supabaseAnonKey, {
+                global: { headers: { Authorization: authHeader } },
+            });
+
+            // Verify the user is authenticated
+            const { data: { user }, error: authError } = await userSupabase.auth.getUser();
+            if (authError || !user) {
+                return new Response(
+                    JSON.stringify({ success: false, error: 'Invalid authentication' }),
+                    { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+
+            // Verify user has access to the target company
+            const { data: profile, error: profileError } = await userSupabase
+                .from('profiles')
+                .select('company_id, role')
+                .eq('user_id', user.id)
+                .single();
+
+            if (profileError || !profile) {
+                return new Response(
+                    JSON.stringify({ success: false, error: 'User profile not found' }),
+                    { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+
+            // Only allow users to create snapshots for their own company
+            // or if they're an owner role (could be managing multiple companies)
+            if (profile.company_id !== targetCompanyId) {
+                return new Response(
+                    JSON.stringify({ success: false, error: 'Not authorized for this company' }),
+                    { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+                );
+            }
+
+            authorizedCompanyId = targetCompanyId;
+        }
+
+        // ============================================================================
+        // CREATE SNAPSHOTS (using service role for admin access to all data)
+        // ============================================================================
         const supabase = createClient(supabaseUrl, supabaseServiceKey, {
             auth: { persistSession: false }
         });
 
-        // Parse request body for optional company filter
-        let targetCompanyId: string | null = null;
-        try {
-            const body = await req.json();
-            targetCompanyId = body.companyId || null;
-        } catch {
-            // No body or invalid JSON - process all companies
-        }
-
-        // Query all active jobs (optionally filtered by company)
+        // Query active jobs - filtered by authorized company if in manual mode
         let query = supabase
             .from('jobs')
             .select('*')
             .eq('status', 'Active');
 
-        if (targetCompanyId) {
-            query = query.eq('company_id', targetCompanyId);
+        if (authorizedCompanyId) {
+            query = query.eq('company_id', authorizedCompanyId);
         }
 
         const { data: jobs, error: jobsError } = await query;
@@ -163,7 +264,7 @@ Deno.serve(async (req) => {
             }
         }
 
-        console.log(`Created ${snapshots.length} snapshots for ${targetCompanyId || 'all companies'}`);
+        console.log(`Created ${snapshots.length} snapshots for ${authorizedCompanyId || 'all companies'}`);
 
         return new Response(
             JSON.stringify({

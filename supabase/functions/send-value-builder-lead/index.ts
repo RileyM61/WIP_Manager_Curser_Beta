@@ -6,6 +6,62 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const NOTIFICATION_EMAIL = Deno.env.get("VALUE_BUILDER_NOTIFICATION_EMAIL") || "martin@junctionpeak.com";
 
+// ============================================================================
+// Rate Limiting
+// ============================================================================
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_MAX_REQUESTS = 5; // Max 5 submissions per IP per hour
+
+// In-memory rate limit store (resets on cold start, but good enough for basic protection)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+function isRateLimited(ip: string): { limited: boolean; retryAfter?: number } {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+  
+  if (!record || now > record.resetTime) {
+    // New window
+    rateLimitStore.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { limited: false };
+  }
+  
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfter = Math.ceil((record.resetTime - now) / 1000);
+    return { limited: true, retryAfter };
+  }
+  
+  record.count++;
+  return { limited: false };
+}
+
+function getClientIP(req: Request): string {
+  // Check various headers for the real IP (behind proxies/load balancers)
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+         req.headers.get("x-real-ip") ||
+         req.headers.get("cf-connecting-ip") ||
+         "unknown";
+}
+
+// ============================================================================
+// Input Sanitization
+// ============================================================================
+function sanitize(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// ============================================================================
+// Types
+// ============================================================================
 interface LeadData {
   email: string;
   firstName: string;
@@ -13,21 +69,97 @@ interface LeadData {
   companyName: string;
   phone?: string;
   annualRevenue: string;
+  // Honeypot field - should be empty if real user
+  website?: string;
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// Allowed origins for CORS - add your production domains here
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://wip-insights.com",
+  "https://www.wip-insights.com",
+  "https://chainlinkcfo.com",
+  "https://www.chainlinkcfo.com",
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get("Origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
+}
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+  
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(req);
+    const rateLimit = isRateLimited(clientIP);
+    if (rateLimit.limited) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Too many requests. Please try again later.",
+          retryAfter: rateLimit.retryAfter 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": String(rateLimit.retryAfter)
+          } 
+        }
+      );
+    }
+
     const data: LeadData = await req.json();
+
+    // Honeypot check - if 'website' field is filled, it's likely a bot
+    if (data.website) {
+      console.log("Honeypot triggered - likely bot submission");
+      // Return success to not reveal detection to bots
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Input validation
+    if (!data.email || !data.firstName || !data.lastName || !data.companyName || !data.annualRevenue) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing required fields" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!isValidEmail(data.email)) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid email address" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Sanitize inputs
+    const safeData = {
+      email: sanitize(data.email),
+      firstName: sanitize(data.firstName),
+      lastName: sanitize(data.lastName),
+      companyName: sanitize(data.companyName),
+      phone: data.phone ? sanitize(data.phone) : undefined,
+      annualRevenue: sanitize(data.annualRevenue),
+    };
 
     // Format revenue for display
     const revenueLabels: Record<string, string> = {
@@ -68,29 +200,29 @@ serve(async (req) => {
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="padding: 8px 0; color: #166534; font-size: 14px; width: 140px;">Name:</td>
-            <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 500;">${data.firstName} ${data.lastName}</td>
+            <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 500;">${safeData.firstName} ${safeData.lastName}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #166534; font-size: 14px;">Company:</td>
-            <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 500;">${data.companyName}</td>
+            <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 500;">${safeData.companyName}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #166534; font-size: 14px;">Email:</td>
             <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 500;">
-              <a href="mailto:${data.email}" style="color: #059669; text-decoration: none;">${data.email}</a>
+              <a href="mailto:${safeData.email}" style="color: #059669; text-decoration: none;">${safeData.email}</a>
             </td>
           </tr>
-          ${data.phone ? `
+          ${safeData.phone ? `
           <tr>
             <td style="padding: 8px 0; color: #166534; font-size: 14px;">Phone:</td>
             <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 500;">
-              <a href="tel:${data.phone}" style="color: #059669; text-decoration: none;">${data.phone}</a>
+              <a href="tel:${safeData.phone}" style="color: #059669; text-decoration: none;">${safeData.phone}</a>
             </td>
           </tr>
           ` : ''}
           <tr>
             <td style="padding: 8px 0; color: #166534; font-size: 14px;">Annual Revenue:</td>
-            <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 600;">${revenueLabels[data.annualRevenue] || data.annualRevenue}</td>
+            <td style="padding: 8px 0; color: #14532d; font-size: 14px; font-weight: 600;">${revenueLabels[data.annualRevenue] || safeData.annualRevenue}</td>
           </tr>
         </table>
       </div>
@@ -108,9 +240,9 @@ serve(async (req) => {
       
       <!-- CTA -->
       <div style="text-align: center;">
-        <a href="mailto:${data.email}?subject=Your%20Business%20Valuation%20Results&body=Hi%20${encodeURIComponent(data.firstName)},%0A%0AThank%20you%20for%20using%20the%20ChainLink%20CFO%20Value%20Builder!%0A%0A" 
+        <a href="mailto:${safeData.email}?subject=Your%20Business%20Valuation%20Results&body=Hi%20${encodeURIComponent(safeData.firstName)},%0A%0AThank%20you%20for%20using%20the%20ChainLink%20CFO%20Value%20Builder!%0A%0A" 
            style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #22c55e 100%); color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
-          Reply to ${data.firstName}
+          Reply to ${safeData.firstName}
         </a>
       </div>
     </div>
@@ -144,9 +276,9 @@ serve(async (req) => {
       body: JSON.stringify({
         from: "ChainLink CFO <onboarding@resend.dev>",
         to: [NOTIFICATION_EMAIL],
-        subject: `📊 New Value Builder Lead: ${data.companyName} (${revenueLabels[data.annualRevenue] || data.annualRevenue})`,
+        subject: `📊 New Value Builder Lead: ${safeData.companyName} (${revenueLabels[data.annualRevenue] || safeData.annualRevenue})`,
         html: emailHtml,
-        reply_to: data.email,
+        reply_to: safeData.email,
       }),
     });
 
