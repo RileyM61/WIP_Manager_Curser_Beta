@@ -715,16 +715,17 @@ const WIPInsightsLanding: React.FC = () => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span>Bank-level security</span>
+                  <span>Enterprise-grade security</span>
                   <svg className="w-4 h-4 text-wip-muted cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {/* Tooltip */}
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-wip-heading text-wip-card text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-xl">
                     <div className="space-y-1">
-                      <div>✓ SOC 2 Type II Certified</div>
-                      <div>✓ AES-256 Encryption</div>
-                      <div>✓ TLS 1.3 in Transit</div>
+                      <div>✓ SOC 2 certified infrastructure</div>
+                      <div>✓ AES-256 encryption at rest</div>
+                      <div>✓ TLS encryption in transit</div>
+                      <div>✓ Role-based access controls</div>
                     </div>
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-wip-heading" />
                   </div>
